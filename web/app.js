@@ -4,13 +4,53 @@
    step, blink and subtract them. All image stretching happens here, on raw
    brightness values, so every control responds instantly. */
 
-const PRESETS = [
-  { name: "Crab Nebula", ra: 83.633, dec: 22.0145, size: 0.25 },
-  { name: "Orion Nebula", ra: 83.822, dec: -5.391, size: 0.5 },
-  { name: "Pleiades", ra: 56.75, dec: 24.12, size: 0.5 },
-  { name: "Andromeda Galaxy", ra: 10.6847, dec: 41.2687, size: 1 },
-  { name: "Teegarden's Star, a fast mover", ra: 43.2796, dec: 16.854, size: 0.1 },
+const PRESET_CATEGORIES = [
+  {
+    category: "Fast-Moving Stars",
+    items: [
+      { name: "Barnard's Star (10.3″/yr)", ra: 269.4462, dec: 4.7697, size: 0.1 },
+      { name: "Kapteyn's Star (8.6″/yr)", ra: 77.9871, dec: -45.0607, size: 0.1 },
+      { name: "Groombridge 1830 (7.0″/yr)", ra: 178.2823, dec: 37.6757, size: 0.1 },
+      { name: "Lacaille 9352 (6.9″/yr)", ra: 346.5285, dec: -35.8433, size: 0.1 },
+      { name: "Teegarden's Star (5.1″/yr)", ra: 43.2796, dec: 16.854, size: 0.1 },
+      { name: "Wolf 359 (4.7″/yr)", ra: 164.0919, dec: 6.9946, size: 0.1 },
+    ],
+  },
+  {
+    category: "Brown Dwarfs & Variables",
+    items: [
+      { name: "Luhman 16 (Brown Dwarf Binary)", ra: 162.3288, dec: -53.3195, size: 0.1 },
+      { name: "WISE J184125 (Variable Star)", ra: 280.3562, dec: 9.9101, size: 0.1 },
+      { name: "TRAPPIST-1 (Ultra-cool Dwarf)", ra: 346.6223, dec: -5.0414, size: 0.1 },
+      { name: "Gliese 229B (T-Dwarf)", ra: 92.6442, dec: -21.8646, size: 0.1 },
+      { name: "Mira (Omicron Ceti Variable)", ra: 34.8366, dec: -2.9776, size: 0.25 },
+      { name: "CW Leonis (Carbon Star)", ra: 146.9892, dec: 13.2788, size: 0.25 },
+    ],
+  },
+  {
+    category: "Nebulae & Star Clusters",
+    items: [
+      { name: "Crab Nebula (M1)", ra: 83.633, dec: 22.0145, size: 0.25 },
+      { name: "Orion Nebula (M42)", ra: 83.822, dec: -5.391, size: 0.5 },
+      { name: "Pleiades (M45)", ra: 56.75, dec: 24.12, size: 0.5 },
+      { name: "Ring Nebula (M57)", ra: 283.3962, dec: 33.0292, size: 0.1 },
+      { name: "Eagle Nebula (M16)", ra: 274.7, dec: -13.8067, size: 0.5 },
+      { name: "Hercules Cluster (M13)", ra: 250.4235, dec: 36.4613, size: 0.25 },
+    ],
+  },
+  {
+    category: "Galaxies & Deep Sky",
+    items: [
+      { name: "Andromeda Galaxy (M31)", ra: 10.6847, dec: 41.2687, size: 1 },
+      { name: "Whirlpool Galaxy (M51)", ra: 202.4696, dec: 47.1952, size: 0.25 },
+      { name: "Cigar Galaxy (M82)", ra: 148.9685, dec: 69.6797, size: 0.25 },
+      { name: "Bode's Galaxy (M81)", ra: 148.8882, dec: 69.0653, size: 0.5 },
+      { name: "Triangulum Galaxy (M33)", ra: 23.4621, dec: 30.6602, size: 1 },
+      { name: "Galactic Centre (Sgr A*)", ra: 266.4168, dec: -29.0078, size: 0.5 },
+    ],
+  },
 ];
+const PRESETS = PRESET_CATEGORIES.flatMap((c) => c.items);
 const EPOCH_COLORS = ["#ffb347", "#62d2c3", "#f2849e", "#a9b8ff", "#d6e36b", "#ff8f5a"];
 const FRAMES_PER_SWEEP = 2;
 const CANDIDATES_PER_SWEEP = 5;   // extras, in case some only half-cover the view
@@ -19,7 +59,8 @@ const NODATA = [58, 42, 85];
 
 const $ = (id) => document.getElementById(id);
 const els = {
-  form: $("target-form"), coords: $("coords"), size: $("size"), presets: $("presets"),
+  form: $("target-form"), coords: $("coords"), size: $("size"),
+  presetCats: $("preset-cats"), presets: $("presets"),
   status: $("status"), view: $("view"), overlay: $("overlay"), empty: $("plate-empty"),
   caption: $("caption"), capEpoch: $("cap-epoch"), capDate: $("cap-date"), capLam: $("cap-lam"),
   readout: $("readout"), plate: $("plate"),
@@ -84,15 +125,16 @@ function setStatus(msg, kind = "") {
 
 /* ---------------------------------------------------------- loading */
 
-async function lookAt(ra, dec, size, lam) {
+async function lookAt(ra, dec, size, lam, label) {
   stopMotion();
   const found = document.getElementById("found");
   if (found) found.replaceChildren();
   const run = ++state.run;
   Object.assign(state, { ra, dec, size, lam: lam || DEFAULT_LAM, npix: size >= 1 ? 512 : 384,
+    label: label || null,
     frames: [], exposures: [], epochs: [], points: [], specTotal: 0, specDone: false });
   if (state.specAbort) state.specAbort.abort();
-  els.coords.value = fmtCoord(ra, dec);
+  els.coords.value = label ? `${label} (${fmtCoord(ra, dec)})` : fmtCoord(ra, dec);
   els.size.value = String(size);
   els.timeline.replaceChildren();
   els.spectrum.replaceChildren();
@@ -125,7 +167,8 @@ async function lookAt(ra, dec, size, lam) {
     return;
   }
   const n = res.exposures.length, s = res.epochs.length;
-  setStatus(`${n} images of this spot, from ${s} ${s === 1 ? "sweep" : "sweeps"} of the sky.`, "quiet");
+  const prefix = state.label ? `${state.label}: ` : "";
+  setStatus(`${prefix}${n} images of this spot, from ${s} ${s === 1 ? "sweep" : "sweeps"} of the sky.`, "quiet");
   await loadFrames(run);
   if (run === state.run) loadSpectrum(run);
 }
@@ -701,23 +744,70 @@ function syncUrl() {
   history.replaceState(null, "", "?" + q);
 }
 
-for (const p of PRESETS) {
-  const b = document.createElement("button");
-  b.type = "button";
-  b.textContent = p.name;
-  b.addEventListener("click", () => lookAt(p.ra, p.dec, p.size));
-  els.presets.append(b);
+function renderPresetCategory(catIndex) {
+  els.presets.replaceChildren();
+  if (els.presetCats) {
+    [...els.presetCats.children].forEach((btn, idx) => {
+      btn.classList.toggle("on", idx === catIndex);
+      btn.setAttribute("aria-selected", String(idx === catIndex));
+    });
+  }
+  const cat = PRESET_CATEGORIES[catIndex] || PRESET_CATEGORIES[0];
+  for (const p of cat.items) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = p.name;
+    b.addEventListener("click", () => lookAt(p.ra, p.dec, p.size, null, p.name));
+    els.presets.append(b);
+  }
 }
 
-els.form.addEventListener("submit", (ev) => {
+if (els.presetCats) {
+  PRESET_CATEGORIES.forEach((cat, idx) => {
+    const tab = document.createElement("button");
+    tab.type = "button";
+    tab.role = "tab";
+    tab.className = "cat-tab" + (idx === 0 ? " on" : "");
+    tab.textContent = cat.category;
+    tab.addEventListener("click", () => renderPresetCategory(idx));
+    els.presetCats.append(tab);
+  });
+}
+renderPresetCategory(0);
+
+els.form.addEventListener("submit", async (ev) => {
   ev.preventDefault();
-  const c = parseCoords(els.coords.value);
-  if (!c) {
-    setStatus("That position could not be read. Enter right ascension then declination, for example 56.75 +24.12 or 03:47:00 +24:07:12.", "error");
-    els.coords.focus();
+  const raw = els.coords.value.trim();
+  if (!raw) return;
+  // Strip trailing "(ra dec)" if user submits a labeled preset string
+  const cleaned = raw.replace(/\s*\([0-9.+\-\s]+\)\s*$/, "").trim();
+  const c = parseCoords(cleaned) || parseCoords(raw);
+  if (c) {
+    lookAt(c.ra, c.dec, +els.size.value, state.ra === null ? null : state.lam);
     return;
   }
-  lookAt(c.ra, c.dec, +els.size.value, state.ra === null ? null : state.lam);
+  // Check local presets first
+  const qLower = cleaned.toLowerCase();
+  const presetMatch = PRESETS.find((p) => p.name.toLowerCase().includes(qLower));
+  if (presetMatch) {
+    lookAt(presetMatch.ra, presetMatch.dec, presetMatch.size, null, presetMatch.name);
+    return;
+  }
+  // Resolve any object name via astronomical catalogs (SIMBAD / NED / VizieR)
+  setStatus(`Looking up "${cleaned}" in astronomical catalogs (SIMBAD/NED)…`);
+  try {
+    const r = await fetch(`/api/resolve?name=${encodeURIComponent(cleaned)}`);
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      throw new Error(err.detail || r.statusText);
+    }
+    const resolved = await r.json();
+    const label = resolved.otype ? `${resolved.name} [${resolved.otype}]` : resolved.name;
+    lookAt(resolved.ra, resolved.dec, +els.size.value, state.ra === null ? null : state.lam, label);
+  } catch (e) {
+    setStatus(`Could not find "${cleaned}" (${e.message}). Enter an object name (e.g. Barnard's Star, M51, TRAPPIST-1) or coordinates like 56.75 +24.12.`, "error");
+    els.coords.focus();
+  }
 });
 
 els.prev.addEventListener("click", () => { stopMotion(); step(-1); });

@@ -236,6 +236,38 @@ def find_exposure(ra: float, dec: float, exp_id: str) -> dict:
     raise KeyError(exp_id)
 
 
+def resolve_name(name: str) -> dict:
+    """Resolve an astronomical object name (star, brown dwarf, nebula, cluster, galaxy)
+    to ICRS (ra, dec) via the CDS Sesame service (SIMBAD + NED + VizieR)."""
+    import re
+    import urllib.parse
+    q = name.strip()
+    if not q or len(q) > 120:
+        raise ValueError("empty or invalid target name")
+    path = _cache_path("resolve", f"v1:{q.lower()}", ".json")
+    with _lock(str(path)):
+        if path.exists():
+            return json.loads(path.read_text())
+        url = f"https://cds.unistra.fr/cgi-bin/nph-sesame/-ox/SNV?{urllib.parse.quote(q)}"
+        r = _session().get(url, timeout=12)
+        r.raise_for_status()
+        text = r.text
+        m_ra = re.search(r"<jradeg>\s*([0-9.+\-eE]+)\s*</jradeg>", text)
+        m_dec = re.search(r"<jdedeg>\s*([0-9.+\-eE]+)\s*</jdedeg>", text)
+        if not (m_ra and m_dec):
+            raise KeyError(f"object '{q}' not found in astronomical catalogs (SIMBAD/NED)")
+        m_oname = re.search(r"<oname>\s*([^<]+?)\s*</oname>", text)
+        m_otype = re.search(r"<otype>\s*([^<]+?)\s*</otype>", text)
+        out = {
+            "name": m_oname.group(1).strip() if m_oname else q,
+            "otype": m_otype.group(1).strip() if m_otype else "",
+            "ra": round(float(m_ra.group(1)) % 360.0, 5),
+            "dec": round(float(m_dec.group(1)), 5),
+        }
+        path.write_text(json.dumps(out))
+        return out
+
+
 # ---------------------------------------------------------------- wavelength
 
 _wave_tables: dict[int, tuple[np.ndarray, np.ndarray, np.ndarray]] = {}

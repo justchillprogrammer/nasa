@@ -50,6 +50,21 @@ def api_search(ra: float, dec: float, response: Response):
     return {"ra": ra, "dec": dec, "epochs": res["epochs"], "exposures": res["exposures"]}
 
 
+@app.get("/api/resolve")
+def api_resolve(name: str, response: Response):
+    """Resolve an astronomical object name (SIMBAD/NED/VizieR) to sky coordinates."""
+    try:
+        res = sx.resolve_name(name)
+    except KeyError as e:
+        raise HTTPException(404, str(e))
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    except Exception as e:
+        raise HTTPException(502, f"name lookup failed: {e}")
+    response.headers["Cache-Control"] = "public, max-age=86400, s-maxage=86400"
+    return res
+
+
 @app.get("/api/cutout")
 def api_cutout(
     ra: float, dec: float, id: str = "",

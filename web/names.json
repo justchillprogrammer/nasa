@@ -2,6 +2,195 @@
 "note": "Well-known objects for name search (J2000 positions).",
 "objects": [
 {
+"name": "Barnard's Star",
+"aka": [
+"GJ 699",
+"HIP 87937",
+"Fastest proper motion star"
+],
+"ra": 269.4462,
+"dec": 4.7697,
+"size": 0.1
+},
+{
+"name": "Kapteyn's Star",
+"aka": [
+"HD 33793",
+"GJ 191"
+],
+"ra": 77.9871,
+"dec": -45.0607,
+"size": 0.1
+},
+{
+"name": "Groombridge 1830",
+"aka": [
+"HD 103095",
+"CF Ursae Majoris"
+],
+"ra": 178.2823,
+"dec": 37.6757,
+"size": 0.1
+},
+{
+"name": "Lacaille 9352",
+"aka": [
+"HD 217987",
+"GJ 887"
+],
+"ra": 346.5285,
+"dec": -35.8433,
+"size": 0.1
+},
+{
+"name": "Wolf 359",
+"aka": [
+"CN Leonis",
+"GJ 406"
+],
+"ra": 164.0919,
+"dec": 6.9946,
+"size": 0.1
+},
+{
+"name": "Teegarden's Star",
+"aka": [
+"SO J025300.5+165258",
+"Fast mover"
+],
+"ra": 43.2796,
+"dec": 16.854,
+"size": 0.1
+},
+{
+"name": "Lalande 21185",
+"aka": [
+"HD 95735",
+"GJ 411"
+],
+"ra": 165.8341,
+"dec": 35.9699,
+"size": 0.1
+},
+{
+"name": "61 Cygni",
+"aka": [
+"Bessel's Star",
+"Flying Star"
+],
+"ra": 316.7248,
+"dec": 38.7494,
+"size": 0.1
+},
+{
+"name": "Epsilon Indi",
+"aka": [
+"HD 209100"
+],
+"ra": 330.8402,
+"dec": -56.786,
+"size": 0.1
+},
+{
+"name": "Proxima Centauri",
+"aka": [
+"Alpha Centauri C",
+"V645 Centauri"
+],
+"ra": 217.429,
+"dec": -62.6795,
+"size": 0.1
+},
+{
+"name": "Luhman 16",
+"aka": [
+"WISE J104915.57-531906.1",
+"Nearest brown dwarf binary"
+],
+"ra": 162.3288,
+"dec": -53.3195,
+"size": 0.1
+},
+{
+"name": "WISE 0855-0714",
+"aka": [
+"Coldest known brown dwarf",
+"Sub-brown dwarf"
+],
+"ra": 133.7875,
+"dec": -7.2444,
+"size": 0.1
+},
+{
+"name": "TRAPPIST-1",
+"aka": [
+"2MASS J23062928-0502285",
+"Ultra-cool dwarf with 7 planets"
+],
+"ra": 346.6223,
+"dec": -5.0414,
+"size": 0.1
+},
+{
+"name": "Gliese 229B",
+"aka": [
+"GJ 229B",
+"First T-type brown dwarf"
+],
+"ra": 92.6442,
+"dec": -21.8646,
+"size": 0.1
+},
+{
+"name": "Mira",
+"aka": [
+"Omicron Ceti",
+"Pulsating red giant"
+],
+"ra": 34.8366,
+"dec": -2.9776,
+"size": 0.25
+},
+{
+"name": "CW Leonis",
+"aka": [
+"IRC +10216",
+"Brightest infrared carbon star"
+],
+"ra": 146.9892,
+"dec": 13.2788,
+"size": 0.25
+},
+{
+"name": "VY Canis Majoris",
+"aka": [
+"VY CMa",
+"Red hypergiant"
+],
+"ra": 110.743,
+"dec": -25.7676,
+"size": 0.25
+},
+{
+"name": "T Tauri",
+"aka": [
+"Prototype young variable star"
+],
+"ra": 65.4976,
+"dec": 19.5351,
+"size": 0.25
+},
+{
+"name": "R Leporis",
+"aka": [
+"Hind's Crimson Star",
+"Carbon star"
+],
+"ra": 74.9015,
+"dec": -14.8063,
+"size": 0.25
+},
+{
 "name": "Crab Nebula",
 "aka": [
 "M1",

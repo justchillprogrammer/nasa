@@ -854,14 +854,24 @@ el.q.addEventListener("keydown", (e) => {
     items.forEach((li, i) => li.setAttribute("aria-selected", String(i === sel)));
   }
 });
-el.search.addEventListener("submit", (e) => {
+el.search.addEventListener("submit", async (e) => {
   e.preventDefault();
-  const list = matches(el.q.value);
+  const raw = el.q.value.trim();
+  if (!raw) return;
+  const list = matches(raw);
   if (sel >= 0 && list[sel]) return go(list[sel]);
-  const c = parseCoords(el.q.value);
+  const c = parseCoords(raw);
   if (c) return go({ ...c, size: 0.25 });
   if (list.length) return go(list[0]);
-  setStatus(`No match for "${el.q.value}". Try a well-known name like Orion Nebula or Andromeda, or coordinates such as 83.82 -5.39.`, true);
+  setStatus(`Looking up "${raw}" in astronomical catalogs (SIMBAD/NED)…`);
+  try {
+    const r = await fetch(`/api/resolve?name=${encodeURIComponent(raw)}`);
+    if (!r.ok) throw new Error("not found");
+    const obj = await r.json();
+    return go({ ra: obj.ra, dec: obj.dec, size: 0.25 });
+  } catch (_) {
+    setStatus(`No match for "${raw}". Try a star, comet, nebula or galaxy name (e.g. Barnard's Star, TRAPPIST-1, M51), or coordinates such as 83.82 -5.39.`, true);
+  }
 });
 
 /* ---------------------------------------------------------- wiring */
