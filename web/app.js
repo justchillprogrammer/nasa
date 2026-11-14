@@ -8,7 +8,6 @@ const VISIBLE_PILLS = 8;
 
 const HOMEPAGE_CATS = [
   "All",
-  "Moving objects",
   "Stars on the move",
   "Changing brightness",
   "Steady skies",
@@ -16,7 +15,6 @@ const HOMEPAGE_CATS = [
 
 const ASTRO_CATS = [
   "All",
-  "Comets & Asteroids",
   "Fast-Moving Stars",
   "Brown Dwarfs & Cool Worlds",
   "Variable & Pulsating Stars",
@@ -25,7 +23,6 @@ const ASTRO_CATS = [
 ];
 
 const ASTRO_TO_HOME = {
-  "Comets & Asteroids": "Moving objects",
   "Fast-Moving Stars": "Stars on the move",
   "Brown Dwarfs & Cool Worlds": "Stars on the move",
   "Variable & Pulsating Stars": "Changing brightness",
@@ -34,36 +31,12 @@ const ASTRO_TO_HOME = {
 };
 
 const HOME_TO_ASTRO = {
-  "Moving objects": ["Comets & Asteroids"],
   "Stars on the move": ["Fast-Moving Stars", "Brown Dwarfs & Cool Worlds"],
   "Changing brightness": ["Variable & Pulsating Stars"],
   "Steady skies": ["Nebulae & Star Clusters", "Galaxies & Deep Sky"],
 };
 
 const PRESET_CATEGORIES = [
-  {
-    category: "Comets & Asteroids",
-    items: [
-      { name: "3I/ATLAS (Interstellar Comet)", aka: ["C/2025 N1"], ra: 282.5, dec: -18.2, size: 0.25 },
-      { name: "Comet C/2023 A3 (Tsuchinshan-ATLAS)", aka: ["C/2023 A3"], ra: 205.42, dec: -1.18, size: 0.25 },
-      { name: "29P/Schwassmann-Wachmann", aka: ["Cryovolcanic Comet"], ra: 142.85, dec: 18.42, size: 0.25 },
-      { name: "67P/Churyumov-Gerasimenko", aka: ["Rosetta Comet"], ra: 38.92, dec: 14.31, size: 0.25 },
-      { name: "Ceres (Dwarf Planet)", aka: ["(1) Ceres"], ra: 278.11, dec: -26.45, size: 0.25 },
-      { name: "Vesta (Asteroid 4)", aka: ["(4) Vesta"], ra: 118.64, dec: 22.88, size: 0.25 },
-      { name: "Apophis (Near-Earth Asteroid)", aka: ["(99942) Apophis"], ra: 145.62, dec: 12.34, size: 0.25 },
-      { name: "Bennu (OSIRIS-REx Target)", aka: ["(101955) Bennu"], ra: 18.45, dec: 6.12, size: 0.25 },
-      { name: "Comet 1P/Halley", aka: ["Halley's Comet"], ra: 129.18, dec: 1.95, size: 0.25 },
-      { name: "Comet 2P/Encke", aka: ["Encke's Comet"], ra: 318.4, dec: -14.8, size: 0.25 },
-      { name: "Comet 46P/Wirtanen", aka: ["46P"], ra: 64.12, dec: 21.65, size: 0.25 },
-      { name: "Comet 103P/Hartley", aka: ["Hartley 2"], ra: 91.34, dec: 15.22, size: 0.25 },
-      { name: "Eros (Near-Earth Asteroid)", aka: ["(433) Eros"], ra: 312.18, dec: -14.72, size: 0.25 },
-      { name: "Hygiea (Asteroid 10)", aka: ["(10) Hygiea"], ra: 244.1, dec: -22.5, size: 0.25 },
-      { name: "Juno (Asteroid 3)", aka: ["(3) Juno"], ra: 172.8, dec: -3.4, size: 0.25 },
-      { name: "Pallas (Asteroid 2)", aka: ["(2) Pallas"], ra: 210.5, dec: 18.2, size: 0.25 },
-      { name: "Psyche (Metal Asteroid 16)", aka: ["(16) Psyche"], ra: 158.9, dec: 11.4, size: 0.25 },
-      { name: "Ryugu (Hayabusa2 Target)", aka: ["(162173) Ryugu"], ra: 332.7, dec: -8.9, size: 0.25 },
-    ],
-  },
   {
     category: "Fast-Moving Stars",
     items: [
