@@ -21,8 +21,11 @@
   <form id="target-form" class="target" autocomplete="off">
     <label for="coords">Where to look</label>
     <div class="target-row">
-      <input id="coords" name="coords" type="text" inputmode="text" spellcheck="false"
-             placeholder="Object name (Barnard's Star, M51, Luhman 16) or 56.75 +24.12" aria-describedby="coords-help">
+      <div class="coords-wrap">
+        <input id="coords" name="coords" type="text" inputmode="text" spellcheck="false"
+               placeholder="Type a letter or name (e.g. A, An, Andromeda, Barnard's Star) or RA/Dec" aria-describedby="coords-help" aria-autocomplete="list" aria-controls="coords-suggest">
+        <ul id="coords-suggest" class="suggest" role="listbox" hidden></ul>
+      </div>
       <select id="size" aria-label="Width of the view">
         <option value="0.1">6 arcmin wide</option>
         <option value="0.25" selected>15 arcmin wide</option>
@@ -31,7 +34,7 @@
       </select>
       <button type="submit" class="primary">Look here</button>
     </div>
-    <p id="coords-help" class="help">Type any star, brown dwarf, nebula, cluster, or galaxy name (via SIMBAD/NED), or RA/Dec coordinates. Or pick a curated target by category:</p>
+    <p id="coords-help" class="help">Start typing any object name (A &rarr; An &rarr; Andromeda) to see matching stars, nebulae, comets &amp; galaxies, or enter RA/Dec coordinates:</p>
     <div id="preset-cats" class="preset-cats" role="tablist" aria-label="Target categories"></div>
     <div id="presets" class="presets"></div>
   </form>

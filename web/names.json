@@ -1,589 +1,122 @@
 {
-"note": "Well-known objects for name search (J2000 positions).",
+"note": "Comprehensive A-Z catalog of stars, brown dwarfs, variable stars, comets/asteroids, nebulae, clusters, and galaxies (J2000 positions).",
 "objects": [
-{
-"name": "Barnard's Star",
-"aka": [
-"GJ 699",
-"HIP 87937",
-"Fastest proper motion star"
-],
-"ra": 269.4462,
-"dec": 4.7697,
-"size": 0.1
-},
-{
-"name": "Kapteyn's Star",
-"aka": [
-"HD 33793",
-"GJ 191"
-],
-"ra": 77.9871,
-"dec": -45.0607,
-"size": 0.1
-},
-{
-"name": "Groombridge 1830",
-"aka": [
-"HD 103095",
-"CF Ursae Majoris"
-],
-"ra": 178.2823,
-"dec": 37.6757,
-"size": 0.1
-},
-{
-"name": "Lacaille 9352",
-"aka": [
-"HD 217987",
-"GJ 887"
-],
-"ra": 346.5285,
-"dec": -35.8433,
-"size": 0.1
-},
-{
-"name": "Wolf 359",
-"aka": [
-"CN Leonis",
-"GJ 406"
-],
-"ra": 164.0919,
-"dec": 6.9946,
-"size": 0.1
-},
-{
-"name": "Teegarden's Star",
-"aka": [
-"SO J025300.5+165258",
-"Fast mover"
-],
-"ra": 43.2796,
-"dec": 16.854,
-"size": 0.1
-},
-{
-"name": "Lalande 21185",
-"aka": [
-"HD 95735",
-"GJ 411"
-],
-"ra": 165.8341,
-"dec": 35.9699,
-"size": 0.1
-},
-{
-"name": "61 Cygni",
-"aka": [
-"Bessel's Star",
-"Flying Star"
-],
-"ra": 316.7248,
-"dec": 38.7494,
-"size": 0.1
-},
-{
-"name": "Epsilon Indi",
-"aka": [
-"HD 209100"
-],
-"ra": 330.8402,
-"dec": -56.786,
-"size": 0.1
-},
-{
-"name": "Proxima Centauri",
-"aka": [
-"Alpha Centauri C",
-"V645 Centauri"
-],
-"ra": 217.429,
-"dec": -62.6795,
-"size": 0.1
-},
-{
-"name": "Luhman 16",
-"aka": [
-"WISE J104915.57-531906.1",
-"Nearest brown dwarf binary"
-],
-"ra": 162.3288,
-"dec": -53.3195,
-"size": 0.1
-},
-{
-"name": "WISE 0855-0714",
-"aka": [
-"Coldest known brown dwarf",
-"Sub-brown dwarf"
-],
-"ra": 133.7875,
-"dec": -7.2444,
-"size": 0.1
-},
-{
-"name": "TRAPPIST-1",
-"aka": [
-"2MASS J23062928-0502285",
-"Ultra-cool dwarf with 7 planets"
-],
-"ra": 346.6223,
-"dec": -5.0414,
-"size": 0.1
-},
-{
-"name": "Gliese 229B",
-"aka": [
-"GJ 229B",
-"First T-type brown dwarf"
-],
-"ra": 92.6442,
-"dec": -21.8646,
-"size": 0.1
-},
-{
-"name": "Mira",
-"aka": [
-"Omicron Ceti",
-"Pulsating red giant"
-],
-"ra": 34.8366,
-"dec": -2.9776,
-"size": 0.25
-},
-{
-"name": "CW Leonis",
-"aka": [
-"IRC +10216",
-"Brightest infrared carbon star"
-],
-"ra": 146.9892,
-"dec": 13.2788,
-"size": 0.25
-},
-{
-"name": "VY Canis Majoris",
-"aka": [
-"VY CMa",
-"Red hypergiant"
-],
-"ra": 110.743,
-"dec": -25.7676,
-"size": 0.25
-},
-{
-"name": "T Tauri",
-"aka": [
-"Prototype young variable star"
-],
-"ra": 65.4976,
-"dec": 19.5351,
-"size": 0.25
-},
-{
-"name": "R Leporis",
-"aka": [
-"Hind's Crimson Star",
-"Carbon star"
-],
-"ra": 74.9015,
-"dec": -14.8063,
-"size": 0.25
-},
-{
-"name": "Crab Nebula",
-"aka": [
-"M1",
-"Messier 1"
-],
-"ra": 83.633,
-"dec": 22.0145,
-"size": 0.25
-},
-{
-"name": "Lagoon Nebula",
-"aka": [
-"M8",
-"Messier 8"
-],
-"ra": 270.925,
-"dec": -24.38,
-"size": 0.5
-},
-{
-"name": "Hercules Globular Cluster",
-"aka": [
-"M13",
-"Messier 13"
-],
-"ra": 250.4235,
-"dec": 36.4613,
-"size": 0.25
-},
-{
-"name": "Eagle Nebula",
-"aka": [
-"M16",
-"Messier 16",
-"Pillars of Creation"
-],
-"ra": 274.7,
-"dec": -13.807,
-"size": 0.5
-},
-{
-"name": "Omega Nebula",
-"aka": [
-"M17",
-"Messier 17",
-"Swan Nebula"
-],
-"ra": 275.196,
-"dec": -16.171,
-"size": 0.5
-},
-{
-"name": "Trifid Nebula",
-"aka": [
-"M20",
-"Messier 20"
-],
-"ra": 270.675,
-"dec": -22.971,
-"size": 0.5
-},
-{
-"name": "Dumbbell Nebula",
-"aka": [
-"M27",
-"Messier 27"
-],
-"ra": 299.9016,
-"dec": 22.7211,
-"size": 0.25
-},
-{
-"name": "Andromeda Galaxy",
-"aka": [
-"M31",
-"Messier 31"
-],
-"ra": 10.6847,
-"dec": 41.2687,
-"size": 1.0
-},
-{
-"name": "Triangulum Galaxy",
-"aka": [
-"M33",
-"Messier 33"
-],
-"ra": 23.4621,
-"dec": 30.6599,
-"size": 1.0
-},
-{
-"name": "Orion Nebula",
-"aka": [
-"M42",
-"Messier 42"
-],
-"ra": 83.822,
-"dec": -5.391,
-"size": 0.5
-},
-{
-"name": "Beehive Cluster",
-"aka": [
-"M44",
-"Messier 44",
-"Praesepe"
-],
-"ra": 130.1,
-"dec": 19.667,
-"size": 1.0
-},
-{
-"name": "Pleiades",
-"aka": [
-"M45",
-"Messier 45",
-"Seven Sisters"
-],
-"ra": 56.75,
-"dec": 24.1167,
-"size": 0.5
-},
-{
-"name": "Whirlpool Galaxy",
-"aka": [
-"M51",
-"Messier 51"
-],
-"ra": 202.4696,
-"dec": 47.1952,
-"size": 0.25
-},
-{
-"name": "Ring Nebula",
-"aka": [
-"M57",
-"Messier 57"
-],
-"ra": 283.3963,
-"dec": 33.0292,
-"size": 0.1
-},
-{
-"name": "Bode's Galaxy",
-"aka": [
-"M81",
-"Messier 81"
-],
-"ra": 148.8882,
-"dec": 69.0653,
-"size": 0.5
-},
-{
-"name": "Cigar Galaxy",
-"aka": [
-"M82",
-"Messier 82"
-],
-"ra": 148.9685,
-"dec": 69.6797,
-"size": 0.25
-},
-{
-"name": "Messier 87",
-"aka": [
-"M87",
-"Virgo A"
-],
-"ra": 187.7059,
-"dec": 12.3911,
-"size": 0.25
-},
-{
-"name": "Pinwheel Galaxy",
-"aka": [
-"M101",
-"Messier 101"
-],
-"ra": 210.8024,
-"dec": 54.3489,
-"size": 0.5
-},
-{
-"name": "Sombrero Galaxy",
-"aka": [
-"M104",
-"Messier 104"
-],
-"ra": 189.9976,
-"dec": -11.6231,
-"size": 0.25
-},
-{
-"name": "Horsehead Nebula",
-"aka": [
-"Barnard 33"
-],
-"ra": 85.2479,
-"dec": -2.4583,
-"size": 0.25
-},
-{
-"name": "Helix Nebula",
-"aka": [
-"NGC 7293"
-],
-"ra": 337.411,
-"dec": -20.8372,
-"size": 0.5
-},
-{
-"name": "Cat's Eye Nebula",
-"aka": [
-"NGC 6543"
-],
-"ra": 269.6391,
-"dec": 66.6331,
-"size": 0.1
-},
-{
-"name": "Rosette Nebula",
-"aka": [
-"NGC 2237"
-],
-"ra": 97.98,
-"dec": 4.95,
-"size": 1.0
-},
-{
-"name": "North America Nebula",
-"aka": [
-"NGC 7000"
-],
-"ra": 314.75,
-"dec": 44.33,
-"size": 1.0
-},
-{
-"name": "Carina Nebula",
-"aka": [
-"NGC 3372"
-],
-"ra": 160.9,
-"dec": -59.87,
-"size": 1.0
-},
-{
-"name": "Tarantula Nebula",
-"aka": [
-"30 Doradus",
-"NGC 2070"
-],
-"ra": 84.6765,
-"dec": -69.1009,
-"size": 0.5
-},
-{
-"name": "Large Magellanic Cloud",
-"aka": [
-"LMC"
-],
-"ra": 80.8938,
-"dec": -69.7561,
-"size": 1.5
-},
-{
-"name": "Small Magellanic Cloud",
-"aka": [
-"SMC"
-],
-"ra": 13.1867,
-"dec": -72.8286,
-"size": 1.5
-},
-{
-"name": "Omega Centauri",
-"aka": [
-"NGC 5139"
-],
-"ra": 201.697,
-"dec": -47.4795,
-"size": 0.5
-},
-{
-"name": "47 Tucanae",
-"aka": [
-"NGC 104"
-],
-"ra": 6.0236,
-"dec": -72.0813,
-"size": 0.5
-},
-{
-"name": "Galactic Centre",
-"aka": [
-"Sagittarius A*",
-"Sgr A*",
-"Milky Way centre"
-],
-"ra": 266.4168,
-"dec": -29.0078,
-"size": 0.5
-},
-{
-"name": "Eta Carinae",
-"aka": [],
-"ra": 161.2648,
-"dec": -59.6844,
-"size": 0.25
-},
-{
-"name": "Betelgeuse",
-"aka": [
-"Alpha Orionis"
-],
-"ra": 88.7929,
-"dec": 7.4071,
-"size": 0.25
-},
-{
-"name": "Rigel",
-"aka": [
-"Beta Orionis"
-],
-"ra": 78.6345,
-"dec": -8.2016,
-"size": 0.25
-},
-{
-"name": "Sirius",
-"aka": [
-"Alpha Canis Majoris",
-"Dog Star"
-],
-"ra": 101.2872,
-"dec": -16.7161,
-"size": 0.25
-},
-{
-"name": "Vega",
-"aka": [
-"Alpha Lyrae"
-],
-"ra": 279.2347,
-"dec": 38.7837,
-"size": 0.25
-},
-{
-"name": "Polaris",
-"aka": [
-"North Star",
-"Alpha Ursae Minoris"
-],
-"ra": 37.9546,
-"dec": 89.2641,
-"size": 0.25
-},
-{
-"name": "Antares",
-"aka": [
-"Alpha Scorpii"
-],
-"ra": 247.3519,
-"dec": -26.432,
-"size": 0.25
-},
-{
-"name": "Aldebaran",
-"aka": [
-"Alpha Tauri"
-],
-"ra": 68.9802,
-"dec": 16.5093,
-"size": 0.25
-},
-{
-"name": "Arcturus",
-"aka": [
-"Alpha Bootis"
-],
-"ra": 213.9153,
-"dec": 19.1824,
-"size": 0.25
-},
-{
-"name": "Deneb",
-"aka": [
-"Alpha Cygni"
-],
-"ra": 310.358,
-"dec": 45.2803,
-"size": 0.25
-}
+  { "name": "Andromeda Galaxy", "aka": ["M31", "Messier 31", "NGC 224"], "ra": 10.6847, "dec": 41.2687, "size": 1.0 },
+  { "name": "Antares", "aka": ["Alpha Scorpii", "Red supergiant"], "ra": 247.3519, "dec": -26.432, "size": 0.25 },
+  { "name": "Antennae Galaxies", "aka": ["NGC 4038", "NGC 4039", "Colliding galaxies"], "ra": 180.4708, "dec": -18.8675, "size": 0.25 },
+  { "name": "Aldebaran", "aka": ["Alpha Tauri", "Eye of Taurus"], "ra": 68.9802, "dec": 16.5093, "size": 0.25 },
+  { "name": "Alpha Centauri", "aka": ["Rigil Kentaurus", "Toliman"], "ra": 219.9021, "dec": -60.834, "size": 0.25 },
+  { "name": "Altair", "aka": ["Alpha Aquilae"], "ra": 297.6958, "dec": 8.8683, "size": 0.25 },
+  { "name": "Arcturus", "aka": ["Alpha Bootis"], "ra": 213.9153, "dec": 19.1824, "size": 0.25 },
+  { "name": "Achernar", "aka": ["Alpha Eridani"], "ra": 24.4286, "dec": -57.2368, "size": 0.25 },
+  { "name": "Algol", "aka": ["Beta Persei", "Demon Star", "Eclipsing binary"], "ra": 47.0422, "dec": 40.9556, "size": 0.25 },
+  { "name": "Alnilam", "aka": ["Epsilon Orionis", "Orion's Belt"], "ra": 84.0534, "dec": -1.2019, "size": 0.25 },
+  { "name": "Alnitak", "aka": ["Zeta Orionis", "Flame Nebula star"], "ra": 85.1897, "dec": -1.9426, "size": 0.25 },
+  { "name": "Abell 2151", "aka": ["Hercules Galaxy Cluster"], "ra": 241.3125, "dec": 17.7485, "size": 0.5 },
+  { "name": "Barnard's Star", "aka": ["GJ 699", "HIP 87937", "Fastest proper motion star (10.3\"/yr)"], "ra": 269.4462, "dec": 4.7697, "size": 0.1 },
+  { "name": "Betelgeuse", "aka": ["Alpha Orionis", "Variable red supergiant"], "ra": 88.7929, "dec": 7.4071, "size": 0.25 },
+  { "name": "Beehive Cluster", "aka": ["M44", "Messier 44", "Praesepe"], "ra": 130.1, "dec": 19.667, "size": 1.0 },
+  { "name": "Bode's Galaxy", "aka": ["M81", "Messier 81", "NGC 3031"], "ra": 148.8882, "dec": 69.0653, "size": 0.5 },
+  { "name": "Black Eye Galaxy", "aka": ["M64", "Messier 64", "NGC 4826"], "ra": 194.1821, "dec": 21.6827, "size": 0.25 },
+  { "name": "Bubble Nebula", "aka": ["NGC 7635"], "ra": 350.1904, "dec": 61.2017, "size": 0.25 },
+  { "name": "Butterfly Cluster", "aka": ["M6", "Messier 6"], "ra": 265.083, "dec": -32.253, "size": 0.5 },
+  { "name": "Crab Nebula", "aka": ["M1", "Messier 1", "SN 1054 remnant"], "ra": 83.633, "dec": 22.0145, "size": 0.25 },
+  { "name": "Cigar Galaxy", "aka": ["M82", "Messier 82", "Starburst galaxy"], "ra": 148.9685, "dec": 69.6797, "size": 0.25 },
+  { "name": "Carina Nebula", "aka": ["NGC 3372", "Eta Carinae Nebula"], "ra": 160.9, "dec": -59.87, "size": 1.0 },
+  { "name": "Cat's Eye Nebula", "aka": ["NGC 6543", "Planetary nebula"], "ra": 269.6391, "dec": 66.6331, "size": 0.1 },
+  { "name": "CW Leonis", "aka": ["IRC +10216", "Brightest infrared carbon star"], "ra": 146.9892, "dec": 13.2788, "size": 0.25 },
+  { "name": "Chi Cygni", "aka": ["Mira variable star"], "ra": 297.6413, "dec": 32.9141, "size": 0.25 },
+  { "name": "Cartwheel Galaxy", "aka": ["ESO 350-40", "Ring galaxy"], "ra": 9.4275, "dec": -33.716, "size": 0.1 },
+  { "name": "Centaurus A", "aka": ["NGC 5128", "Active radio galaxy"], "ra": 201.3651, "dec": -43.0191, "size": 0.5 },
+  { "name": "Canopus", "aka": ["Alpha Carinae"], "ra": 95.988, "dec": -52.6957, "size": 0.25 },
+  { "name": "Capella", "aka": ["Alpha Aurigae"], "ra": 79.1723, "dec": 45.998, "size": 0.25 },
+  { "name": "Castor", "aka": ["Alpha Geminorum"], "ra": 113.6494, "dec": 31.8883, "size": 0.25 },
+  { "name": "Ceres", "aka": ["(1) Ceres", "Dwarf planet"], "ra": 278.11, "dec": -26.45, "size": 0.25 },
+  { "name": "Comet C/2023 A3 (Tsuchinshan-ATLAS)", "aka": ["Tsuchinshan-ATLAS", "C/2023 A3"], "ra": 205.42, "dec": -1.18, "size": 0.25 },
+  { "name": "Dumbbell Nebula", "aka": ["M27", "Messier 27"], "ra": 299.9016, "dec": 22.7211, "size": 0.25 },
+  { "name": "Deneb", "aka": ["Alpha Cygni", "Blue-white supergiant"], "ra": 310.358, "dec": 45.2803, "size": 0.25 },
+  { "name": "Double Cluster", "aka": ["NGC 869", "NGC 884", "Perseus Double Cluster"], "ra": 35.125, "dec": 57.133, "size": 0.5 },
+  { "name": "Eagle Nebula", "aka": ["M16", "Messier 16", "Pillars of Creation"], "ra": 274.7, "dec": -13.807, "size": 0.5 },
+  { "name": "Eta Carinae", "aka": ["Homunculus Nebula", "Luminous blue variable"], "ra": 161.2648, "dec": -59.6844, "size": 0.25 },
+  { "name": "Epsilon Indi", "aka": ["HD 209100", "High proper-motion star + brown dwarfs"], "ra": 330.8402, "dec": -56.786, "size": 0.1 },
+  { "name": "Epsilon Eridani", "aka": ["Ran", "Nearby star with debris disk"], "ra": 53.2327, "dec": -9.4583, "size": 0.1 },
+  { "name": "Eros", "aka": ["(433) Eros", "Near-Earth asteroid"], "ra": 312.18, "dec": -14.72, "size": 0.25 },
+  { "name": "Eskimo Nebula", "aka": ["NGC 2392", "Clownface Nebula"], "ra": 112.2949, "dec": 20.9118, "size": 0.1 },
+  { "name": "Fomalhaut", "aka": ["Alpha Piscis Austrini", "Debris disk star"], "ra": 344.4127, "dec": -29.6222, "size": 0.25 },
+  { "name": "Flame Nebula", "aka": ["NGC 2024"], "ra": 85.429, "dec": -1.85, "size": 0.5 },
+  { "name": "Fireworks Galaxy", "aka": ["NGC 6946"], "ra": 308.718, "dec": 60.1539, "size": 0.25 },
+  { "name": "Groombridge 1830", "aka": ["HD 103095", "CF Ursae Majoris", "Fast mover (7.0\"/yr)"], "ra": 178.2823, "dec": 37.6757, "size": 0.1 },
+  { "name": "Galactic Centre", "aka": ["Sagittarius A*", "Sgr A*", "Milky Way centre"], "ra": 266.4168, "dec": -29.0078, "size": 0.5 },
+  { "name": "Gliese 229B", "aka": ["GJ 229B", "First T-type brown dwarf"], "ra": 92.6442, "dec": -21.8646, "size": 0.1 },
+  { "name": "Gliese 581", "aka": ["GJ 581", "Exoplanet host red dwarf"], "ra": 229.8618, "dec": -7.7223, "size": 0.1 },
+  { "name": "Garnet Star", "aka": ["Mu Cephei", "Herschel's Garnet Star"], "ra": 325.8769, "dec": 58.78, "size": 0.25 },
+  { "name": "Hercules Globular Cluster", "aka": ["M13", "Messier 13", "NGC 6205"], "ra": 250.4235, "dec": 36.4613, "size": 0.25 },
+  { "name": "Horsehead Nebula", "aka": ["Barnard 33", "IC 434"], "ra": 85.2479, "dec": -2.4583, "size": 0.25 },
+  { "name": "Helix Nebula", "aka": ["NGC 7293", "Eye of God"], "ra": 337.411, "dec": -20.8372, "size": 0.5 },
+  { "name": "Heart Nebula", "aka": ["IC 1805"], "ra": 38.175, "dec": 61.45, "size": 1.0 },
+  { "name": "Hyades", "aka": ["Caldwell 41", "Nearest open cluster"], "ra": 66.75, "dec": 15.87, "size": 1.0 },
+  { "name": "Iris Nebula", "aka": ["NGC 7023", "Caldwell 4"], "ra": 315.379, "dec": 68.163, "size": 0.5 },
+  { "name": "Jewel Box Cluster", "aka": ["NGC 4755", "Kappa Crucis Cluster"], "ra": 193.4125, "dec": -60.3617, "size": 0.25 },
+  { "name": "Kapteyn's Star", "aka": ["HD 33793", "GJ 191", "Second-fastest proper motion (8.6\"/yr)"], "ra": 77.9871, "dec": -45.0607, "size": 0.1 },
+  { "name": "Kepler's Supernova", "aka": ["SN 1604", "Kepler's Star remnant"], "ra": 262.6708, "dec": -21.4886, "size": 0.25 },
+  { "name": "Lacaille 9352", "aka": ["HD 217987", "GJ 887", "Fast mover (6.9\"/yr)"], "ra": 346.5285, "dec": -35.8433, "size": 0.1 },
+  { "name": "Luhman 16", "aka": ["WISE J104915.57-531906.1", "Nearest brown dwarf binary"], "ra": 162.3288, "dec": -53.3195, "size": 0.1 },
+  { "name": "Lalande 21185", "aka": ["HD 95735", "GJ 411", "Fast-moving red dwarf"], "ra": 165.8341, "dec": 35.9699, "size": 0.1 },
+  { "name": "Lagoon Nebula", "aka": ["M8", "Messier 8", "NGC 6523"], "ra": 270.925, "dec": -24.38, "size": 0.5 },
+  { "name": "Large Magellanic Cloud", "aka": ["LMC", "Satellite galaxy"], "ra": 80.8938, "dec": -69.7561, "size": 1.0 },
+  { "name": "Luyten's Star", "aka": ["GJ 273", "High proper-motion red dwarf"], "ra": 111.8521, "dec": 5.2258, "size": 0.1 },
+  { "name": "Mira", "aka": ["Omicron Ceti", "Pulsating red giant variable"], "ra": 34.8366, "dec": -2.9776, "size": 0.25 },
+  { "name": "Messier 87", "aka": ["M87", "Virgo A", "Supermassive black hole galaxy"], "ra": 187.7059, "dec": 12.3911, "size": 0.25 },
+  { "name": "Monkey Head Nebula", "aka": ["NGC 2174"], "ra": 92.425, "dec": 20.491, "size": 0.5 },
+  { "name": "North America Nebula", "aka": ["NGC 7000", "Caldwell 20"], "ra": 314.75, "dec": 44.33, "size": 1.0 },
+  { "name": "NGC 1300", "aka": ["Barred spiral galaxy"], "ra": 49.9212, "dec": -19.4114, "size": 0.25 },
+  { "name": "NGC 253", "aka": ["Sculptor Galaxy", "Silver Coin Galaxy"], "ra": 11.888, "dec": -25.2882, "size": 0.5 },
+  { "name": "Orion Nebula", "aka": ["M42", "Messier 42", "NGC 1976"], "ra": 83.822, "dec": -5.391, "size": 0.5 },
+  { "name": "Omega Nebula", "aka": ["M17", "Messier 17", "Swan Nebula"], "ra": 275.196, "dec": -16.171, "size": 0.5 },
+  { "name": "Omega Centauri", "aka": ["NGC 5139", "Largest globular cluster"], "ra": 201.697, "dec": -47.4795, "size": 0.5 },
+  { "name": "Owl Nebula", "aka": ["M97", "Messier 97", "NGC 3587"], "ra": 168.6988, "dec": 55.019, "size": 0.25 },
+  { "name": "Pleiades", "aka": ["M45", "Messier 45", "Seven Sisters"], "ra": 56.75, "dec": 24.1167, "size": 0.5 },
+  { "name": "Proxima Centauri", "aka": ["Alpha Centauri C", "Nearest star to the Sun"], "ra": 217.429, "dec": -62.6795, "size": 0.1 },
+  { "name": "Pinwheel Galaxy", "aka": ["M101", "Messier 101", "NGC 5457"], "ra": 210.8024, "dec": 54.3489, "size": 0.5 },
+  { "name": "Polaris", "aka": ["North Star", "Alpha Ursae Minoris", "Cepheid variable"], "ra": 37.9546, "dec": 89.2641, "size": 0.25 },
+  { "name": "Procyon", "aka": ["Alpha Canis Minoris"], "ra": 114.8255, "dec": 5.225, "size": 0.25 },
+  { "name": "Pollux", "aka": ["Beta Geminorum"], "ra": 116.329, "dec": 28.0262, "size": 0.25 },
+  { "name": "Pelican Nebula", "aka": ["IC 5070"], "ra": 312.75, "dec": 44.35, "size": 0.5 },
+  { "name": "Ring Nebula", "aka": ["M57", "Messier 57", "NGC 6720"], "ra": 283.3963, "dec": 33.0292, "size": 0.1 },
+  { "name": "Rosette Nebula", "aka": ["NGC 2237", "Caldwell 49"], "ra": 97.98, "dec": 4.95, "size": 1.0 },
+  { "name": "R Leporis", "aka": ["Hind's Crimson Star", "Carbon Mira variable"], "ra": 74.9015, "dec": -14.8063, "size": 0.25 },
+  { "name": "Ross 128", "aka": ["GJ 447", "FI Virginis", "Nearby red dwarf"], "ra": 176.935, "dec": 0.8046, "size": 0.1 },
+  { "name": "Ross 154", "aka": ["GJ 729", "V1216 Sagittarii", "Flare star"], "ra": 282.4557, "dec": -23.8362, "size": 0.1 },
+  { "name": "Rigel", "aka": ["Beta Orionis", "Blue supergiant"], "ra": 78.6345, "dec": -8.2016, "size": 0.25 },
+  { "name": "Regulus", "aka": ["Alpha Leonis"], "ra": 152.093, "dec": 11.9672, "size": 0.25 },
+  { "name": "Sombrero Galaxy", "aka": ["M104", "Messier 104", "NGC 4594"], "ra": 189.9976, "dec": -11.6231, "size": 0.25 },
+  { "name": "Sirius", "aka": ["Alpha Canis Majoris", "Dog Star"], "ra": 101.2872, "dec": -16.7161, "size": 0.25 },
+  { "name": "Small Magellanic Cloud", "aka": ["SMC", "NGC 292"], "ra": 13.1867, "dec": -72.8286, "size": 1.0 },
+  { "name": "Sunflower Galaxy", "aka": ["M63", "Messier 63", "NGC 5055"], "ra": 198.9555, "dec": 42.0293, "size": 0.25 },
+  { "name": "Spica", "aka": ["Alpha Virginis"], "ra": 201.2982, "dec": -11.1613, "size": 0.25 },
+  { "name": "Stephan's Quintet", "aka": ["HCG 92", "Compact galaxy group"], "ra": 339.014, "dec": 33.96, "size": 0.1 },
+  { "name": "Teegarden's Star", "aka": ["SO J025300.5+165258", "Fast mover (5.1\"/yr)"], "ra": 43.2796, "dec": 16.854, "size": 0.1 },
+  { "name": "TRAPPIST-1", "aka": ["2MASS J23062928-0502285", "Ultra-cool dwarf with 7 planets"], "ra": 346.6223, "dec": -5.0414, "size": 0.1 },
+  { "name": "T Tauri", "aka": ["Prototype young variable star"], "ra": 65.4976, "dec": 19.5351, "size": 0.25 },
+  { "name": "Triangulum Galaxy", "aka": ["M33", "Messier 33", "NGC 598"], "ra": 23.4621, "dec": 30.6599, "size": 1.0 },
+  { "name": "Trifid Nebula", "aka": ["M20", "Messier 20", "NGC 6514"], "ra": 270.675, "dec": -22.971, "size": 0.5 },
+  { "name": "Tarantula Nebula", "aka": ["30 Doradus", "NGC 2070"], "ra": 84.6765, "dec": -69.1009, "size": 0.5 },
+  { "name": "Tau Ceti", "aka": ["HD 10700", "Nearby sun-like star"], "ra": 26.017, "dec": -15.9375, "size": 0.1 },
+  { "name": "Ursa Major Moving Group", "aka": ["Collinder 285"], "ra": 192.5, "dec": 56.0, "size": 1.0 },
+  { "name": "Vega", "aka": ["Alpha Lyrae", "Debris disk standard star"], "ra": 279.2347, "dec": 38.7837, "size": 0.25 },
+  { "name": "VY Canis Majoris", "aka": ["VY CMa", "Extreme red hypergiant"], "ra": 110.743, "dec": -25.7676, "size": 0.25 },
+  { "name": "Veil Nebula", "aka": ["NGC 6960", "Cygnus Loop supernova remnant"], "ra": 311.4, "dec": 30.71, "size": 1.0 },
+  { "name": "Vesta", "aka": ["(4) Vesta", "Main-belt asteroid"], "ra": 118.64, "dec": 22.88, "size": 0.25 },
+  { "name": "Wolf 359", "aka": ["CN Leonis", "GJ 406", "Fast mover (4.7\"/yr)"], "ra": 164.0919, "dec": 6.9946, "size": 0.1 },
+  { "name": "Whirlpool Galaxy", "aka": ["M51", "Messier 51", "NGC 5194"], "ra": 202.4696, "dec": 47.1952, "size": 0.25 },
+  { "name": "WISE J184125.47+095436.5", "aka": ["Infrared variable star"], "ra": 280.3562, "dec": 9.9101, "size": 0.1 },
+  { "name": "WISE 0855-0714", "aka": ["Coldest known brown dwarf"], "ra": 133.7875, "dec": -7.2444, "size": 0.1 },
+  { "name": "Wizard Nebula", "aka": ["NGC 7380"], "ra": 341.75, "dec": 58.13, "size": 0.5 },
+  { "name": "Zeta Ophiuchi", "aka": ["Runaway star with infrared bow shock"], "ra": 249.2897, "dec": -10.5671, "size": 0.5 },
+  { "name": "3I/ATLAS", "aka": ["C/2025 N1", "Interstellar comet"], "ra": 282.5, "dec": -18.2, "size": 0.25 },
+  { "name": "29P/Schwassmann-Wachmann", "aka": ["Cryovolcanic comet"], "ra": 142.85, "dec": 18.42, "size": 0.25 },
+  { "name": "67P/Churyumov-Gerasimenko", "aka": ["Rosetta comet"], "ra": 38.92, "dec": 14.31, "size": 0.25 },
+  { "name": "61 Cygni", "aka": ["Bessel's Star", "Flying Star (5.2\"/yr)"], "ra": 316.7248, "dec": 38.7494, "size": 0.1 },
+  { "name": "47 Tucanae", "aka": ["NGC 104", "Globular cluster"], "ra": 6.0236, "dec": -72.0813, "size": 0.5 }
 ]
 }

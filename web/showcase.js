@@ -1037,23 +1037,31 @@ function parseCoords(text) {
 
 function matches(q) {
   const n = norm(q);
-  if (n.length < 2) return [];
-  const out = [];
+  if (n.length < 1) return [];
+  const starts = [];
+  const aliasStarts = [];
+  const rest = [];
   for (const t of S.index) {
-    if (norm(t.name).includes(n)) out.push({ label: t.name, hint: "changes ready", slug: t.slug });
+    const tn = norm(t.name);
+    const item = { label: t.name, hint: "changes ready", slug: t.slug };
+    if (tn.startsWith(n)) starts.push(item);
+    else if (tn.includes(n)) rest.push(item);
   }
   for (const o of S.names) {
-    const all = [o.name, ...(o.aka || [])];
-    if (all.some((a) => norm(a).includes(n)) && !out.some((x) => x.label === o.name))
-      out.push({ label: o.name, hint: o.aka && o.aka.length ? o.aka[0] : "explore", ra: o.ra, dec: o.dec, size: o.size });
+    if ([...starts, ...aliasStarts, ...rest].some((x) => x.label === o.name)) continue;
+    const on = norm(o.name);
+    const item = { label: o.name, hint: o.aka && o.aka.length ? o.aka[0] : "explore", ra: o.ra, dec: o.dec, size: o.size };
+    if (on.startsWith(n)) starts.push(item);
+    else if ((o.aka || []).some((a) => norm(a).startsWith(n))) aliasStarts.push(item);
+    else if (n.length >= 2 && [o.name, ...(o.aka || [])].some((a) => norm(a).includes(n))) rest.push(item);
   }
-  return out.slice(0, 8);
+  return [...starts, ...aliasStarts, ...rest].slice(0, 10);
 }
 
 function go(m) {
   el.suggest.hidden = true;
   if (m.slug) location.hash = `#/${m.slug}`;
-  else location.href = `explore.html?ra=${m.ra}&dec=${m.dec}&size=${m.size || 0.25}`;
+  else location.href = `explore.html?ra=${m.ra}&dec=${m.dec}&size=${m.size || 0.25}&name=${encodeURIComponent(m.label)}`;
 }
 
 let sel = -1;

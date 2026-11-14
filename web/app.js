@@ -59,7 +59,7 @@ const NODATA = [58, 42, 85];
 
 const $ = (id) => document.getElementById(id);
 const els = {
-  form: $("target-form"), coords: $("coords"), size: $("size"),
+  form: $("target-form"), coords: $("coords"), suggest: $("coords-suggest"), size: $("size"),
   presetCats: $("preset-cats"), presets: $("presets"),
   status: $("status"), view: $("view"), overlay: $("overlay"), empty: $("plate-empty"),
   caption: $("caption"), capEpoch: $("cap-epoch"), capDate: $("cap-date"), capLam: $("cap-lam"),
@@ -775,8 +775,126 @@ if (els.presetCats) {
 }
 renderPresetCategory(0);
 
+/* ---------------------------------------------------------- prefix search helper */
+
+let catalog = [...PRESETS.map((p) => ({ name: p.name, aka: [], ra: p.ra, dec: p.dec, size: p.size }))];
+fetch("names.json")
+  .then((r) => r.json())
+  .then((d) => {
+    if (!d || !Array.isArray(d.objects)) return;
+    const seen = new Set(catalog.map((x) => x.name.toLowerCase()));
+    for (const o of d.objects) {
+      if (!seen.has(o.name.toLowerCase())) {
+        catalog.push(o);
+        seen.add(o.name.toLowerCase());
+      }
+    }
+    catalog.sort((a, b) => a.name.localeCompare(b.name));
+  })
+  .catch(() => {});
+
+function normPrefix(s) {
+  return s.toLowerCase().normalize("NFKD").replace(/[^a-z0-9+.\- ]/g, "").trim();
+}
+
+function findPrefixMatches(rawQuery) {
+  const q = normPrefix(rawQuery);
+  if (!q) return [];
+  // Ignore if user is typing pure coordinates
+  if (/^[0-9.+\-\s:]+$/.test(q) && q.includes(" ")) return [];
+
+  const exactStart = [];
+  const aliasStart = [];
+  const wordStart = [];
+
+  for (const o of catalog) {
+    const nName = normPrefix(o.name);
+    if (nName.startsWith(q)) {
+      exactStart.push({ obj: o, matchedAlias: null });
+      continue;
+    }
+    const matchingAlias = (o.aka || []).find((a) => normPrefix(a).startsWith(q));
+    if (matchingAlias) {
+      aliasStart.push({ obj: o, matchedAlias });
+      continue;
+    }
+    const words = nName.split(/\s+/);
+    if (words.some((w) => w.startsWith(q))) {
+      wordStart.push({ obj: o, matchedAlias: null });
+    }
+  }
+  return [...exactStart, ...aliasStart, ...wordStart].slice(0, 10);
+}
+
+function highlightPrefix(text, q) {
+  const cleanQ = q.trim();
+  if (!cleanQ) return text;
+  if (text.toLowerCase().startsWith(cleanQ.toLowerCase())) {
+    return `<mark>${text.slice(0, cleanQ.length)}</mark>${text.slice(cleanQ.length)}`;
+  }
+  return text;
+}
+
+let suggestIndex = -1;
+let currentSuggestions = [];
+
+function updateSuggestDropdown() {
+  if (!els.suggest) return;
+  const raw = els.coords.value.trim();
+  currentSuggestions = findPrefixMatches(raw);
+  els.suggest.replaceChildren();
+  suggestIndex = -1;
+  if (!currentSuggestions.length) {
+    els.suggest.hidden = true;
+    return;
+  }
+  currentSuggestions.forEach((item, idx) => {
+    const o = item.obj;
+    const li = document.createElement("li");
+    li.setAttribute("role", "option");
+    const sub = item.matchedAlias
+      ? `${highlightPrefix(item.matchedAlias, raw)} · ${fmtCoord(o.ra, o.dec)}`
+      : `${(o.aka && o.aka[0]) ? o.aka[0] + " · " : ""}${fmtCoord(o.ra, o.dec)}`;
+    li.innerHTML = `<span>${highlightPrefix(o.name, raw)}</span><small>${sub}</small>`;
+    li.addEventListener("mousedown", (ev) => {
+      ev.preventDefault();
+      els.suggest.hidden = true;
+      lookAt(o.ra, o.dec, o.size || +els.size.value, null, o.name);
+    });
+    els.suggest.append(li);
+  });
+  els.suggest.hidden = false;
+}
+
+els.coords.addEventListener("input", updateSuggestDropdown);
+els.coords.addEventListener("focus", () => {
+  els.coords.select();
+  updateSuggestDropdown();
+});
+els.coords.addEventListener("blur", () => {
+  setTimeout(() => { if (els.suggest) els.suggest.hidden = true; }, 120);
+});
+els.coords.addEventListener("keydown", (ev) => {
+  if (!els.suggest || els.suggest.hidden || !currentSuggestions.length) return;
+  const items = [...els.suggest.children];
+  if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
+    ev.preventDefault();
+    suggestIndex = (suggestIndex + (ev.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+    items.forEach((li, idx) => li.setAttribute("aria-selected", String(idx === suggestIndex)));
+    if (items[suggestIndex]) items[suggestIndex].scrollIntoView({ block: "nearest" });
+  } else if (ev.key === "Escape") {
+    els.suggest.hidden = true;
+  }
+});
+
 els.form.addEventListener("submit", async (ev) => {
   ev.preventDefault();
+  if (els.suggest) els.suggest.hidden = true;
+  if (suggestIndex >= 0 && currentSuggestions[suggestIndex]) {
+    const o = currentSuggestions[suggestIndex].obj;
+    lookAt(o.ra, o.dec, o.size || +els.size.value, null, o.name);
+    return;
+  }
   const raw = els.coords.value.trim();
   if (!raw) return;
   // Strip trailing "(ra dec)" if user submits a labeled preset string
@@ -786,11 +904,11 @@ els.form.addEventListener("submit", async (ev) => {
     lookAt(c.ra, c.dec, +els.size.value, state.ra === null ? null : state.lam);
     return;
   }
-  // Check local presets first
-  const qLower = cleaned.toLowerCase();
-  const presetMatch = PRESETS.find((p) => p.name.toLowerCase().includes(qLower));
-  if (presetMatch) {
-    lookAt(presetMatch.ra, presetMatch.dec, presetMatch.size, null, presetMatch.name);
+  // Check prefix/catalog matches first
+  const matches = findPrefixMatches(cleaned);
+  if (matches.length) {
+    const o = matches[0].obj;
+    lookAt(o.ra, o.dec, o.size || +els.size.value, null, o.name);
     return;
   }
   // Resolve any object name via astronomical catalogs (SIMBAD / NED / VizieR)
