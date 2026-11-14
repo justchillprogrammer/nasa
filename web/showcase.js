@@ -325,7 +325,7 @@ function renderFeed() {
   for (const t of allItems) {
     let g = groups.find((x) => x.name === t.group);
     if (!g) groups.push(g = { name: t.group, items: [] });
-    if (g.items.length < 7) g.items.push(t);
+    if (g.items.length < 3) g.items.push(t);
   }
   const blurbs = {
     "Moving objects": "Comets and asteroids move across the sky in hours. Sky Blink asks NASA's orbit service where each one was, finds every SPHEREx image that caught it, and follows it.",

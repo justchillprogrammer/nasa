@@ -42,13 +42,13 @@
 .group h2 { font-size: 1.35rem; margin-bottom: 12px; }
 .group > p { color: var(--muted); margin: -6px 0 14px; max-width: 70ch; }
 
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 
 .card {
   display: grid; grid-template-rows: auto 1fr; text-align: left;
   padding: 0; overflow: hidden; color: var(--text);
   background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
-  min-height: 0; cursor: pointer;
+  min-height: 0; min-width: 0; cursor: pointer;
 }
 .card:hover { border-color: var(--amber); }
 .card-pics { position: relative; aspect-ratio: 16 / 10; background: #05070d; overflow: hidden; }
@@ -181,9 +181,91 @@
 .how summary { cursor: pointer; color: var(--text); }
 .how p { margin: 8px 0 0; }
 
+@media (max-width: 1080px) {
+  .cards { grid-template-columns: repeat(2, 1fr); }
+}
+
 @media (max-width: 900px) {
   .machine { grid-template-columns: minmax(0, 1fr); }
   .search { margin-left: 0; }
+}
+
+@media (max-width: 640px) {
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .card-pics {
+    aspect-ratio: 16 / 10;
+  }
+  .card-body {
+    padding: 8px 10px 10px;
+    gap: 4px;
+  }
+  .card-body h3 {
+    font-size: 0.92rem;
+    line-height: 1.25;
+  }
+  .card-body p {
+    font-size: 0.76rem;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .card-date {
+    font-size: 0.68rem;
+    padding: 1px 5px;
+    left: 4px;
+    bottom: 4px;
+  }
+  .badges {
+    gap: 4px;
+  }
+  .badge {
+    padding: 1px 6px;
+    font-size: 0.7rem;
+    gap: 4px;
+  }
+  .badge i {
+    width: 6px;
+    height: 6px;
+  }
+  .more-card-visual {
+    gap: 2px;
+  }
+  .more-card-arrow {
+    font-size: 1.5rem;
+  }
+  .more-card-tag {
+    font-size: 0.65rem;
+    text-align: center;
+    padding: 0 4px;
+  }
+  .group {
+    margin-top: 22px;
+  }
+  .group h2 {
+    font-size: 1.15rem;
+    margin-bottom: 4px;
+  }
+  .group > p {
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cards {
+    gap: 8px;
+  }
+  .card-body {
+    padding: 6px 8px 8px;
+  }
+  .card-body h3 {
+    font-size: 0.88rem;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .card-pics img { animation: none; }
