@@ -36,7 +36,19 @@
     </div>
     <p id="coords-help" class="help">Start typing any object name (A &rarr; An &rarr; Andromeda) to see matching stars, nebulae, comets &amp; galaxies, or enter RA/Dec coordinates:</p>
     <div id="preset-cats" class="preset-cats" role="tablist" aria-label="Target categories"></div>
-    <div id="presets" class="presets"></div>
+    <div class="presets-wrap">
+      <div id="presets" class="presets"></div>
+      <div id="cat-more-panel" class="cat-more-panel" hidden>
+        <div class="cat-more-head">
+          <div class="cat-more-search-row">
+            <input id="cat-more-q" type="text" placeholder="Search in this category (type A, An...)" spellcheck="false" autocomplete="off">
+            <button id="cat-more-btn" type="button" class="primary">Search</button>
+            <button id="cat-more-close" type="button" aria-label="Close list">&times;</button>
+          </div>
+        </div>
+        <ul id="cat-more-list" class="cat-more-list" role="listbox"></ul>
+      </div>
+    </div>
   </form>
 </header>
 

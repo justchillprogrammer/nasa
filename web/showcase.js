@@ -335,9 +335,9 @@ function renderFeed() {
   };
   const catQuery = {
     "Moving objects": "0",
-    "Stars on the move": "0",
-    "Changing brightness": "1",
-    "Steady skies": "2",
+    "Stars on the move": "1",
+    "Changing brightness": "3",
+    "Steady skies": "4",
   };
   for (const g of groups) {
     const sec = document.createElement("section");

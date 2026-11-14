@@ -4,49 +4,170 @@
    step, blink and subtract them. All image stretching happens here, on raw
    brightness values, so every control responds instantly. */
 
+const VISIBLE_PILLS = 6;
+
 const PRESET_CATEGORIES = [
   {
-    category: "Fast-Moving Stars",
+    category: "Comets & Asteroids",
     items: [
-      { name: "Barnard's Star (10.3″/yr)", ra: 269.4462, dec: 4.7697, size: 0.1 },
-      { name: "Kapteyn's Star (8.6″/yr)", ra: 77.9871, dec: -45.0607, size: 0.1 },
-      { name: "Groombridge 1830 (7.0″/yr)", ra: 178.2823, dec: 37.6757, size: 0.1 },
-      { name: "Lacaille 9352 (6.9″/yr)", ra: 346.5285, dec: -35.8433, size: 0.1 },
-      { name: "Teegarden's Star (5.1″/yr)", ra: 43.2796, dec: 16.854, size: 0.1 },
-      { name: "Wolf 359 (4.7″/yr)", ra: 164.0919, dec: 6.9946, size: 0.1 },
+      { name: "3I/ATLAS (Interstellar Comet)", aka: ["C/2025 N1"], ra: 282.5, dec: -18.2, size: 0.25 },
+      { name: "Comet C/2023 A3 (Tsuchinshan-ATLAS)", aka: ["C/2023 A3"], ra: 205.42, dec: -1.18, size: 0.25 },
+      { name: "29P/Schwassmann-Wachmann", aka: ["Cryovolcanic Comet"], ra: 142.85, dec: 18.42, size: 0.25 },
+      { name: "67P/Churyumov-Gerasimenko", aka: ["Rosetta Comet"], ra: 38.92, dec: 14.31, size: 0.25 },
+      { name: "Ceres (Dwarf Planet)", aka: ["(1) Ceres"], ra: 278.11, dec: -26.45, size: 0.25 },
+      { name: "Vesta (Asteroid 4)", aka: ["(4) Vesta"], ra: 118.64, dec: 22.88, size: 0.25 },
+      { name: "Apophis (Near-Earth Asteroid)", aka: ["(99942) Apophis"], ra: 145.62, dec: 12.34, size: 0.25 },
+      { name: "Bennu (OSIRIS-REx Target)", aka: ["(101955) Bennu"], ra: 18.45, dec: 6.12, size: 0.25 },
+      { name: "Comet 1P/Halley", aka: ["Halley's Comet"], ra: 129.18, dec: 1.95, size: 0.25 },
+      { name: "Comet 2P/Encke", aka: ["Encke's Comet"], ra: 318.4, dec: -14.8, size: 0.25 },
+      { name: "Comet 46P/Wirtanen", aka: ["46P"], ra: 64.12, dec: 21.65, size: 0.25 },
+      { name: "Comet 103P/Hartley", aka: ["Hartley 2"], ra: 91.34, dec: 15.22, size: 0.25 },
+      { name: "Eros (Near-Earth Asteroid)", aka: ["(433) Eros"], ra: 312.18, dec: -14.72, size: 0.25 },
+      { name: "Hygiea (Asteroid 10)", aka: ["(10) Hygiea"], ra: 244.1, dec: -22.5, size: 0.25 },
+      { name: "Juno (Asteroid 3)", aka: ["(3) Juno"], ra: 172.8, dec: -3.4, size: 0.25 },
+      { name: "Pallas (Asteroid 2)", aka: ["(2) Pallas"], ra: 210.5, dec: 18.2, size: 0.25 },
+      { name: "Psyche (Metal Asteroid 16)", aka: ["(16) Psyche"], ra: 158.9, dec: 11.4, size: 0.25 },
+      { name: "Ryugu (Hayabusa2 Target)", aka: ["(162173) Ryugu"], ra: 332.7, dec: -8.9, size: 0.25 },
     ],
   },
   {
-    category: "Brown Dwarfs & Variables",
+    category: "Fast-Moving Stars",
     items: [
-      { name: "Luhman 16 (Brown Dwarf Binary)", ra: 162.3288, dec: -53.3195, size: 0.1 },
-      { name: "WISE J184125 (Variable Star)", ra: 280.3562, dec: 9.9101, size: 0.1 },
-      { name: "TRAPPIST-1 (Ultra-cool Dwarf)", ra: 346.6223, dec: -5.0414, size: 0.1 },
-      { name: "Gliese 229B (T-Dwarf)", ra: 92.6442, dec: -21.8646, size: 0.1 },
-      { name: "Mira (Omicron Ceti Variable)", ra: 34.8366, dec: -2.9776, size: 0.25 },
-      { name: "CW Leonis (Carbon Star)", ra: 146.9892, dec: 13.2788, size: 0.25 },
+      { name: "Barnard's Star (10.3″/yr)", aka: ["GJ 699"], ra: 269.4462, dec: 4.7697, size: 0.1 },
+      { name: "Kapteyn's Star (8.6″/yr)", aka: ["HD 33793"], ra: 77.9871, dec: -45.0607, size: 0.1 },
+      { name: "Groombridge 1830 (7.0″/yr)", aka: ["HD 103095"], ra: 178.2823, dec: 37.6757, size: 0.1 },
+      { name: "Lacaille 9352 (6.9″/yr)", aka: ["GJ 887"], ra: 346.5285, dec: -35.8433, size: 0.1 },
+      { name: "Teegarden's Star (5.1″/yr)", aka: ["SO J025300.5+165258"], ra: 43.2796, dec: 16.854, size: 0.1 },
+      { name: "Wolf 359 (4.7″/yr)", aka: ["CN Leonis"], ra: 164.0919, dec: 6.9946, size: 0.1 },
+      { name: "61 Cygni (5.2″/yr)", aka: ["Bessel's Star", "Flying Star"], ra: 316.7248, dec: 38.7494, size: 0.1 },
+      { name: "Alpha Centauri (3.7″/yr)", aka: ["Rigil Kentaurus"], ra: 219.9021, dec: -60.834, size: 0.25 },
+      { name: "Arcturus (2.3″/yr)", aka: ["Alpha Bootis"], ra: 213.9153, dec: 19.1824, size: 0.25 },
+      { name: "Epsilon Eridani (1.0″/yr)", aka: ["Ran"], ra: 53.2327, dec: -9.4583, size: 0.1 },
+      { name: "Epsilon Indi (4.7″/yr)", aka: ["HD 209100"], ra: 330.8402, dec: -56.786, size: 0.1 },
+      { name: "Kruger 60 (1.0″/yr)", aka: ["DO Cephei"], ra: 336.999, dec: 57.695, size: 0.1 },
+      { name: "Lacaille 8760 (3.5″/yr)", aka: ["AX Microscopii"], ra: 319.313, dec: -38.867, size: 0.1 },
+      { name: "Lalande 21185 (4.8″/yr)", aka: ["HD 95735", "GJ 411"], ra: 165.8341, dec: 35.9699, size: 0.1 },
+      { name: "Luyten's Star (3.7″/yr)", aka: ["GJ 273"], ra: 111.8521, dec: 5.2258, size: 0.1 },
+      { name: "Proxima Centauri (3.8″/yr)", aka: ["Alpha Centauri C"], ra: 217.429, dec: -62.6795, size: 0.1 },
+      { name: "Ross 128 (1.4″/yr)", aka: ["FI Virginis"], ra: 176.935, dec: 0.8046, size: 0.1 },
+      { name: "Ross 154 (0.7″/yr)", aka: ["V1216 Sagittarii"], ra: 282.4557, dec: -23.8362, size: 0.1 },
+      { name: "Ross 248 (1.6″/yr)", aka: ["HH Andromedae"], ra: 355.479, dec: 44.178, size: 0.1 },
+      { name: "Sirius (1.3″/yr)", aka: ["Alpha Canis Majoris"], ra: 101.2872, dec: -16.7161, size: 0.25 },
+      { name: "Struve 2398 (2.2″/yr)", aka: ["GJ 725"], ra: 280.695, dec: 59.63, size: 0.1 },
+      { name: "Tau Ceti (1.9″/yr)", aka: ["HD 10700"], ra: 26.017, dec: -15.9375, size: 0.1 },
+      { name: "Van Maanen's Star (3.0″/yr)", aka: ["GJ 35"], ra: 12.291, dec: 5.388, size: 0.1 },
+    ],
+  },
+  {
+    category: "Brown Dwarfs & Cool Worlds",
+    items: [
+      { name: "Luhman 16 (Brown Dwarf Binary)", aka: ["WISE J104915.57-531906.1"], ra: 162.3288, dec: -53.3195, size: 0.1 },
+      { name: "WISE 0855-0714 (Coldest Brown Dwarf)", aka: ["Y-dwarf"], ra: 133.7875, dec: -7.2444, size: 0.1 },
+      { name: "TRAPPIST-1 (Ultra-cool Dwarf + 7 Planets)", aka: ["2MASS J23062928-0502285"], ra: 346.6223, dec: -5.0414, size: 0.1 },
+      { name: "Gliese 229B (First T-Dwarf)", aka: ["GJ 229B"], ra: 92.6442, dec: -21.8646, size: 0.1 },
+      { name: "Gliese 581 (Exoplanet Host)", aka: ["GJ 581"], ra: 229.8618, dec: -7.7223, size: 0.1 },
+      { name: "SIMP J013656.5+093347 (Rogue Planet/Dwarf)", aka: ["SIMP0136"], ra: 24.2358, dec: 9.5631, size: 0.1 },
+      { name: "2M1207 (Brown Dwarf + Giant Planet)", aka: ["2MASS J12073346-3932539"], ra: 181.8894, dec: -39.5483, size: 0.1 },
+      { name: "51 Eridani b (Young Methane Planet Host)", aka: ["51 Eri"], ra: 69.4006, dec: -2.4735, size: 0.1 },
+      { name: "Beta Pictoris (Debris Disk + Planets)", aka: ["HD 39060"], ra: 86.8212, dec: -51.0665, size: 0.25 },
+      { name: "GD 165B (Prototype L-Dwarf)", aka: ["GD 165"], ra: 216.1625, dec: 9.2864, size: 0.1 },
+      { name: "GJ 1214 (Sub-Neptune Host)", aka: ["Gliese 1214"], ra: 258.8289, dec: 4.9639, size: 0.1 },
+      { name: "HN Pegasi B (Young T-Dwarf)", aka: ["HN Peg B"], ra: 326.13, dec: 14.771, size: 0.1 },
+      { name: "K2-18 (Hycean World Candidate Host)", aka: ["EPIC 201912552"], ra: 172.5605, dec: 7.5884, size: 0.1 },
+      { name: "KELT-9 (Ultra-Hot Jupiter Host)", aka: ["HD 195689"], ra: 307.8598, dec: 39.9388, size: 0.1 },
+      { name: "LHS 1140 (Rocky Super-Earth Host)", aka: ["GJ 3053"], ra: 11.2472, dec: -15.2715, size: 0.1 },
+      { name: "OTS 44 (Free-Floating Planetary Object)", aka: ["Chamaeleon Dwarf"], ra: 167.479, dec: -76.539, size: 0.1 },
+      { name: "Teide 1 (First Verified Brown Dwarf)", aka: ["Pleiades Brown Dwarf"], ra: 56.8258, dec: 24.3758, size: 0.1 },
+      { name: "TOI-700 (Habitable Zone Host)", aka: ["2MASS J06282325-6534456"], ra: 97.0968, dec: -65.5793, size: 0.1 },
+    ],
+  },
+  {
+    category: "Variable & Pulsating Stars",
+    items: [
+      { name: "WISE J184125.47+095436.5", aka: ["SPHEREx Confirmed Fading Star"], ra: 280.3562, dec: 9.9101, size: 0.1 },
+      { name: "Mira (Omicron Ceti)", aka: ["Prototype Mira Variable"], ra: 34.8366, dec: -2.9776, size: 0.25 },
+      { name: "CW Leonis (IRC +10216)", aka: ["Brightest Infrared Carbon Star"], ra: 146.9892, dec: 13.2788, size: 0.25 },
+      { name: "R Leporis (Hind's Crimson Star)", aka: ["Carbon Mira Variable"], ra: 74.9015, dec: -14.8063, size: 0.25 },
+      { name: "T Tauri (Young Variable Star)", aka: ["Prototype T Tauri"], ra: 65.4976, dec: 19.5351, size: 0.25 },
+      { name: "Chi Cygni (S-Type Mira Variable)", aka: ["Large Amplitude Pulsator"], ra: 297.6413, dec: 32.9141, size: 0.25 },
+      { name: "Algol (Beta Persei)", aka: ["Demon Star Eclipsing Binary"], ra: 47.0422, dec: 40.9556, size: 0.25 },
+      { name: "Betelgeuse (Alpha Orionis)", aka: ["Red Supergiant Variable"], ra: 88.7929, dec: 7.4071, size: 0.25 },
+      { name: "Delta Cephei (Prototype Cepheid)", aka: ["Standard Candle Variable"], ra: 337.2928, dec: 58.4152, size: 0.25 },
+      { name: "Eta Aquilae (Cepheid Variable)", aka: ["Bezek"], ra: 298.1182, dec: 1.0057, size: 0.25 },
+      { name: "Eta Carinae (Eruptive Hypergiant)", aka: ["Homunculus Nebula"], ra: 161.2648, dec: -59.6844, size: 0.25 },
+      { name: "Garnet Star (Mu Cephei)", aka: ["Herschel's Garnet Star"], ra: 325.8769, dec: 58.78, size: 0.25 },
+      { name: "La Superba (Y Canum Venaticorum)", aka: ["Carbon Star"], ra: 191.2825, dec: 45.4403, size: 0.25 },
+      { name: "P Cygni (Luminous Blue Variable)", aka: ["34 Cygni"], ra: 304.4467, dec: 38.0329, size: 0.25 },
+      { name: "Polaris (North Star Cepheid)", aka: ["Alpha Ursae Minoris"], ra: 37.9546, dec: 89.2641, size: 0.25 },
+      { name: "R Coronae Borealis", aka: ["Reverse Nova Carbon Star"], ra: 237.143, dec: 28.158, size: 0.25 },
+      { name: "R Hydrae (Mira Variable)", aka: ["HR 5080"], ra: 202.428, dec: -23.281, size: 0.25 },
+      { name: "RR Lyrae (Prototype Cluster Variable)", aka: ["HD 182989"], ra: 291.3663, dec: 42.7844, size: 0.25 },
+      { name: "SS Cygni (Dwarf Nova)", aka: ["Cataclysmic Variable"], ra: 325.678, dec: 43.586, size: 0.25 },
+      { name: "UV Ceti (Prototype Flare Star)", aka: ["Luyten 726-8 B"], ra: 24.756, dec: -17.95, size: 0.1 },
+      { name: "VY Canis Majoris (Red Hypergiant)", aka: ["VY CMa"], ra: 110.743, dec: -25.7676, size: 0.25 },
+      { name: "W Hydrae (Asymptotic Giant Variable)", aka: ["W Hya"], ra: 207.258, dec: -28.367, size: 0.25 },
     ],
   },
   {
     category: "Nebulae & Star Clusters",
     items: [
-      { name: "Crab Nebula (M1)", ra: 83.633, dec: 22.0145, size: 0.25 },
-      { name: "Orion Nebula (M42)", ra: 83.822, dec: -5.391, size: 0.5 },
-      { name: "Pleiades (M45)", ra: 56.75, dec: 24.12, size: 0.5 },
-      { name: "Ring Nebula (M57)", ra: 283.3962, dec: 33.0292, size: 0.1 },
-      { name: "Eagle Nebula (M16)", ra: 274.7, dec: -13.8067, size: 0.5 },
-      { name: "Hercules Cluster (M13)", ra: 250.4235, dec: 36.4613, size: 0.25 },
+      { name: "Crab Nebula (M1)", aka: ["Messier 1", "SN 1054"], ra: 83.633, dec: 22.0145, size: 0.25 },
+      { name: "Orion Nebula (M42)", aka: ["Messier 42", "NGC 1976"], ra: 83.822, dec: -5.391, size: 0.5 },
+      { name: "Pleiades (M45)", aka: ["Seven Sisters"], ra: 56.75, dec: 24.12, size: 0.5 },
+      { name: "Ring Nebula (M57)", aka: ["Messier 57", "NGC 6720"], ra: 283.3962, dec: 33.0292, size: 0.1 },
+      { name: "Eagle Nebula (M16)", aka: ["Pillars of Creation"], ra: 274.7, dec: -13.8067, size: 0.5 },
+      { name: "Hercules Cluster (M13)", aka: ["Messier 13", "NGC 6205"], ra: 250.4235, dec: 36.4613, size: 0.25 },
+      { name: "47 Tucanae (NGC 104)", aka: ["Globular Cluster"], ra: 6.0236, dec: -72.0813, size: 0.5 },
+      { name: "Beehive Cluster (M44)", aka: ["Praesepe"], ra: 130.1, dec: 19.667, size: 1.0 },
+      { name: "Bubble Nebula (NGC 7635)", aka: ["Caldwell 11"], ra: 350.1904, dec: 61.2017, size: 0.25 },
+      { name: "Butterfly Cluster (M6)", aka: ["Messier 6"], ra: 265.083, dec: -32.253, size: 0.5 },
+      { name: "Carina Nebula (NGC 3372)", aka: ["Eta Carinae Nebula"], ra: 160.9, dec: -59.87, size: 1.0 },
+      { name: "Cat's Eye Nebula (NGC 6543)", aka: ["Caldwell 6"], ra: 269.6391, dec: 66.6331, size: 0.1 },
+      { name: "Double Cluster (NGC 869/884)", aka: ["Perseus Double Cluster"], ra: 35.125, dec: 57.133, size: 0.5 },
+      { name: "Dumbbell Nebula (M27)", aka: ["Messier 27"], ra: 299.9016, dec: 22.7211, size: 0.25 },
+      { name: "Eskimo Nebula (NGC 2392)", aka: ["Clownface Nebula"], ra: 112.2949, dec: 20.9118, size: 0.1 },
+      { name: "Flame Nebula (NGC 2024)", aka: ["Orion B"], ra: 85.429, dec: -1.85, size: 0.5 },
+      { name: "Heart Nebula (IC 1805)", aka: ["Cassiopeia H II Region"], ra: 38.175, dec: 61.45, size: 1.0 },
+      { name: "Helix Nebula (NGC 7293)", aka: ["Eye of God"], ra: 337.411, dec: -20.8372, size: 0.5 },
+      { name: "Horsehead Nebula (Barnard 33)", aka: ["IC 434"], ra: 85.2479, dec: -2.4583, size: 0.25 },
+      { name: "Hyades Cluster (Caldwell 41)", aka: ["Nearest Open Cluster"], ra: 66.75, dec: 15.87, size: 1.0 },
+      { name: "Iris Nebula (NGC 7023)", aka: ["Caldwell 4"], ra: 315.379, dec: 68.163, size: 0.5 },
+      { name: "Lagoon Nebula (M8)", aka: ["Messier 8"], ra: 270.925, dec: -24.38, size: 0.5 },
+      { name: "North America Nebula (NGC 7000)", aka: ["Caldwell 20"], ra: 314.75, dec: 44.33, size: 1.0 },
+      { name: "Omega Centauri (NGC 5139)", aka: ["Largest Globular Cluster"], ra: 201.697, dec: -47.4795, size: 0.5 },
+      { name: "Omega Nebula (M17)", aka: ["Swan Nebula"], ra: 275.196, dec: -16.171, size: 0.5 },
+      { name: "Owl Nebula (M97)", aka: ["Messier 97"], ra: 168.6988, dec: 55.019, size: 0.25 },
+      { name: "Rosette Nebula (NGC 2237)", aka: ["Caldwell 49"], ra: 97.98, dec: 4.95, size: 1.0 },
+      { name: "Tarantula Nebula (30 Doradus)", aka: ["NGC 2070"], ra: 84.6765, dec: -69.1009, size: 0.5 },
+      { name: "Trifid Nebula (M20)", aka: ["Messier 20"], ra: 270.675, dec: -22.971, size: 0.5 },
+      { name: "Veil Nebula (NGC 6960)", aka: ["Cygnus Loop"], ra: 311.4, dec: 30.71, size: 1.0 },
     ],
   },
   {
     category: "Galaxies & Deep Sky",
     items: [
-      { name: "Andromeda Galaxy (M31)", ra: 10.6847, dec: 41.2687, size: 1 },
-      { name: "Whirlpool Galaxy (M51)", ra: 202.4696, dec: 47.1952, size: 0.25 },
-      { name: "Cigar Galaxy (M82)", ra: 148.9685, dec: 69.6797, size: 0.25 },
-      { name: "Bode's Galaxy (M81)", ra: 148.8882, dec: 69.0653, size: 0.5 },
-      { name: "Triangulum Galaxy (M33)", ra: 23.4621, dec: 30.6602, size: 1 },
-      { name: "Galactic Centre (Sgr A*)", ra: 266.4168, dec: -29.0078, size: 0.5 },
+      { name: "Andromeda Galaxy (M31)", aka: ["Messier 31", "NGC 224"], ra: 10.6847, dec: 41.2687, size: 1 },
+      { name: "Whirlpool Galaxy (M51)", aka: ["Messier 51", "NGC 5194"], ra: 202.4696, dec: 47.1952, size: 0.25 },
+      { name: "Cigar Galaxy (M82)", aka: ["Messier 82", "Starburst Galaxy"], ra: 148.9685, dec: 69.6797, size: 0.25 },
+      { name: "Bode's Galaxy (M81)", aka: ["Messier 81", "NGC 3031"], ra: 148.8882, dec: 69.0653, size: 0.5 },
+      { name: "Triangulum Galaxy (M33)", aka: ["Messier 33", "NGC 598"], ra: 23.4621, dec: 30.6602, size: 1 },
+      { name: "Galactic Centre (Sgr A*)", aka: ["Sagittarius A*", "Milky Way Core"], ra: 266.4168, dec: -29.0078, size: 0.5 },
+      { name: "Abell 2151 (Hercules Cluster)", aka: ["Galaxy Cluster"], ra: 241.3125, dec: 17.7485, size: 0.5 },
+      { name: "Antennae Galaxies (NGC 4038/4039)", aka: ["Merging Galaxies"], ra: 180.4708, dec: -18.8675, size: 0.25 },
+      { name: "Black Eye Galaxy (M64)", aka: ["Messier 64", "NGC 4826"], ra: 194.1821, dec: 21.6827, size: 0.25 },
+      { name: "Cartwheel Galaxy (ESO 350-40)", aka: ["Collisional Ring Galaxy"], ra: 9.4275, dec: -33.716, size: 0.1 },
+      { name: "Centaurus A (NGC 5128)", aka: ["Active Radio Galaxy"], ra: 201.3651, dec: -43.0191, size: 0.5 },
+      { name: "Fireworks Galaxy (NGC 6946)", aka: ["Caldwell 12"], ra: 308.718, dec: 60.1539, size: 0.25 },
+      { name: "Large Magellanic Cloud (LMC)", aka: ["Satellite Galaxy"], ra: 80.8938, dec: -69.7561, size: 1.0 },
+      { name: "Messier 87 (Virgo A)", aka: ["M87", "Black Hole Jet Galaxy"], ra: 187.7059, dec: 12.3911, size: 0.25 },
+      { name: "NGC 1300 (Barred Spiral Galaxy)", aka: ["Eridanus Spiral"], ra: 49.9212, dec: -19.4114, size: 0.25 },
+      { name: "Pinwheel Galaxy (M101)", aka: ["Messier 101", "NGC 5457"], ra: 210.8024, dec: 54.3489, size: 0.5 },
+      { name: "Sculptor Galaxy (NGC 253)", aka: ["Silver Coin Galaxy"], ra: 11.888, dec: -25.2882, size: 0.5 },
+      { name: "Small Magellanic Cloud (SMC)", aka: ["NGC 292"], ra: 13.1867, dec: -72.8286, size: 1.0 },
+      { name: "Sombrero Galaxy (M104)", aka: ["Messier 104", "NGC 4594"], ra: 189.9976, dec: -11.6231, size: 0.25 },
+      { name: "Southern Pinwheel Galaxy (M83)", aka: ["Messier 83", "NGC 5236"], ra: 204.2538, dec: -29.8658, size: 0.5 },
+      { name: "Stephan's Quintet (HCG 92)", aka: ["Compact Galaxy Group"], ra: 339.014, dec: 33.96, size: 0.1 },
+      { name: "Sunflower Galaxy (M63)", aka: ["Messier 63", "NGC 5055"], ra: 198.9555, dec: 42.0293, size: 0.25 },
     ],
   },
 ];
@@ -61,6 +182,8 @@ const $ = (id) => document.getElementById(id);
 const els = {
   form: $("target-form"), coords: $("coords"), suggest: $("coords-suggest"), size: $("size"),
   presetCats: $("preset-cats"), presets: $("presets"),
+  morePanel: $("cat-more-panel"), moreQ: $("cat-more-q"), moreBtn: $("cat-more-btn"),
+  moreClose: $("cat-more-close"), moreList: $("cat-more-list"),
   status: $("status"), view: $("view"), overlay: $("overlay"), empty: $("plate-empty"),
   caption: $("caption"), capEpoch: $("cap-epoch"), capDate: $("cap-date"), capLam: $("cap-lam"),
   readout: $("readout"), plate: $("plate"),
@@ -744,7 +867,95 @@ function syncUrl() {
   history.replaceState(null, "", "?" + q);
 }
 
+let activeCatIndex = 0;
+let moreSelectedIndex = -1;
+let moreFilteredItems = [];
+
+function renderMoreList() {
+  if (!els.moreList) return;
+  const cat = PRESET_CATEGORIES[activeCatIndex] || PRESET_CATEGORIES[0];
+  const rawQ = els.moreQ ? els.moreQ.value.trim() : "";
+  const q = normPrefix(rawQ);
+
+  // All objects in this category sorted in strict alphabetical order (A -> Z)
+  const alphaItems = [...cat.items].sort((a, b) => a.name.localeCompare(b.name));
+
+  if (!q) {
+    moreFilteredItems = alphaItems.map((obj) => ({ obj, matchedAlias: null }));
+  } else {
+    const exactStart = [];
+    const aliasStart = [];
+    const wordStart = [];
+    for (const o of alphaItems) {
+      const nName = normPrefix(o.name);
+      if (nName.startsWith(q)) {
+        exactStart.push({ obj: o, matchedAlias: null });
+        continue;
+      }
+      const matchingAlias = (o.aka || []).find((a) => normPrefix(a).startsWith(q));
+      if (matchingAlias) {
+        aliasStart.push({ obj: o, matchedAlias });
+        continue;
+      }
+      const words = nName.split(/\s+/);
+      if (words.some((w) => w.startsWith(q))) {
+        wordStart.push({ obj: o, matchedAlias: null });
+      }
+    }
+    moreFilteredItems = [...exactStart, ...aliasStart, ...wordStart];
+  }
+
+  els.moreList.replaceChildren();
+  moreSelectedIndex = -1;
+
+  if (!moreFilteredItems.length) {
+    const emptyLi = document.createElement("div");
+    emptyLi.className = "cat-more-empty";
+    emptyLi.textContent = `No objects in "${cat.category}" starting with "${rawQ}". Press Search to look it up across all catalogs (SIMBAD/NED).`;
+    els.moreList.append(emptyLi);
+    return;
+  }
+
+  moreFilteredItems.forEach((item) => {
+    const o = item.obj;
+    const li = document.createElement("li");
+    li.setAttribute("role", "option");
+    const sub = item.matchedAlias
+      ? `${highlightPrefix(item.matchedAlias, rawQ)} · ${fmtCoord(o.ra, o.dec)}`
+      : `${(o.aka && o.aka[0]) ? o.aka[0] + " · " : ""}${fmtCoord(o.ra, o.dec)}`;
+    li.innerHTML = `<span>${highlightPrefix(o.name, rawQ)}</span><small>${sub}</small>`;
+    li.addEventListener("click", () => {
+      closeMorePanel();
+      lookAt(o.ra, o.dec, o.size, null, o.name);
+    });
+    els.moreList.append(li);
+  });
+}
+
+function openMorePanel() {
+  if (!els.morePanel) return;
+  const cat = PRESET_CATEGORIES[activeCatIndex] || PRESET_CATEGORIES[0];
+  els.morePanel.hidden = false;
+  if (els.moreQ) {
+    els.moreQ.value = "";
+    els.moreQ.placeholder = `Search in ${cat.category} (type A, An...)`;
+  }
+  const moreToggle = els.presets.querySelector(".more-btn");
+  if (moreToggle) moreToggle.classList.add("on");
+  renderMoreList();
+  if (els.moreQ) setTimeout(() => els.moreQ.focus(), 20);
+}
+
+function closeMorePanel() {
+  if (!els.morePanel) return;
+  els.morePanel.hidden = true;
+  const moreToggle = els.presets.querySelector(".more-btn");
+  if (moreToggle) moreToggle.classList.remove("on");
+}
+
 function renderPresetCategory(catIndex) {
+  activeCatIndex = catIndex;
+  closeMorePanel();
   els.presets.replaceChildren();
   if (els.presetCats) {
     [...els.presetCats.children].forEach((btn, idx) => {
@@ -753,13 +964,27 @@ function renderPresetCategory(catIndex) {
     });
   }
   const cat = PRESET_CATEGORIES[catIndex] || PRESET_CATEGORIES[0];
-  for (const p of cat.items) {
+  const visible = cat.items.slice(0, VISIBLE_PILLS);
+  for (const p of visible) {
     const b = document.createElement("button");
     b.type = "button";
     b.textContent = p.name;
-    b.addEventListener("click", () => lookAt(p.ra, p.dec, p.size, null, p.name));
+    b.addEventListener("click", () => {
+      closeMorePanel();
+      lookAt(p.ra, p.dec, p.size, null, p.name);
+    });
     els.presets.append(b);
   }
+  const moreBtn = document.createElement("button");
+  moreBtn.type = "button";
+  moreBtn.className = "more-btn";
+  moreBtn.textContent = `More (${cat.items.length}) ▾`;
+  moreBtn.title = `Show all ${cat.items.length} objects in ${cat.category} in alphabetical order`;
+  moreBtn.addEventListener("click", () => {
+    if (els.morePanel && !els.morePanel.hidden) closeMorePanel();
+    else openMorePanel();
+  });
+  els.presets.append(moreBtn);
 }
 
 if (els.presetCats) {
@@ -773,7 +998,55 @@ if (els.presetCats) {
     els.presetCats.append(tab);
   });
 }
-renderPresetCategory(0);
+
+if (els.moreQ) {
+  els.moreQ.addEventListener("input", renderMoreList);
+  els.moreQ.addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape") {
+      ev.preventDefault();
+      closeMorePanel();
+      return;
+    }
+    const items = [...els.moreList.querySelectorAll("li")];
+    if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
+      if (!items.length) return;
+      ev.preventDefault();
+      moreSelectedIndex = (moreSelectedIndex + (ev.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+      items.forEach((li, i) => li.setAttribute("aria-selected", String(i === moreSelectedIndex)));
+      if (items[moreSelectedIndex]) items[moreSelectedIndex].scrollIntoView({ block: "nearest" });
+    } else if (ev.key === "Enter") {
+      ev.preventDefault();
+      if (moreSelectedIndex >= 0 && moreFilteredItems[moreSelectedIndex]) {
+        const o = moreFilteredItems[moreSelectedIndex].obj;
+        closeMorePanel();
+        lookAt(o.ra, o.dec, o.size, null, o.name);
+      } else if (els.moreBtn) {
+        els.moreBtn.click();
+      }
+    }
+  });
+}
+
+if (els.moreBtn) {
+  els.moreBtn.addEventListener("click", () => {
+    if (moreFilteredItems.length) {
+      const pick = moreSelectedIndex >= 0 ? moreFilteredItems[moreSelectedIndex].obj : moreFilteredItems[0].obj;
+      closeMorePanel();
+      lookAt(pick.ra, pick.dec, pick.size, null, pick.name);
+      return;
+    }
+    const raw = els.moreQ ? els.moreQ.value.trim() : "";
+    if (raw) {
+      closeMorePanel();
+      els.coords.value = raw;
+      els.form.requestSubmit();
+    }
+  });
+}
+
+if (els.moreClose) {
+  els.moreClose.addEventListener("click", closeMorePanel);
+}
 
 /* ---------------------------------------------------------- prefix search helper */
 
@@ -960,15 +1233,14 @@ updateButtons();
 {
   const q = new URLSearchParams(location.search);
   const cat = parseInt(q.get("cat"), 10);
-  if (Number.isFinite(cat) && cat >= 0 && cat < PRESET_CATEGORIES.length) {
-    renderPresetCategory(cat);
-  }
+  const startCatIdx = Number.isFinite(cat) && cat >= 0 && cat < PRESET_CATEGORIES.length ? cat : 0;
+  renderPresetCategory(startCatIdx);
   const ra = parseFloat(q.get("ra")), dec = parseFloat(q.get("dec"));
   const name = q.get("name") || null;
   if (Number.isFinite(ra) && Number.isFinite(dec)) {
     lookAt(ra, dec, parseFloat(q.get("size")) || 0.25, parseFloat(q.get("lam")) || null, name);
   } else {
-    const startCat = Number.isFinite(cat) && PRESET_CATEGORIES[cat] ? PRESET_CATEGORIES[cat].items[0] : PRESETS[0];
-    lookAt(startCat.ra, startCat.dec, startCat.size, null, startCat.name);
+    const startObj = PRESET_CATEGORIES[startCatIdx].items[0];
+    lookAt(startObj.ra, startObj.dec, startObj.size, null, startObj.name);
   }
 }
