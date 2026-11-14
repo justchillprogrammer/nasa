@@ -49,6 +49,14 @@ query is slow. Results are cached in `.cache/`, so repeat visits are instant.
 `backend/data/wave_tables.json` holds the mission's per-detector wavelength
 lookup grids, copied from the image files.
 
+## Deploy (Render)
+
+`render.yaml` describes the service. In Render choose New, then Blueprint,
+connect this GitHub repo, and apply. Every push to `main` redeploys
+automatically. The free plan sleeps after about 15 minutes without traffic and
+wipes the `.cache/` folder on each deploy, so the first visit afterwards is
+slow.
+
 ## Known limits of this first version
 
 - Positions are entered as coordinates or chosen from presets. There is no
