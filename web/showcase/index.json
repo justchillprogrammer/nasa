@@ -1,6 +1,27 @@
 {
  "targets": [
   {
+   "slug": "3i-atlas",
+   "name": "3I/ATLAS, the interstellar comet",
+   "note": "Only the third object ever seen visiting our solar system from interstellar space. It was discovered in July 2025.",
+   "group": "Moving objects",
+   "type": "track",
+   "kinds": {
+    "tracked": 90
+   },
+   "candidates": 0,
+   "summary": "You are watching 90 real images of 3I/ATLAS, the interstellar comet, taken between 01 Aug 2025 and 15 Dec 2025. By stacking all the images on the object, the stars smear away while the comet adds up to become visible. This object was about 2.47 au away and is only the third object ever seen visiting our solar system from interstellar space.",
+   "writer": "AI (gemini-3.1-flash-lite)",
+   "thumbs": [
+    "3i-atlas/t0.png",
+    "3i-atlas/t1.png"
+   ],
+   "labels": [
+    "01 Aug 2025",
+    "15 Dec 2025"
+   ]
+  },
+  {
    "slug": "barnard",
    "name": "Barnard's Star",
    "note": "A red dwarf 6 light-years away. It crosses our sky faster than any other star.",

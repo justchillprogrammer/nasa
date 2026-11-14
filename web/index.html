@@ -30,6 +30,7 @@
   <section class="intro">
     <h1>The sky is not as still as it looks.</h1>
     <p>NASA's SPHEREx telescope photographs the whole sky every six months. Sky Blink lines those photographs up, finds what moved or changed, and tells you about it. Pick any card to travel through time.</p>
+    <button id="tour-start" type="button" class="primary tour-start">Take the 2-minute tour</button>
   </section>
   <div id="feed"></div>
   <section class="explore-cta">
@@ -46,6 +47,15 @@
     <h1 id="t-name"></h1>
     <p id="t-note"></p>
   </header>
+
+  <div class="tourbar" id="tourbar" hidden>
+    <p><span id="tour-step"></span> <span id="tour-text"></span></p>
+    <div class="tour-buttons">
+      <button id="tour-pause" type="button">Pause tour</button>
+      <button id="tour-next" type="button" class="primary">Next stop</button>
+      <button id="tour-end" type="button">End tour</button>
+    </div>
+  </div>
 
   <div class="machine">
     <section class="stage" aria-label="Time machine">
@@ -68,11 +78,18 @@
       <div class="modes" role="radiogroup" aria-label="View">
         <label><input type="radio" name="mode" value="fade" checked> Time machine</label>
         <label><input type="radio" name="mode" value="blink"> Blink first and last</label>
-        <label><input type="radio" name="mode" value="diff"> Show only what changed</label>
+        <label id="mode-diff"><input type="radio" name="mode" value="diff"> Show only what changed</label>
+        <label id="mode-stack" hidden><input type="radio" name="mode" value="stack"> Stack all images on it</label>
         <label class="check"><input id="marks" type="checkbox" checked> Mark changes</label>
         <label class="bright">Brightness <input id="stretch" type="range" min="0" max="100" value="55"></label>
       </div>
       <p class="help" id="mode-help"></p>
+      <div class="share">
+        <button id="share-link" type="button">Copy link to this view</button>
+        <button id="save-picture" type="button">Save picture</button>
+        <button id="save-video" type="button">Save video</button>
+        <span id="share-msg" class="share-msg" role="status" aria-live="polite"></span>
+      </div>
     </section>
 
     <aside class="report" aria-label="What changed">

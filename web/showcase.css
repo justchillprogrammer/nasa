@@ -158,3 +158,26 @@
 @media (prefers-reduced-motion: reduce) {
   .card-pics img { animation: none; }
 }
+
+/* ---------- tour ---------- */
+.tour-start { margin-top: 18px; font-size: 1.05rem; padding: 10px 18px; }
+.tourbar {
+  display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; justify-content: space-between;
+  margin: 0 0 16px; padding: 12px 14px; border-radius: 10px;
+  background: var(--panel-2); border: 1px solid var(--amber);
+}
+.tourbar p { margin: 0; flex: 1 1 380px; }
+#tour-step { font-weight: 700; color: var(--amber); margin-right: 6px; }
+.tour-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ---------- share ---------- */
+.share { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 14px; }
+.share-msg { color: var(--muted); font-size: 0.9rem; }
+
+/* ---------- follow mode ---------- */
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; }
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; }
+.mini-h { font-size: 1rem; margin: 14px 0 6px; }
+.mini-spec { width: 100%; height: auto; display: block; }
+.mini-spec text { fill: var(--muted); font-size: 11px; font-family: var(--body); }

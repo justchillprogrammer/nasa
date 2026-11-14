@@ -182,3 +182,59 @@ def ai_text(f: dict, timeout: float = 30) -> dict | None:
 def describe(target: dict, sweeps: list[dict], result: dict) -> dict:
     f = facts(target, sweeps, result)
     return ai_text(f) or rule_text(f)
+
+
+TRACK_PROMPT = """You write short captions for a public website that follows a
+comet or asteroid through images from NASA's SPHEREx space telescope.
+Readers are curious members of the public, not astronomers.
+
+Use only the facts in the JSON below. Never do arithmetic or unit
+conversions: copy numbers exactly as given. Do not exaggerate the target
+note. Distances describe when the images were taken: write "was about ...",
+never "is" or "currently". Explain that stacking all the images on the object makes the stars
+smear away while the object adds up. If visible_when_stacked is false, say
+it stays too faint even when stacked and the circle shows where its orbit
+puts it.
+Prefer plain words. No exclamation marks.
+
+Return JSON: {"summary": "2 or 3 sentences. The first says what the viewer
+is watching (how many real images, over which dates); then the stacking
+point; then context from the target note or the distance."}
+
+Facts:
+"""
+
+
+def describe_track(target: dict, f: dict) -> dict:
+    """Text for a followed comet or asteroid."""
+    key = os.environ.get("GEMINI_API_KEY")
+    facts = {"target": target.get("name"), "target_note": target.get("note", ""), **f}
+    if key:
+        for model in MODELS:
+            try:
+                r = requests.post(GEMINI_URL, json={
+                    "model": model, "temperature": 0.3, "response_format": {"type": "json_object"},
+                    "messages": [{"role": "user", "content": TRACK_PROMPT + json.dumps(facts)}],
+                }, headers={"Authorization": f"Bearer {key}"}, timeout=30)
+                data = r.json()
+                if isinstance(data, list):
+                    data = data[0] if data else {}
+                if "choices" not in data:
+                    continue
+                text = data["choices"][0]["message"]["content"].strip().strip("`")
+                if text.startswith("json"):
+                    text = text[4:]
+                out = json.loads(text)
+                if isinstance(out.get("summary"), str) and _numbers_ok({"summary": out["summary"], "items": []}, facts):
+                    return {"summary": out["summary"], "items": [], "writer": f"AI ({model})"}
+            except Exception:
+                continue
+    s = (f"SPHEREx caught {target.get('name')} in {f['n_images']} images between {f['first_date']} "
+         f"and {f['last_date']}; the view follows it, so the stars stream past.")
+    if f.get("distance_million_km"):
+        s += f" It was about {f['distance_million_km']} million km from Earth."
+    if f.get("visible_when_stacked"):
+        s += " Stacking all the images on it smears the stars away and makes it stand out."
+    else:
+        s += " It stays faint even when the images are stacked; the circle shows where its orbit puts it."
+    return {"summary": s, "items": [], "writer": "rules"}

@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import math
 import sys
 import warnings
 from pathlib import Path
@@ -29,6 +30,7 @@ warnings.filterwarnings("ignore")
 
 import detect  # noqa: E402
 import narrate  # noqa: E402
+import track  # noqa: E402
 
 OUT = ROOT / "web" / "showcase"
 TARGETS = json.loads((ROOT / "tools" / "targets.json").read_text())
@@ -80,6 +82,78 @@ def build(t: dict) -> dict:
     return meta
 
 
+def build_track(t: dict) -> dict:
+    """A comet or asteroid: real exposures centred on its predicted position."""
+    slug = t["slug"]
+    print(f"== {t['name']} (following)", flush=True)
+    res = track.follow(t["horizons"], size=t.get("size", 0.12), npix=t.get("npix", 160),
+                       start=t.get("start", track.MISSION_START), stop=t.get("stop"),
+                       log=lambda *a: print("  ", *a, flush=True))
+    frames = res["frames"]
+    if len(frames) < 3:
+        raise RuntimeError(f"only {len(frames)} usable images")
+    d = OUT / slug
+    d.mkdir(parents=True, exist_ok=True)
+    for f in d.glob("*"):
+        f.unlink()
+    out = []
+    for i, f in enumerate(frames):
+        (d / f"f{i}.bin").write_bytes(f["image"].astype("<f2").tobytes())
+        out.append({"mjd": round(f["mjd"], 6), "lam": round(f["lam"], 3), "frame": f"f{i}.bin",
+                    "id": f["id"], "flux": None if f["flux"] is None else round(f["flux"], 4),
+                    "err": None if f["err"] is None else round(f["err"], 4)})
+    # Shift-and-stack: every image is centred on the object, so a median
+    # keeps the object and smears the stars (each lands somewhere else).
+    stack = np.nanmedian(np.stack([f["image"] for f in frames]), axis=0).astype(np.float32)
+    s_sig = detect._robust_sigma(stack)
+    stack = stack / s_sig if s_sig and s_sig > 0 else stack
+    c = stack.shape[0] // 2
+    stack_snr = float(np.nanmax(stack[c - 4:c + 5, c - 4:c + 5]))
+    (d / "stack.bin").write_bytes(stack.astype("<f2").tobytes())
+
+    # facts for the text
+    mjds = [f["mjd"] for f in frames]
+    visits = 1 + sum(1 for a, b in zip(mjds, mjds[1:]) if b - a > 3)
+    near = [r for r in res["daily"] if mjds[0] - 1 <= r["mjd"] <= mjds[-1] + 1] or res["daily"]
+    deltas = [r["delta"] for r in near if r["delta"]]
+    rates = [math.hypot(r["rate_ra"] or 0, r["rate_dec"] or 0) for r in near if r["rate_ra"] is not None]
+    delta = round(float(np.median(deltas)), 2) if deltas else None
+    facts = {
+        "n_images": len(frames), "visits": visits,
+        "first_date": dt.datetime(1858, 11, 17) .__add__(dt.timedelta(days=mjds[0])).strftime("%d %b %Y"),
+        "last_date": dt.datetime(1858, 11, 17).__add__(dt.timedelta(days=mjds[-1])).strftime("%d %b %Y"),
+        "distance_au": delta,
+        "distance_million_km": round(delta * 149.6) if delta else None,
+        "sky_speed_arcsec_per_hour": round(float(np.median(rates)), 1) if rates else None,
+        "stacked_images_peak_vs_noise": round(stack_snr),
+        "visible_when_stacked": stack_snr > 10,
+    }
+    text = narrate.describe_track(t, facts)
+    meta = {
+        "type": "track", "slug": slug, "name": t["name"], "note": t.get("note", ""),
+        "size": res["size"], "npix": res["npix"], "frames": out, "stack": "stack.bin",
+        "facts": facts, "text": text,
+        "horizons": t["horizons"],
+        "built": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+    }
+    (d / "meta.json").write_text(json.dumps(meta, indent=1, default=float))
+    write_track_thumbs(d, meta, frames, stack)
+    print(f"   {len(frames)} images; text by {text['writer']}", flush=True)
+    return meta
+
+
+def write_track_thumbs(d: Path, meta: dict, frames: list[dict], stack: np.ndarray) -> None:
+    """Card pictures: one single image, then the stack, so the card itself
+    shows the object appearing out of the crowd."""
+    picks = [frames[len(frames) // 2]["image"], stack]
+    for j, img in enumerate(picks):
+        a = np.arcsinh(np.clip(np.nan_to_num(img, nan=50), -2, None) / 3) / np.arcsinh(40)
+        Image.fromarray((np.clip(a, 0, 1) * 255).astype(np.uint8)).resize((320, 320), Image.LANCZOS) \
+            .crop((0, 60, 320, 260)).save(d / f"t{j}.png", optimize=True)
+    meta["thumbs"] = [f"t{j}.png" for j in range(len(picks))]
+    (d / "meta.json").write_text(json.dumps(meta, indent=1, default=float))
+
+
 def write_thumbs(d: Path, meta: dict) -> None:
     """Preview pictures for the feed cards, cropped around the main change so
     a small motion is visible at card size."""
@@ -114,6 +188,12 @@ def refresh(t: dict) -> None:
     if not mp.exists():
         return
     meta = json.loads(mp.read_text())
+    if meta.get("type") == "track":
+        meta["text"] = narrate.describe_track(t, meta["facts"])
+        meta["name"], meta["note"] = t["name"], t.get("note", "")
+        mp.write_text(json.dumps(meta, indent=1, default=float))
+        print(f"refreshed {t['slug']}: text by {meta['text']['writer']}", flush=True)
+        return
     sweeps = [{"label": s["label"], "n": s["n"]} for s in meta["sweeps"]]
     meta["text"] = narrate.describe(t, sweeps, {"changes": meta["changes"], "n_sources": meta["n_sources"]})
     meta["name"], meta["note"] = t["name"], t.get("note", "")
@@ -123,6 +203,15 @@ def refresh(t: dict) -> None:
 
 
 def index_entry(t: dict, m: dict) -> dict:
+    if m.get("type") == "track":
+        f = m["frames"]
+        return {
+            "slug": t["slug"], "name": t["name"], "note": t.get("note", ""), "group": t.get("group", ""),
+            "type": "track", "kinds": {"tracked": len(f)}, "candidates": 0,
+            "summary": m["text"]["summary"], "writer": m["text"]["writer"],
+            "thumbs": [f"{t['slug']}/{x}" for x in m.get("thumbs", [])],
+            "labels": [m["facts"]["first_date"], m["facts"]["last_date"]],
+        }
     kinds: dict[str, int] = {}
     candidates = 0
     for c in m["changes"]:
@@ -165,7 +254,7 @@ def main(only: list[str]) -> None:
         if only and t["slug"] not in only:
             continue
         try:
-            build(t)
+            build_track(t) if t.get("type") == "track" else build(t)
         except Exception as e:  # keep going; report at the end
             print(f"   FAILED: {e}", flush=True)
             continue

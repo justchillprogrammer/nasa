@@ -1,5 +1,15 @@
 [
  {
+  "slug": "3i-atlas",
+  "name": "3I/ATLAS, the interstellar comet",
+  "group": "Moving objects",
+  "type": "track",
+  "horizons": "DES=C/2025 N1;",
+  "start": "2025-07-01",
+  "stop": "2026-02-01",
+  "note": "Only the third object ever seen visiting our solar system from interstellar space. It was discovered in July 2025."
+ },
+ {
   "slug": "barnard",
   "name": "Barnard's Star",
   "group": "Stars on the move",
