@@ -275,18 +275,38 @@ async function lookAt(ra, dec, size, lam, label) {
   ctx.clearRect(0, 0, els.view.width, els.view.height);
   drawOverlay();
   syncUrl();
-  setStatus("Asking the NASA archive which images cover this spot. A spot nobody has looked at yet can take up to a minute.");
+  setStatus("Asking the NASA archive which images cover this spot. Pre-searched spots open instantly; new spots take up to 25 seconds.");
 
-  let res;
-  try {
-    const r = await fetch(`/api/search?ra=${ra}&dec=${dec}`);
-    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.statusText);
-    res = await r.json();
-  } catch (e) {
-    if (run !== state.run) return;
-    els.empty.textContent = "No images loaded.";
-    setStatus(`The archive search did not finish (${e.message}). Check the connection and select "Look here" again.`, "error");
-    return;
+  const SEARCH_TIMEOUT_MS = 25000;
+  let res = null;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort(), SEARCH_TIMEOUT_MS);
+    try {
+      if (attempt > 1) {
+        setStatus("The NASA archive is busy, retrying search (attempt 2 of 2)…");
+      }
+      const r = await fetch(`/api/search?ra=${ra}&dec=${dec}`, { signal: ac.signal });
+      clearTimeout(timer);
+      if (!r.ok) {
+        const errDetail = (await r.json().catch(() => ({}))).detail || r.statusText;
+        throw new Error(errDetail);
+      }
+      res = await r.json();
+      break;
+    } catch (e) {
+      clearTimeout(timer);
+      if (run !== state.run) return;
+      if (attempt === 1) {
+        setStatus("The NASA archive is busy. Retrying in a moment…");
+        await new Promise((ok) => setTimeout(ok, 1000));
+        if (run !== state.run) return;
+        continue;
+      }
+      els.empty.textContent = "Search timed out.";
+      setStatus("The NASA archive is busy. Please try again in a moment, or select one of the pre-loaded spots below.", "error");
+      return;
+    }
   }
   if (run !== state.run) return;
   state.exposures = res.exposures;

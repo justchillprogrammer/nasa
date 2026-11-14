@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>404: Uncharted Sky — Sky Blink</title>
+<meta name="description" content="This celestial coordinate or page does not exist in the Sky Blink mission archive.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="showcase.css?v=4">
+<style>
+  .error-page {
+    max-width: 720px;
+    margin: 80px auto;
+    text-align: center;
+    padding: 0 20px;
+  }
+  .error-code {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: clamp(4rem, 10vw, 7rem);
+    font-weight: 700;
+    line-height: 1;
+    color: var(--amber, #ffb347);
+    margin: 0 0 12px;
+    letter-spacing: -0.04em;
+    text-shadow: 0 0 32px rgba(255, 179, 71, 0.25);
+  }
+  .error-title {
+    font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+  }
+  .error-desc {
+    color: var(--muted, #94a3b8);
+    font-size: 1.15rem;
+    max-width: 50ch;
+    margin: 0 auto 36px;
+    line-height: 1.6;
+  }
+  .cosmic-art {
+    margin: 30px auto;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    border: 1px dashed rgba(255, 179, 71, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: radial-gradient(circle, rgba(255, 179, 71, 0.08) 0%, transparent 70%);
+  }
+  .cosmic-art::after {
+    content: "✦";
+    font-size: 2.2rem;
+    color: var(--amber, #ffb347);
+    animation: pulse 3s infinite ease-in-out;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; transform: scale(0.9); }
+    50% { opacity: 1; transform: scale(1.15); }
+  }
+  .error-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <a href="/" class="wordmark">Sky Blink</a>
+  <a class="nav-how" href="how.html" style="margin-left:auto">How it works</a>
+  <a class="button-link nav-explorer" href="explore.html">Explorer &rarr;</a>
+</header>
+
+<main class="error-page">
+  <div class="cosmic-art" aria-hidden="true"></div>
+  <div class="error-code">404</div>
+  <h1 class="error-title">Deep space — Uncharted territory</h1>
+  <p class="error-desc">The coordinates or page you are looking for lie beyond the boundaries of our SPHEREx survey catalog.</p>
+  
+  <div class="error-actions">
+    <a href="/" class="button-link primary">Return to Sky Blink Home</a>
+    <a href="explore.html" class="button-link secondary-cta">Open Sky Explorer</a>
+  </div>
+</main>
+
+<footer class="foot">
+  <p>Images: NASA SPHEREx Level 2 spectral images from the NASA/IPAC Infrared Science Archive.</p>
+</footer>
+
+</body>
+</html>

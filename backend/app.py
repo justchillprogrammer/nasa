@@ -13,9 +13,10 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import numpy as np
-from fastapi import Body, FastAPI, HTTPException, Query
+from fastapi import Body, FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 import detect
 import imaging
@@ -210,6 +211,19 @@ async def cache_static(request, call_next):
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
     return response
+
+
+@app.exception_handler(404)
+@app.exception_handler(StarletteHTTPException)
+async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
+    if exc.status_code == 404:
+        accept = request.headers.get("accept", "")
+        if "text/html" in accept or "*/*" in accept:
+            p404 = WEB / "404.html"
+            if p404.exists():
+                return FileResponse(p404, status_code=404)
+        return Response(content=json.dumps({"detail": exc.detail}), status_code=404, media_type="application/json")
+    return Response(content=json.dumps({"detail": exc.detail}), status_code=exc.status_code, media_type="application/json")
 
 
 @app.get("/")

@@ -92,15 +92,41 @@
         <figure><img src="showcase/3i-atlas/t1.png" alt="The stacked image"><figcaption>Stacked: the stars smear away</figcaption></figure>
       </div>
     </li>
+
+    <li class="step">
+      <div>
+        <h2><span>5</span>Explore across 6 infrared detectors (0.75 to 5.0 &micro;m)</h2>
+        <p>SPHEREx uses six separate detector arrays, spanning from near-infrared blue (0.75 &micro;m) to deep thermal red (5.0 &micro;m). Selecting different bands reveals distinct astrophysical regimes:</p>
+        <p>A cold methane brown dwarf (like WISE J184125) almost vanishes in Band 1 (< 1.1 &micro;m) because its surface temperature is too cool to emit short-wavelength light, but glows intensely in Band 6 (4.5 &micro;m). Pre-computed offline spectrum charts display calibrated multi-epoch flux across all 6 bands, including 3I/ATLAS's comet colours.</p>
+      </div>
+      <div class="quote">
+        “Band 1 (0.75–1.1 &micro;m): Star invisible. Band 6 (4.4–5.0 &micro;m): Deep infrared glow dominates.”
+        <small>Interactive Band Selector in the time machine.</small>
+      </div>
+    </li>
+
+    <li class="step">
+      <div>
+        <h2><span>6</span>Citizen science: Flag findings &amp; review queue</h2>
+        <p>Anyone can inspect the time machine, click anywhere to drop a pin, and flag an unexplained anomaly: Moving, Brightness change, Artifact, or Not sure. Celestial RA/Dec coordinates and observation timestamps are computed automatically.</p>
+        <p>Unconfirmed candidates enter an interactive “Is this real?” review queue with before/after comparisons. Your flagged findings can be exported anytime as a CSV or JSON report ready to share with astronomers.</p>
+      </div>
+      <div class="quote">
+        “Finding flagged at RA 269.452&deg;, Dec +4.738&deg; [Moving] &mdash; Matches confirmed detection.”
+        <small>Exportable as a research report ready to share.</small>
+      </div>
+    </li>
   </ol>
 
   <section class="truth">
     <h2>What is real, and what only helps your eyes</h2>
     <dl>
       <dt>Real</dt><dd>Every picture is made from SPHEREx exposures in the NASA/IPAC Infrared Science Archive. Every number (motion, brightness change, significance) is measured from them.</dd>
-      <dt>Blended</dt><dd>Between two sweeps, the time machine fades one picture into the next so motion is easy to follow. The caption always says “blend, not an observation”.</dd>
+      <dt>Real steps vs Blend</dt><dd>Toggle between jumping strictly across actual astronomical exposures (Real steps) or fading between sweeps (Blend). When blending, frames are explicitly labelled “not observed”.</dd>
+      <dt>Spectra</dt><dd>Pre-computed per-exposure multi-band photometry for all showcase targets, available offline without waiting for remote queries.</dd>
       <dt>Magnified</dt><dd>Zooming in enlarges real pixels; nothing is added.</dd>
-      <dt>Candidate</dt><dd>A change the checks could not confirm. It is labelled as a candidate, never as a discovery.</dd>
+      <dt>Candidate</dt><dd>A change the checks could not confirm. It is placed into the community review queue, never assumed as a discovery.</dd>
+      <dt>Citizen findings</dt><dd>Saved locally and exportable as a structured report ready to share, not as automated submission to the Minor Planet Center.</dd>
       <dt>From orbits</dt><dd>Where a comet or asteroid should be comes from NASA JPL Horizons. The picture around it is a real SPHEREx exposure.</dd>
     </dl>
   </section>

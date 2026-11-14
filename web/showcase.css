@@ -331,3 +331,154 @@
 }
 .swipe-label.left { left: 10px; }
 .swipe-label.right { right: 10px; }
+
+/* ---------- findings button & count badge ---------- */
+.findings-header-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--panel-2); color: var(--text); border: 1px solid var(--line);
+  padding: 8px 12px; border-radius: 6px; font-weight: 700; cursor: pointer;
+  white-space: nowrap; font-size: 0.95rem;
+}
+.findings-header-btn:hover { border-color: var(--amber); }
+.count-badge {
+  background: var(--amber); color: var(--amber-ink); font-size: 0.75rem;
+  padding: 1px 7px; border-radius: 10px; font-weight: 700;
+}
+
+/* ---------- SPHEREx 6 Detector Bands Selector ---------- */
+.band-bar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin: 10px 0 12px; padding: 8px 12px; border-radius: 8px;
+  background: var(--panel-2); border: 1px solid var(--line);
+}
+.band-bar-label { font-weight: 700; color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.band-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.band-pill {
+  display: inline-flex; align-items: baseline; gap: 5px;
+  background: var(--panel); color: var(--text); border: 1px solid var(--line);
+  padding: 4px 10px; border-radius: 16px; font-size: 0.85rem; font-weight: 700; cursor: pointer;
+  transition: all 0.15s ease;
+}
+.band-pill small { color: var(--muted); font-size: 0.72rem; font-weight: 400; }
+.band-pill:hover { border-color: var(--amber); }
+.band-pill.on {
+  background: var(--amber); color: var(--amber-ink); border-color: var(--amber);
+}
+.band-pill.on small { color: var(--amber-ink); opacity: 0.85; }
+
+/* Band False-Color Tints */
+.band-pill[data-band="1"] { border-left: 3px solid #7088ff; }
+.band-pill[data-band="2"] { border-left: 3px solid #4ee2ec; }
+.band-pill[data-band="3"] { border-left: 3px solid #6fe870; }
+.band-pill[data-band="4"] { border-left: 3px solid #ffbe40; }
+.band-pill[data-band="5"] { border-left: 3px solid #ff6250; }
+.band-pill[data-band="6"] { border-left: 3px solid #ff255b; }
+
+/* ---------- Real steps / Blend Toggle ---------- */
+.blend-toggle {
+  display: inline-flex; align-items: center; gap: 12px;
+  margin-left: auto; padding: 4px 10px; border-radius: 6px;
+  background: var(--panel-2); border: 1px solid var(--line); font-size: 0.88rem;
+}
+.blend-opt { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.blend-sub { color: var(--muted); font-size: 0.75rem; }
+
+/* ---------- Flag Trigger Button ---------- */
+.flag-trigger-btn {
+  background: var(--panel-2); color: var(--text); border: 1px solid var(--amber);
+  padding: 8px 12px; border-radius: 6px; font-weight: 700; cursor: pointer;
+}
+.flag-trigger-btn.active {
+  background: var(--amber); color: var(--amber-ink);
+}
+
+/* Pin marker on plate */
+.plate-pin {
+  position: absolute; transform: translate(-50%, -100%); z-index: 10;
+  pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+  animation: bouncePin 0.4s ease;
+}
+@keyframes bouncePin { 0% { transform: translate(-50%, -160%); } 100% { transform: translate(-50%, -100%); } }
+
+/* ---------- Review Candidates Button ---------- */
+.review-candidates-btn {
+  width: 100%; margin: 10px 0; padding: 10px; border-radius: 6px; font-weight: 700;
+  background: var(--panel-2); color: var(--amber); border: 1px dashed var(--amber); cursor: pointer;
+}
+.review-candidates-btn:hover { background: rgba(255, 179, 71, 0.12); }
+
+/* ---------- Offline Spectrum Card ---------- */
+.spectrum-card {
+  margin-top: 18px; padding: 14px; border-radius: 8px;
+  background: var(--panel); border: 1px solid var(--line);
+}
+.spectrum-card-header {
+  display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;
+}
+.spectrum-card-header h3 { margin: 0; font-size: 1.05rem; }
+.spectrum-range { color: var(--amber); font-size: 0.82rem; font-weight: 700; }
+.target-spectrum-view { width: 100%; height: auto; }
+.target-spectrum-view svg { width: 100%; height: auto; display: block; }
+.spectrum-caption { color: var(--muted); font-size: 0.8rem; margin: 8px 0 0; }
+
+/* SVG styles inside spectrum view */
+.spec-axis { stroke: var(--line); stroke-width: 1; }
+.spec-grid { stroke: rgba(48, 59, 96, 0.4); stroke-width: 0.8; stroke-dasharray: 2 2; }
+.spec-text { fill: var(--muted); font-size: 10px; font-family: var(--body); }
+.spec-band-highlight { fill: rgba(255, 179, 71, 0.18); stroke: var(--amber); stroke-width: 1; }
+
+/* ---------- Modals ---------- */
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(5, 7, 13, 0.78); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-card {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+  padding: 24px; max-width: 500px; width: 100%; box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+  position: relative; max-height: 90vh; overflow-y: auto;
+}
+.modal-wide { max-width: 760px; }
+.modal-medium { max-width: 560px; }
+.modal-card h3, .modal-card h2 { margin: 0 0 10px; font-size: 1.35rem; }
+.modal-label { display: block; margin: 14px 0; font-weight: 700; font-size: 0.92rem; }
+.modal-label span { display: block; margin-bottom: 6px; }
+.modal-input {
+  width: 100%; font: inherit; background: var(--panel-2); color: var(--text);
+  border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px;
+}
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+.match-alert {
+  padding: 8px 12px; border-radius: 6px; background: rgba(98, 210, 195, 0.15);
+  border: 1px solid var(--bright); color: var(--bright); font-size: 0.88rem; font-weight: 700; margin: 10px 0;
+}
+
+/* Findings modal */
+.findings-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.findings-subtitle { color: var(--amber); font-weight: 700; font-size: 1.1rem; margin: 4px 0 0; }
+.findings-intro { color: var(--muted); font-size: 0.92rem; margin: 10px 0 18px; line-height: 1.5; }
+.close-x-btn {
+  background: none; border: none; font-size: 1.25rem; color: var(--muted); cursor: pointer; padding: 4px 8px;
+}
+.close-x-btn:hover { color: var(--text); }
+.findings-list { display: grid; gap: 10px; max-height: 380px; overflow-y: auto; margin: 14px 0; }
+.finding-card {
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px;
+  padding: 12px 14px; display: grid; gap: 6px;
+}
+.finding-head { display: flex; justify-content: space-between; align-items: baseline; }
+.finding-target { font-weight: 700; font-size: 1.05rem; }
+.finding-badge { font-size: 0.8rem; padding: 2px 8px; border-radius: 12px; background: rgba(255, 179, 71, 0.15); color: var(--amber); }
+.finding-coords { font-family: monospace; font-size: 0.88rem; color: var(--muted); }
+.finding-notes { font-size: 0.9rem; margin-top: 4px; }
+.findings-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; flex-wrap: wrap; gap: 10px; }
+.export-buttons { display: flex; gap: 8px; }
+.btn-subtle { background: none; border: 1px solid var(--line); color: var(--muted); padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+.btn-subtle:hover { border-color: #f2849e; color: #f2849e; }
+
+/* Review compare */
+.review-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0; }
+.review-pane { text-align: center; }
+.review-pane-label { display: block; font-size: 0.82rem; color: var(--muted); margin-bottom: 6px; }
+.review-pane canvas { border: 1px solid var(--line); border-radius: 8px; background: #05070d; width: 100%; aspect-ratio: 1; }
+.review-meta { color: var(--muted); font-size: 0.88rem; margin: 6px 0 14px; text-align: center; }

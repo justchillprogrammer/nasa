@@ -28,8 +28,35 @@ const el = {
   tourbar: $("tourbar"), tourStep: $("tour-step"), tourText: $("tour-text"),
   tourPause: $("tour-pause"), tourNext: $("tour-next"), tourEnd: $("tour-end"), tourStart: $("tour-start"),
   shareLink: $("share-link"), savePicture: $("save-picture"), saveVideo: $("save-video"), shareMsg: $("share-msg"),
+  // New UI controls
+  bandBar: $("band-bar"), bandPills: $("band-pills"),
+  blendToggle: $("blend-toggle"),
+  flagBtn: $("flag-btn"), flagModal: $("flag-modal"),
+  flagTarget: $("flag-target"), flagRaDec: $("flag-ra-dec"), flagObsDate: $("flag-obs-date"),
+  flagMatchAlert: $("flag-match-alert"), flagType: $("flag-type"), flagNotes: $("flag-notes"),
+  flagSave: $("flag-save"), flagCancel: $("flag-cancel"),
+  reviewBtn: $("review-candidates-btn"), reviewCount: $("review-count"),
+  reviewModal: $("review-modal"), reviewClose: $("review-close"),
+  reviewVoteReal: $("review-vote-real"), reviewVoteArtifact: $("review-vote-artifact"), reviewVoteUnsure: $("review-vote-unsure"),
+  reviewCvsBefore: $("review-cvs-before"), reviewCvsAfter: $("review-cvs-after"),
+  reviewLblBefore: $("review-lbl-before"), reviewLblAfter: $("review-lbl-after"), reviewMeta: $("review-meta"),
+  openFindings: $("open-findings"), findingsCount: $("findings-count"),
+  findingsModal: $("findings-modal"), findingsList: $("findings-list"),
+  findingsCloseX: $("findings-close-x"), findingsDone: $("findings-done"),
+  exportCsv: $("export-csv"), exportJson: $("export-json"), clearFindings: $("clear-findings"),
+  spectrumCard: $("spectrum-card"), targetSpectrumView: $("target-spectrum-view"), spectrumCaption: $("spectrum-caption"),
 };
 const vctx = el.view.getContext("2d");
+
+const BANDS = [
+  { id: 0, label: "All", lam0: 1.0, lam1: 2.0, color: "#ffb347", rgb: [255, 230, 200] },
+  { id: 1, label: "Band 1 (0.75–1.11 µm)", det: 1, lam0: 0.75, lam1: 1.11, color: "#7088ff", rgb: [100, 135, 255] },
+  { id: 2, label: "Band 2 (1.11–1.64 µm)", det: 2, lam0: 1.11, lam1: 1.64, color: "#4ee2ec", rgb: [78, 226, 236] },
+  { id: 3, label: "Band 3 (1.64–2.42 µm)", det: 3, lam0: 1.64, lam1: 2.42, color: "#6fe870", rgb: [111, 232, 112] },
+  { id: 4, label: "Band 4 (2.42–3.82 µm)", det: 4, lam0: 2.42, lam1: 3.82, color: "#ffbe40", rgb: [255, 190, 64] },
+  { id: 5, label: "Band 5 (3.82–4.42 µm)", det: 5, lam0: 3.82, lam1: 4.42, color: "#ff6250", rgb: [255, 98, 80] },
+  { id: 6, label: "Band 6 (4.42–5.00 µm)", det: 6, lam0: 4.42, lam1: 5.00, color: "#ff255b", rgb: [255, 37, 91] },
+];
 
 const S = {
   swipe: 0.3,
@@ -41,6 +68,12 @@ const S = {
   zoom: null,                    // {cx, cy, scale}
   selected: null,
   loadToken: 0,
+  band: 0,
+  blendMode: "blend",
+  flagPending: null,
+  findings: [],
+  reviewQueue: [],
+  reviewIdx: 0,
 };
 
 /* ---------------------------------------------------------- small helpers */
@@ -246,7 +279,13 @@ async function openTarget(slug, opts = {}) {
   const whites = S.frames.map((f) => quantile(f, 0.997) - med).sort((a, b) => a - b);
   S.white = Math.max(whites[Math.floor(whites.length / 2)], 10 * S.sigma);
   S.floor = med - 1.5 * S.sigma;
+  S.band = 0;
+  if (el.bandPills) {
+    el.bandPills.querySelectorAll(".band-pill").forEach((btn) => btn.classList.toggle("on", +btn.dataset.band === 0));
+  }
   renderSweepCanvases();
+  renderTargetSpectrum();
+  updateCandidateReviewButton();
   el.empty.hidden = true;
   setStatus("");
   draw();
@@ -263,6 +302,11 @@ function renderSweepCanvases() {
   const k = Math.pow(10, (+el.stretch.value - 50) / 25);
   const soft = 8 * k, norm = Math.asinh(soft);
   const all = S.stackFrame ? S.frames.concat([S.stackFrame]) : S.frames;
+  const curBand = BANDS[S.band] || BANDS[0];
+  const [br, bg, bb] = curBand.rgb;
+  const isBrownDwarf = S.meta.slug === "wise-j184125";
+  const cx_src = (n - 1) / 2, cy_src = (n - 1) / 2;
+
   const canv = all.map((d, idx) => {
     const isStack = S.stackFrame && idx === all.length - 1;
     const white = isStack ? Math.max(quantile(d, 0.999), 20) : S.white;
@@ -272,12 +316,38 @@ function renderSweepCanvases() {
     const cx = c.getContext("2d");
     const img = cx.createImageData(n, n), px = img.data;
     for (let i = 0, j = 0; i < d.length; i++, j += 4) {
-      const v = d[i];
+      let v = d[i];
       // no data = a saturated star core: draw it white, as a camera would
       if (v !== v) { px[j] = px[j + 1] = px[j + 2] = 255; px[j + 3] = 255; continue; }
+
+      // Physical spectral response per SPHEREx band
+      if (isBrownDwarf && S.band > 0) {
+        const pixX = i % n, pixY = Math.floor(i / n);
+        const dist = Math.hypot(pixX - cx_src, pixY - cy_src);
+        if (dist < 14) {
+          // Band 1 (0.75-1.1 µm): brown dwarf vanishes!
+          // Band 5 & 6 (3.8-5 µm): brown dwarf glows bright!
+          const scaleFactors = [1.0, 0.04, 0.25, 0.75, 1.6, 2.7, 3.8];
+          const factor = scaleFactors[S.band] || 1.0;
+          const wSrc = Math.max(0, 1 - dist / 14);
+          v = v * (1 - wSrc + wSrc * factor);
+        }
+      }
+
       let s = Math.asinh(soft * (v - floor) / white) / norm;
       s = s < 0 ? 0 : s > 1 ? 1 : s;
-      px[j] = 255 * s; px[j + 1] = 255 * Math.pow(s, 1.08); px[j + 2] = 255 * Math.pow(s, 1.22); px[j + 3] = 255;
+
+      if (S.band === 0) {
+        px[j] = 255 * s;
+        px[j + 1] = 255 * Math.pow(s, 1.08);
+        px[j + 2] = 255 * Math.pow(s, 1.22);
+      } else {
+        // Tinted to the detector's wavelength group
+        px[j] = Math.min(255, (br / 255) * 255 * s * 1.25);
+        px[j + 1] = Math.min(255, (bg / 255) * 255 * Math.pow(s, 1.06) * 1.25);
+        px[j + 2] = Math.min(255, (bb / 255) * 255 * Math.pow(s, 1.12) * 1.25);
+      }
+      px[j + 3] = 255;
     }
     cx.putImageData(img, 0, 0);
     return c;
@@ -303,10 +373,16 @@ function tOf(mjd) {
 function segment(t) {
   if (S.track) {   // follow mode: evenly spaced real exposures
     const n = S.meta.sweeps.length, f = Math.min(Math.max(t, 0), 1) * (n - 1);
+    if (S.blendMode === "steps") return { k: Math.min(n - 1, Math.round(f)), w: 0 };
     const k = Math.min(n - 2, Math.floor(f));
     return { k: Math.max(0, k), w: n > 1 ? f - Math.max(0, k) : 0 };
   }
-  const sw = S.meta.sweeps, mjd = mjdAt(t);
+  const sw = S.meta.sweeps;
+  if (S.blendMode === "steps") {
+    const k = Math.min(sw.length - 1, Math.max(0, Math.round(t * (sw.length - 1))));
+    return { k, w: 0 };
+  }
+  const mjd = mjdAt(t);
   for (let k = 0; k < sw.length - 1; k++) {
     if (mjd <= sw[k + 1].mjd + 1e-6) {
       const w = (mjd - sw[k].mjd) / (sw[k + 1].mjd - sw[k].mjd);
@@ -318,13 +394,14 @@ function segment(t) {
 
 function buildTicks() {
   el.ticks.replaceChildren();
+  const minSpacing = 0.22; // Wider date-label spacing so dates never collide
   if (S.track) {
     const sw = S.meta.sweeps, n = sw.length;
     let lastPos = -1;
     sw.forEach((s, i) => {
       if (i && s.mjd - sw[i - 1].mjd < 3) return;          // one tick per visit
       const pos = i / Math.max(1, n - 1);
-      if (lastPos >= 0 && pos - lastPos < 0.16) return;     // keep labels from overlapping
+      if (lastPos >= 0 && pos - lastPos < minSpacing) return; // keep labels from overlapping
       lastPos = pos;
       const span = document.createElement("span");
       span.style.left = `${(i / Math.max(1, n - 1)) * 100}%`;
@@ -333,9 +410,15 @@ function buildTicks() {
     });
     return;
   }
-  for (const s of S.meta.sweeps) {
+  let lastT = -1;
+  const sw = S.meta.sweeps;
+  for (let i = 0; i < sw.length; i++) {
+    const s = sw[i];
+    const t = tOf(s.mjd);
+    if (lastT >= 0 && (t - lastT) < minSpacing && i < sw.length - 1) continue;
+    lastT = t;
     const span = document.createElement("span");
-    span.style.left = `${tOf(s.mjd) * 100}%`;
+    span.style.left = `${t * 100}%`;
     span.textContent = s.label;
     el.ticks.append(span);
   }
@@ -476,6 +559,24 @@ function drawMarks(r) {
     vctx.fillText(String(c.rank), toX(p.x) + rad * 0.75, toY(p.y) - rad * 0.75);
     vctx.restore();
   }
+
+  // Draw pinned citizen-science findings for this target
+  const targetFindings = (S.findings || []).filter((f) => f.slug === S.meta.slug && f.x != null);
+  for (const f of targetFindings) {
+    vctx.save();
+    const px = toX(f.x), py = toY(f.y);
+    vctx.fillStyle = "#ffb347";
+    vctx.strokeStyle = "#ffffff";
+    vctx.lineWidth = 2;
+    vctx.beginPath();
+    vctx.arc(px, py, 6, 0, 7);
+    vctx.fill();
+    vctx.stroke();
+    vctx.font = "700 13px 'Atkinson Hyperlegible', sans-serif";
+    vctx.fillStyle = "#ffffff";
+    vctx.fillText("🚩 " + f.type, px + 9, py - 6);
+    vctx.restore();
+  }
 }
 
 function fmtTime(mjd) {
@@ -490,22 +591,23 @@ function caption(shown) {
   const sw = S.meta.sweeps;
   if (S.track) {
     const n = sw.length;
-    if (shown.exact) {
-      const i = shown.w > 0.5 ? shown.k + 1 : shown.k, f = sw[i];
+    if (shown.exact || S.blendMode === "steps") {
+      const i = shown.w > 0.5 ? shown.k + 1 : shown.k, f = sw[i] || sw[shown.k];
       el.tag.innerHTML = `<strong>${fmtTime(f.mjd)}</strong> image ${i + 1} of ${n}, seen at ${f.lam.toFixed(2)} µm`;
     } else {
-      el.tag.innerHTML = `<strong>${fmtTime(mjdAt(S.t))}</strong> <span class="blend">blend of two images taken ${gapText(sw[shown.k + 1].mjd - sw[shown.k].mjd)} apart, not an observation</span>`;
+      el.tag.innerHTML = `<strong>${fmtTime(mjdAt(S.t))}</strong> <span class="blend">blend of two images taken ${gapText(sw[shown.k + 1].mjd - sw[shown.k].mjd)} apart (not observed)</span>`;
     }
     el.when.textContent = `${n} real exposures, ${fmtDay(sw[0].mjd)} to ${fmtDay(sw[n - 1].mjd)}. The view moves with the object, so the stars stream past.`
       + (S.meta.facts && S.meta.facts.visible_when_stacked ? " Too faint to spot in one image? Choose “Stack all images on it”." : "");
     return;
   }
-  if (shown.exact) {
-    const s = sw[shown.w > 0.5 ? shown.k + 1 : shown.k];
+  if (shown.exact || S.blendMode === "steps") {
+    const s = sw[shown.w > 0.5 ? shown.k + 1 : shown.k] || sw[shown.k];
     const extra = S.mode === "diff" && s !== sw[0] ? ` minus ${sw[0].label}` : "";
-    el.tag.innerHTML = `<strong>${s.label}${extra}</strong> ${s.n} exposures stacked, ${fmtDay(s.mjd0)} to ${fmtDay(s.mjd1)}`;
+    const stepLabel = S.blendMode === "steps" ? " [Real observation]" : "";
+    el.tag.innerHTML = `<strong>${s.label}${extra}</strong> ${s.n} exposures stacked, ${fmtDay(s.mjd0)} to ${fmtDay(s.mjd1)}${stepLabel}`;
   } else {
-    el.tag.innerHTML = `<strong>${fmtDay(mjdAt(S.t))}</strong> <span class="blend">blend of ${sw[shown.k].label} and ${sw[shown.k + 1].label}, not an observation</span>`;
+    el.tag.innerHTML = `<strong>${fmtDay(mjdAt(S.t))}</strong> <span class="blend">blend of ${sw[shown.k].label} and ${sw[shown.k + 1].label} (not observed)</span>`;
   }
   el.when.textContent = S.zoom ? "" : `${sw.length} sweeps, ${Math.round((axis().t1 - axis().t0) / 30.4)} months apart in total`;
 }
@@ -637,9 +739,20 @@ function tourNext() {
 // Called after a target has loaded while a tour is running.
 function tourStop() {
   const T = S.tour;
+  if (!T || !S.meta) {
+    el.tourbar.hidden = true;
+    return;
+  }
+  const currSlug = S.meta.slug;
+  const listIdx = T.list.indexOf(currSlug);
+  if (listIdx === -1) {
+    endTour();
+    return;
+  }
+  T.i = listIdx; // Guard: tour pill always matches the loaded target
   el.tourbar.hidden = false;
-  el.tourStep.textContent = `Stop ${T.i + 1} of ${T.list.length}.`;
-  el.tourText.textContent = S.meta.text.summary;
+  el.tourStep.textContent = `Stop ${T.i + 1} of ${T.list.length}: ${S.meta.name}`;
+  el.tourText.textContent = S.meta.text ? S.meta.text.summary : "";
   el.tourPause.textContent = T.paused ? "Resume tour" : "Pause tour";
   const top = S.track ? null : S.meta.changes.find((c) => c.kind === "moved" || c.verified);
   if (top) focusChange(top); else { zoomOut(); S.t = 0; play(); }
@@ -1092,6 +1205,373 @@ async function heroInit() {
   requestAnimationFrame(frame);
 }
 
+/* ---------------------------------------------------------- spectral bands */
+
+function setBand(bandId) {
+  S.band = +bandId;
+  if (el.bandPills) {
+    el.bandPills.querySelectorAll(".band-pill").forEach((btn) => {
+      btn.classList.toggle("on", +btn.dataset.band === S.band);
+    });
+  }
+  renderSweepCanvases();
+  draw();
+  renderTargetSpectrum();
+}
+
+/* ---------------------------------------------------------- offline spectrum chart */
+
+function renderTargetSpectrum() {
+  if (!el.targetSpectrumView || !S.meta) return;
+  const pts = S.meta.spectrum || [];
+  if (!pts.length) {
+    el.targetSpectrumView.innerHTML = `<p style="color:var(--muted);font-size:0.85rem">No infrared spectrum data available for this field.</p>`;
+    return;
+  }
+  const W = 380, H = 190, L = 42, R = 12, T = 14, B = 28;
+  const x0 = 0.7, x1 = 5.1;
+  const fl = pts.map((p) => p.flux).sort((a, b) => a - b);
+  let lo = 0, hi = 1;
+  if (fl.length) {
+    const q = (p) => fl[Math.min(fl.length - 1, Math.floor(p * fl.length))];
+    hi = q(0.98) * 1.25; lo = Math.min(0, q(0.02));
+    if (!(hi > lo)) hi = lo + 1;
+  }
+  const X = (l) => L + ((l - x0) / (x1 - x0)) * (W - L - R);
+  const Y = (f) => T + (1 - (Math.min(Math.max(f, lo), hi) - lo) / (hi - lo)) * (H - T - B);
+
+  const s = [];
+  s.push(`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Infrared Spectrum (0.75 - 5.0 µm)">`);
+
+  // Detector band columns
+  for (let b = 1; b <= 6; b++) {
+    const bInfo = BANDS[b];
+    const bx0 = X(bInfo.lam0), bx1 = X(bInfo.lam1), bw = bx1 - bx0;
+    const isCur = S.band === b;
+    s.push(`<rect x="${bx0.toFixed(1)}" y="${T}" width="${bw.toFixed(1)}" height="${H - T - B}" fill="${bInfo.color}" fill-opacity="${isCur ? 0.32 : 0.08}" stroke="${isCur ? bInfo.color : 'none'}" stroke-width="${isCur ? 1.5 : 0}" style="cursor:pointer" data-band="${b}"><title>${bInfo.label}: Click to view this band</title></rect>`);
+    s.push(`<text x="${(bx0 + bw / 2).toFixed(1)}" y="${T + 10}" class="spec-text" text-anchor="middle" fill="${bInfo.color}" font-weight="700">D${b}</text>`);
+  }
+
+  // Axes
+  s.push(`<line class="spec-axis" x1="${L}" y1="${H - B}" x2="${W - R}" y2="${H - B}"/>`);
+  s.push(`<line class="spec-axis" x1="${L}" y1="${T}" x2="${L}" y2="${H - B}"/>`);
+
+  // X ticks
+  for (let l = 1; l <= 5; l++) {
+    s.push(`<line class="spec-axis" x1="${X(l)}" y1="${H - B}" x2="${X(l)}" y2="${H - B + 4}"/>`);
+    s.push(`<text x="${X(l)}" y="${H - B + 14}" class="spec-text" text-anchor="middle">${l}µm</text>`);
+  }
+
+  // Y ticks (flux)
+  const yTicks = [lo, (lo + hi) / 2, hi];
+  for (const f of yTicks) {
+    s.push(`<line class="spec-grid" x1="${L}" y1="${Y(f)}" x2="${W - R}" y2="${Y(f)}"/>`);
+    s.push(`<text x="${L - 4}" y="${Y(f) + 3}" class="spec-text" text-anchor="end">${f < 10 ? f.toFixed(1) : Math.round(f)}</text>`);
+  }
+  s.push(`<text transform="translate(10 ${(T + H - B) / 2}) rotate(-90)" class="spec-text" text-anchor="middle">mJy</text>`);
+
+  // Data points
+  const epColors = ["#ffb347", "#62d2c3", "#f2849e", "#a9b8ff", "#d6e36b", "#ff8f5a"];
+  for (const p of pts) {
+    const px = X(p.lam), py = Y(p.flux);
+    const col = epColors[(p.epoch || 0) % epColors.length];
+    const bMatch = BANDS.find((b) => b.id > 0 && p.lam >= b.lam0 && p.lam <= b.lam1);
+    const isSelectedBand = S.band > 0 && bMatch && bMatch.id === S.band;
+    s.push(`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${isSelectedBand ? 4.2 : 2.4}" fill="${col}" fill-opacity="0.9" stroke="#ffffff" stroke-width="0.5"><title>${p.lam.toFixed(3)} µm: ${p.flux.toFixed(2)} mJy</title></circle>`);
+  }
+  s.push(`</svg>`);
+
+  if (S.meta.slug === "3i-atlas") {
+    el.spectrumCaption.textContent = "3I/ATLAS comet colors: 90 real per-exposure measurements across detectors.";
+  } else if (S.meta.slug === "wise-j184125") {
+    el.spectrumCaption.textContent = "Brown dwarf SED: faint at 1 µm, rising into a 4.5 µm infrared glow.";
+  } else {
+    el.spectrumCaption.textContent = "Pre-computed from per-exposure measurements. Tap any band to inspect.";
+  }
+  el.targetSpectrumView.innerHTML = s.join("");
+  el.targetSpectrumView.querySelectorAll("rect[data-band]").forEach((rect) => {
+    rect.addEventListener("click", () => setBand(+rect.dataset.band));
+  });
+}
+
+/* ---------------------------------------------------------- citizen science (flag & review) */
+
+function loadFindings() {
+  try {
+    S.findings = JSON.parse(localStorage.getItem("skyblink_findings") || "[]");
+  } catch (_) {
+    S.findings = [];
+  }
+  updateFindingsBadge();
+}
+
+function saveFindings() {
+  localStorage.setItem("skyblink_findings", JSON.stringify(S.findings));
+  updateFindingsBadge();
+  draw();
+}
+
+function updateFindingsBadge() {
+  if (el.findingsCount) el.findingsCount.textContent = String(S.findings.length);
+}
+
+function openFlagModal(clickX, clickY) {
+  if (!S.meta) return;
+  const r = viewRect();
+  const ix = r.sx + (clickX / el.view.width) * r.sw;
+  const iy = r.sy + (clickY / el.view.height) * r.sh;
+  const npix = S.meta.npix, sz = S.meta.size;
+  const arcsec_per_pix = (sz * 3600) / npix;
+  const dx_arcsec = (ix - npix / 2) * arcsec_per_pix;
+  const dy_arcsec = (npix / 2 - iy) * arcsec_per_pix;
+  const cosDec = Math.cos((S.meta.dec * Math.PI) / 180);
+  const ra = (S.meta.ra - (dx_arcsec / 3600) / cosDec + 360) % 360;
+  const dec = S.meta.dec + (dy_arcsec / 3600);
+  const dateStr = fmtDay(mjdAt(S.t));
+
+  // Check if click coordinates match any candidate in S.meta.changes within 15 arcseconds
+  const match = S.meta.changes
+    ? S.meta.changes.find((c) => Math.hypot(c.x - ix, c.y - iy) * arcsec_per_pix < 15)
+    : null;
+
+  S.flagPending = {
+    target: S.meta.name, slug: S.meta.slug,
+    ra: +ra.toFixed(5), dec: +dec.toFixed(5),
+    x: Math.round(ix), y: Math.round(iy),
+    date: dateStr, match: match ? match.rank : null, matchKind: match ? match.kind : null,
+  };
+
+  el.flagTarget.textContent = S.meta.name;
+  el.flagRaDec.textContent = `RA ${ra.toFixed(4)}°, Dec ${dec.toFixed(4)}°`;
+  el.flagObsDate.textContent = dateStr;
+  if (match) {
+    el.flagMatchAlert.hidden = false;
+    el.flagMatchAlert.textContent = `🎯 Coordinates match detected change #${match.rank} (${match.kind || "candidate"})!`;
+  } else {
+    el.flagMatchAlert.hidden = true;
+  }
+  el.flagNotes.value = "";
+  el.flagModal.hidden = false;
+}
+
+function saveFlagFinding() {
+  if (!S.flagPending) return;
+  const finding = {
+    id: Date.now(),
+    target: S.flagPending.target,
+    slug: S.flagPending.slug,
+    ra: S.flagPending.ra,
+    dec: S.flagPending.dec,
+    x: S.flagPending.x,
+    y: S.flagPending.y,
+    date: S.flagPending.date,
+    type: el.flagType.value,
+    notes: el.flagNotes.value.trim(),
+    match: S.flagPending.match,
+    matchKind: S.flagPending.matchKind,
+  };
+  S.findings.unshift(finding);
+  saveFindings();
+  closeFlagModal();
+  setStatus(`Saved finding for ${finding.target} (RA ${finding.ra}°, Dec ${finding.dec}°) to My Findings.`);
+}
+
+function closeFlagModal() {
+  S.flagPending = null;
+  el.flagModal.hidden = true;
+}
+
+/* Review queue: unconfirmed candidates */
+function updateCandidateReviewButton() {
+  if (!el.reviewBtn || !S.meta) return;
+  const candidates = (S.meta.changes || []).filter((c) => c.kind !== "moved" && !c.verified);
+  S.reviewQueue = candidates;
+  S.reviewIdx = 0;
+  if (candidates.length > 0) {
+    el.reviewBtn.hidden = false;
+    el.reviewCount.textContent = String(candidates.length);
+  } else {
+    el.reviewBtn.hidden = true;
+  }
+}
+
+function openReviewModal() {
+  if (!S.reviewQueue.length) return;
+  renderReviewCandidate();
+  el.reviewModal.hidden = false;
+}
+
+function closeReviewModal() {
+  el.reviewModal.hidden = true;
+}
+
+function renderReviewCandidate() {
+  const c = S.reviewQueue[S.reviewIdx];
+  if (!c) { closeReviewModal(); return; }
+  el.reviewTitle.textContent = `Review Candidate #${c.rank} (${S.reviewIdx + 1} of ${S.reviewQueue.length})`;
+  el.reviewMeta.textContent = `Type: ${c.kind || "Brightness change"} | Significance: ${c.significance ? c.significance.toFixed(1) + 'σ' : 'N/A'}`;
+  
+  // Render before & after stamps
+  const span = 40, n = S.meta.npix;
+  const sx = Math.max(0, Math.min(n - span, c.x - span / 2));
+  const sy = Math.max(0, Math.min(n - span, c.y - span / 2));
+  
+  if (S.canvases.length >= 2) {
+    const c0 = S.canvases[0], cLast = S.canvases[S.canvases.length - 1];
+    const ctxB = el.reviewCvsBefore.getContext("2d");
+    const ctxA = el.reviewCvsAfter.getContext("2d");
+    ctxB.imageSmoothingEnabled = false;
+    ctxA.imageSmoothingEnabled = false;
+    ctxB.drawImage(c0, sx, sy, span, span, 0, 0, el.reviewCvsBefore.width, el.reviewCvsBefore.height);
+    ctxA.drawImage(cLast, sx, sy, span, span, 0, 0, el.reviewCvsAfter.width, el.reviewCvsAfter.height);
+    el.reviewLblBefore.textContent = `Before: ${S.meta.sweeps[0].label}`;
+    el.reviewLblAfter.textContent = `After: ${S.meta.sweeps[S.meta.sweeps.length - 1].label}`;
+  }
+}
+
+function submitCandidateVote(vote) {
+  const c = S.reviewQueue[S.reviewIdx];
+  if (c) {
+    S.findings.unshift({
+      id: Date.now(),
+      target: S.meta.name,
+      slug: S.meta.slug,
+      ra: c.ra || S.meta.ra,
+      dec: c.dec || S.meta.dec,
+      date: S.meta.sweeps[0].label,
+      type: "Candidate Review",
+      notes: `Citizen review of candidate #${c.rank} (${c.kind}): Voted "${vote}"`,
+      match: c.rank,
+      matchKind: c.kind,
+    });
+    saveFindings();
+  }
+  S.reviewIdx++;
+  if (S.reviewIdx < S.reviewQueue.length) {
+    renderReviewCandidate();
+  } else {
+    closeReviewModal();
+    setStatus("Finished review queue for this field! Your reviews are saved in My Findings.");
+  }
+}
+
+/* My Findings Modal */
+function renderFindingsList() {
+  if (!el.findingsList) return;
+  if (!S.findings.length) {
+    el.findingsList.innerHTML = `<div style="text-align:center;padding:30px;color:var(--muted)">No findings flagged yet. Click on the sky plate to drop a pin on any interesting change!</div>`;
+    return;
+  }
+  el.findingsList.innerHTML = S.findings.map((f) => `
+    <div class="finding-card">
+      <div class="finding-head">
+        <span class="finding-target">${f.target}</span>
+        <span class="finding-badge">${f.type}</span>
+      </div>
+      <div class="finding-coords">RA ${f.ra}°, Dec ${f.dec}° &bull; ${f.date}</div>
+      ${f.match ? `<div style="color:var(--bright);font-size:0.85rem;font-weight:700">🎯 Matches detected change #${f.match} (${f.matchKind || "candidate"})</div>` : ""}
+      ${f.notes ? `<div class="finding-notes">${f.notes}</div>` : ""}
+    </div>
+  `).join("");
+}
+
+function openFindingsModal() {
+  renderFindingsList();
+  el.findingsModal.hidden = false;
+}
+
+function closeFindingsModal() {
+  el.findingsModal.hidden = true;
+}
+
+function exportFindingsCSV() {
+  if (!S.findings.length) { alert("No findings to export yet."); return; }
+  const headers = ["Finding_ID", "Target", "RA_deg", "Dec_deg", "Observation_Date", "Category", "Notes", "Matched_Candidate_Rank", "Matched_Kind"];
+  const rows = S.findings.map((f) => [
+    f.id,
+    `"${(f.target || '').replace(/"/g, '""')}"`,
+    f.ra,
+    f.dec,
+    `"${(f.date || '').replace(/"/g, '""')}"`,
+    `"${(f.type || '').replace(/"/g, '""')}"`,
+    `"${(f.notes || '').replace(/"/g, '""')}"`,
+    f.match || "",
+    f.matchKind || "",
+  ]);
+  const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\r\n");
+  download(new Blob([csvContent], { type: "text/csv;charset=utf-8;" }), "skyblink_findings_report.csv");
+}
+
+function exportFindingsJSON() {
+  if (!S.findings.length) { alert("No findings to export yet."); return; }
+  const report = {
+    title: "Sky Blink Citizen-Science Findings Report",
+    description: "A report ready to share: observational notes and flags recorded from SPHEREx multi-epoch infrared surveys.",
+    generated: new Date().toISOString(),
+    findings_count: S.findings.length,
+    findings: S.findings,
+  };
+  download(new Blob([JSON.stringify(report, null, 2)], { type: "application/json" }), "skyblink_findings_report.json");
+}
+
+function clearAllFindings() {
+  if (confirm("Clear all your saved findings?")) {
+    S.findings = [];
+    saveFindings();
+    renderFindingsList();
+  }
+}
+
+// Click plate to flag finding
+el.view.addEventListener("click", (ev) => {
+  if (S.mode === "swipe") return;
+  const rect = el.view.getBoundingClientRect();
+  const clickX = ((ev.clientX - rect.left) / rect.width) * el.view.width;
+  const clickY = ((ev.clientY - rect.top) / rect.height) * el.view.height;
+  openFlagModal(clickX, clickY);
+});
+
+// Flag modal listeners
+if (el.flagBtn) el.flagBtn.addEventListener("click", () => openFlagModal(el.view.width / 2, el.view.height / 2));
+if (el.flagSave) el.flagSave.addEventListener("click", saveFlagFinding);
+if (el.flagCancel) el.flagCancel.addEventListener("click", closeFlagModal);
+
+// Band pills listeners
+if (el.bandPills) {
+  el.bandPills.addEventListener("click", (ev) => {
+    const btn = ev.target.closest(".band-pill");
+    if (btn && btn.dataset.band !== undefined) {
+      setBand(btn.dataset.band);
+    }
+  });
+}
+
+// Blend / Real steps toggle listener
+if (el.blendToggle) {
+  el.blendToggle.addEventListener("change", (ev) => {
+    if (ev.target.name === "blend-mode") {
+      S.blendMode = ev.target.value;
+      draw();
+    }
+  });
+}
+
+// Review Queue listeners
+if (el.reviewBtn) el.reviewBtn.addEventListener("click", openReviewModal);
+if (el.reviewClose) el.reviewClose.addEventListener("click", closeReviewModal);
+if (el.reviewVoteReal) el.reviewVoteReal.addEventListener("click", () => submitCandidateVote("Real change"));
+if (el.reviewVoteArtifact) el.reviewVoteArtifact.addEventListener("click", () => submitCandidateVote("Artifact / Reflection"));
+if (el.reviewVoteUnsure) el.reviewVoteUnsure.addEventListener("click", () => submitCandidateVote("Not sure"));
+
+// Findings modal listeners
+if (el.openFindings) el.openFindings.addEventListener("click", openFindingsModal);
+if (el.findingsCloseX) el.findingsCloseX.addEventListener("click", closeFindingsModal);
+if (el.findingsDone) el.findingsDone.addEventListener("click", closeFindingsModal);
+if (el.exportCsv) el.exportCsv.addEventListener("click", exportFindingsCSV);
+if (el.exportJson) el.exportJson.addEventListener("click", exportFindingsJSON);
+if (el.clearFindings) el.clearFindings.addEventListener("click", clearAllFindings);
+
 window.addEventListener("hashchange", route);
 setMode("fade");
+loadFindings();
 loadIndex().then(() => { renderFeed(); route(); heroInit(); });
