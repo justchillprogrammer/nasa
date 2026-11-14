@@ -27,6 +27,9 @@ brightness jumps out, the same way Pluto was found with a blink comparator.
   It sees only the numbers, and every number it writes is checked against
   them; otherwise the site falls back to sentences built from the numbers.
 - **Name search** for well-known objects, plus coordinates.
+- **Home hero**: Barnard's Star moving, from real images, as soon as the page opens.
+- **Swipe mode**: drag a divider between the first and last image.
+- **How it works** page (`how.html`) explaining what is measured and what is blended.
 - **Explorer** (`explore.html`) for any position: blink, spectrum, and a
   "Find what changed" button that runs change detection live.
 
@@ -51,6 +54,18 @@ key is needed; the data is public.
 
 The first search of a new position takes 15 to 60 seconds because the archive
 query is slow. Results are cached in `.cache/`, so repeat visits are instant.
+
+## Pre-searched presets
+
+The first archive search for a new position takes up to a minute. To make
+the explorer's presets open instantly, `tools/build_spots.py` searches every
+preset and named object once and stores the results (gzipped, about 2 MB) in
+`backend/data/search/`. `spherex.search()` reads those before asking the
+archive. Re-run it after adding presets:
+
+```bash
+python tools/build_spots.py
+```
 
 ## Rebuild the showcase
 
