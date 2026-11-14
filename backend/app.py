@@ -13,7 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import numpy as np
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Body, FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -25,9 +25,9 @@ MAX_NPIX = 512
 MAX_SIZE_DEG = 1.5
 
 app = FastAPI(title="SPHEREx Blink")
-# Small on purpose: the free hosting tiers have little CPU and memory.
-_pool = ThreadPoolExecutor(max_workers=int(os.environ.get("SPECTRUM_WORKERS", "4")))
-_cutout_slots = threading.BoundedSemaphore(int(os.environ.get("CUTOUT_SLOTS", "3")))
+# Tuned for fast I/O bound S3 range fetches while keeping memory low.
+_pool = ThreadPoolExecutor(max_workers=int(os.environ.get("SPECTRUM_WORKERS", "12")))
+_cutout_slots = threading.BoundedSemaphore(int(os.environ.get("CUTOUT_SLOTS", "6")))
 
 
 def _check(ra: float, dec: float) -> None:
@@ -36,7 +36,7 @@ def _check(ra: float, dec: float) -> None:
 
 
 @app.get("/api/search")
-def api_search(ra: float, dec: float):
+def api_search(ra: float, dec: float, response: Response):
     """Every SPHEREx exposure covering a position, with the wavelength each
     one samples there, grouped into the mission's six-monthly sky passes."""
     _check(ra, dec)
@@ -44,13 +44,14 @@ def api_search(ra: float, dec: float):
         res = sx.search(ra, dec)
     except Exception as e:
         raise HTTPException(502, f"archive search failed: {e}")
-    slim = [{k: v for k, v in e.items() if k != "key"} for e in res["exposures"]]
-    return {"ra": ra, "dec": dec, "epochs": res["epochs"], "exposures": slim}
+    response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=86400"
+    return {"ra": ra, "dec": dec, "epochs": res["epochs"], "exposures": res["exposures"]}
 
 
 @app.get("/api/cutout")
 def api_cutout(
-    ra: float, dec: float, id: str,
+    ra: float, dec: float, id: str = "",
+    key: str | None = None,
     size: float = Query(0.25, gt=0, le=MAX_SIZE_DEG),
     npix: int = Query(300, ge=32, le=MAX_NPIX),
 ):
@@ -61,24 +62,30 @@ def api_cutout(
     frames itself. Measured details travel in the X-Frame-Meta header.
     """
     _check(ra, dec)
-    try:
-        exp = sx.find_exposure(ra, dec, id)
-    except KeyError:
-        raise HTTPException(404, "unknown exposure for this position")
+    if key and sx.valid_key(key):
+        exp_key = key
+    else:
+        try:
+            exp_key = sx.find_exposure(ra, dec, id)["key"]
+        except KeyError:
+            raise HTTPException(404, "unknown exposure for this position")
     try:
         with _cutout_slots:
-            img, meta = imaging.cutout(exp["key"], ra, dec, size, npix)
+            img, meta = imaging.cutout(exp_key, ra, dec, size, npix)
     except Exception as e:
         raise HTTPException(502, f"could not read the image: {e}")
     return Response(
         content=img.astype("<f4").tobytes(),
         media_type="application/octet-stream",
-        headers={"X-Frame-Meta": json.dumps(meta), "Cache-Control": "public, max-age=86400"},
+        headers={
+            "X-Frame-Meta": json.dumps(meta),
+            "Cache-Control": "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800",
+        },
     )
 
 
-@app.get("/api/spectrum")
-def api_spectrum(ra: float, dec: float):
+@app.api_route("/api/spectrum", methods=["GET", "POST"])
+def api_spectrum(ra: float, dec: float, payload: dict | None = Body(default=None)):
     """Brightness at the position in every exposure, streamed as it is measured.
 
     One JSON object per line: first {"total": n}, then one point per exposure,
@@ -86,11 +93,16 @@ def api_spectrum(ra: float, dec: float):
     different part of the colour filter, the points together form a spectrum.
     """
     _check(ra, dec)
-    try:
-        res = sx.search(ra, dec)
-    except Exception as e:
-        raise HTTPException(502, f"archive search failed: {e}")
-    exposures = res["exposures"]
+    if payload and isinstance(payload.get("exposures"), list):
+        exposures = [
+            e for e in payload["exposures"]
+            if isinstance(e, dict) and sx.valid_key(str(e.get("key", "")))
+        ]
+    else:
+        try:
+            exposures = sx.search(ra, dec)["exposures"]
+        except Exception as e:
+            raise HTTPException(502, f"archive search failed: {e}")
     cache = sx._cache_path("spectrum", f"v2:{ra:.4f}:{dec:.4f}", ".json")
 
     def stream():

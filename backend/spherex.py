@@ -41,7 +41,7 @@ URI_PREFIX = "ibe/data/spherex/"
 
 DETECTOR_SIZE = 2040          # active pixels per side
 BLOCK = 2880                  # FITS block size in bytes
-HEADER_GUESS = 12 * BLOCK     # enough for the primary and image headers
+HEADER_GUESS = 24 * BLOCK     # enough for primary + SIP image headers in 1 request
 EPOCH_GAP_DAYS = 45           # a longer pause than this starts a new sky pass
 
 CACHE = Path(os.environ.get("SPHEREX_CACHE", Path(__file__).resolve().parent.parent / ".cache"))
@@ -51,10 +51,28 @@ _locks: dict[str, threading.Lock] = {}
 _locks_guard = threading.Lock()
 
 
+def valid_key(key: str) -> bool:
+    """Ensure an exposure key is a safe relative FITS path inside the archive."""
+    return (
+        bool(key)
+        and ".." not in key
+        and not key.startswith(("/", "\\"))
+        and key.endswith(".fits")
+        and all(c.isalnum() or c in "/_.-" for c in key)
+    )
+
+
+def _mjd_to_isot(mjd: float) -> str:
+    """Fast MJD to ISO-8601 UTC string (avoids slow per-row astropy Time init)."""
+    from datetime import datetime, timezone
+    ts = (mjd - 40587.0) * 86400.0
+    return datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
+
+
 def _session() -> requests.Session:
     if not hasattr(_local, "s"):
         s = requests.Session()
-        adapter = requests.adapters.HTTPAdapter(pool_connections=8, pool_maxsize=8, max_retries=2)
+        adapter = requests.adapters.HTTPAdapter(pool_connections=20, pool_maxsize=20, max_retries=2)
         s.mount("https://", adapter)
         _local.s = s
     return _local.s
@@ -78,13 +96,13 @@ def _get_range(key: str, start: int, end: int | None, suffix: int | None = None)
     for attempt in range(3):
         for base in DATA_BASES:
             try:
-                r = _session().get(base + key, headers={"Range": rng}, timeout=60)
+                r = _session().get(base + key, headers={"Range": rng}, timeout=(6, 25))
                 if r.status_code in (200, 206):
                     return r.content
                 last = RuntimeError(f"HTTP {r.status_code} for {key}")
             except requests.RequestException as e:  # try the other mirror
                 last = e
-        time.sleep(0.5 * (attempt + 1))
+        time.sleep(0.3 * (attempt + 1))
     raise RuntimeError(f"could not read {key}: {last}")
 
 
@@ -151,12 +169,23 @@ def search(ra: float, dec: float) -> dict:
         if r.text.lstrip().startswith("<"):
             raise RuntimeError("the archive rejected the search query")
 
-        exposures = []
+        # Deduplicate reprocessed releases first before geometry/wavelength math.
+        raw_best: dict[str, tuple[str, dict]] = {}
         for row in csv.DictReader(io.StringIO(r.text)):
             uri = row["uri"]
             if not uri.startswith(URI_PREFIX):
                 continue
             did = row["obs_publisher_did"]
+            if "?" not in did:
+                continue
+            prefix, exp_id = did.split("?", 1)
+            release = prefix.rsplit("_", 1)[-1]
+            if exp_id not in raw_best or release > raw_best[exp_id][0]:
+                raw_best[exp_id] = (release, row)
+
+        exposures = []
+        for exp_id, (release, row) in raw_best.items():
+            uri = row["uri"]
             det = int(row["energy_bandpassname"].rsplit("D", 1)[1])
             try:
                 x, y = _pixel_from_corners(_parse_ewkb_polygon(row["poly"]), ra, dec)
@@ -165,25 +194,20 @@ def search(ra: float, dec: float) -> dict:
             lam, dlam = wavelength_at(det, x, y)
             mjd = float(row["time_bounds_lower"])
             exposures.append({
-                "id": did.split("?", 1)[1],
+                "id": exp_id,
                 "key": uri[len(URI_PREFIX):],
                 "det": det,
                 "mjd": round(mjd, 6),
-                "date": Time(mjd, format="mjd").isot[:19],
+                "date": _mjd_to_isot(mjd),
                 "exptime": float(row["time_exposure"] or 0),
-                "release": did.split("?", 1)[0].rsplit("_", 1)[-1],
+                "release": release,
                 "x": round(x, 1),
                 "y": round(y, 1),
                 "lam": round(lam, 4),
                 "dlam": round(dlam, 4),
             })
 
-        # Reprocessed duplicates of the same exposure: keep the newest release.
-        best: dict[str, dict] = {}
-        for e in exposures:
-            if e["id"] not in best or e["release"] > best[e["id"]]["release"]:
-                best[e["id"]] = e
-        exposures = sorted(best.values(), key=lambda e: e["mjd"])
+        exposures = sorted(exposures, key=lambda e: e["mjd"])
 
         epochs: list[dict] = []
         for e in exposures:
@@ -196,8 +220,8 @@ def search(ra: float, dec: float) -> dict:
         for ep in epochs:
             mid = Time((ep["mjd0"] + ep["mjd1"]) / 2, format="mjd").datetime
             ep["label"] = mid.strftime("%b %Y")
-            ep["date0"] = Time(ep["mjd0"], format="mjd").isot[:10]
-            ep["date1"] = Time(ep["mjd1"], format="mjd").isot[:10]
+            ep["date0"] = _mjd_to_isot(ep["mjd0"])[:10]
+            ep["date1"] = _mjd_to_isot(ep["mjd1"])[:10]
 
         out = {"ra": ra, "dec": dec, "exposures": exposures, "epochs": epochs}
         if exposures:

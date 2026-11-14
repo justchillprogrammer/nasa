@@ -132,28 +132,55 @@ async function lookAt(ra, dec, size, lam) {
    chosen wavelength. Only those are comparable like for like. */
 function chooseFrames(lam) {
   // Half the view in detector pixels, with room for the detector's tilt.
-  const half = state.size * 3600 / 6.15 / 2 * 1.3;
-  const whole = (e) => e.x > half && e.y > half && e.x < 2039 - half && e.y < 2039 - half;
+  const half = state.size * 3600 / 6.15 / 2 * 1.25;
+  const edgeDist = (e) => Math.min(e.x, e.y, 2039 - e.x, 2039 - e.y);
+  const whole = (e) => edgeDist(e) > half;
   const chosen = [];
   for (const ep of state.epochs) {
-    const inSweep = state.exposures.filter((e) => e.epoch === ep.index)
-      .map((e) => ({ e, off: Math.abs(e.lam - lam), cut: whole(e) ? 0 : 1 }))
-      .filter((o) => o.off <= Math.max(o.e.dlam, 0.02))
-      .sort((a, b) => a.cut - b.cut || a.off - b.off)   // whole views first
-      .slice(0, CANDIDATES_PER_SWEEP)
-      .map((o) => o.e);
-    inSweep.sort((a, b) => a.mjd - b.mjd);
-    chosen.push(...inSweep);
+    const allInSweep = state.exposures.filter((e) => e.epoch === ep.index)
+      .map((e) => ({ e, off: Math.abs(e.lam - lam), cut: whole(e) ? 0 : 1, edge: edgeDist(e) }));
+    let inSweep = allInSweep.filter((o) => o.off <= Math.max(2.2 * o.e.dlam, 0.06));
+    if (!inSweep.length) {
+      inSweep = allInSweep.filter((o) => o.off <= 0.18);
+    }
+    inSweep.sort((a, b) => a.cut - b.cut || a.off - b.off || b.edge - a.edge);
+    chosen.push({
+      epoch: ep.index,
+      primary: inSweep.slice(0, FRAMES_PER_SWEEP).map((o) => o.e).sort((a, b) => a.mjd - b.mjd),
+      backups: inSweep.slice(FRAMES_PER_SWEEP, CANDIDATES_PER_SWEEP).map((o) => o.e),
+    });
   }
   return chosen;
+}
+
+async function fetchCutoutFrame(f) {
+  for (let attempt = 0; attempt < 3 && f.status !== "ready"; attempt++) {
+    try {
+      const keyParam = f.exp.key ? `&key=${encodeURIComponent(f.exp.key)}` : "";
+      const q = `ra=${state.ra}&dec=${state.dec}&size=${state.size}&npix=${state.npix}&id=${encodeURIComponent(f.exp.id)}${keyParam}`;
+      const r = await fetch(`/api/cutout?${q}`);
+      if (!r.ok) throw new Error(r.status + " " + r.statusText);
+      const meta = JSON.parse(r.headers.get("X-Frame-Meta") || "{}");
+      const data = new Float32Array(await r.arrayBuffer());
+      Object.assign(f, { data, meta, status: "ready", ...frameStats(data) });
+    } catch (e) {
+      f.status = "failed";
+      f.error = e.message;
+      if (attempt < 2) await new Promise((ok) => setTimeout(ok, 800 * (attempt + 1)));
+    }
+  }
 }
 
 async function loadFrames(run) {
   stopMotion();
   const load = ++state.load;
   const stale = () => run !== state.run || load !== state.load;
-  const candidates = chooseFrames(state.lam).map((exp) => ({ exp, data: null, status: "loading" }));
-  state.frames = [];
+  const sweepChoices = chooseFrames(state.lam);
+  const initialFrames = [];
+  for (const sc of sweepChoices) {
+    for (const exp of sc.primary) initialFrames.push({ exp, data: null, status: "loading" });
+  }
+  state.frames = initialFrames;
   state.cur = 0;
   state.ref = 0;
   buildTimeline();
@@ -162,52 +189,83 @@ async function loadFrames(run) {
   syncUrl();
   els.caption.hidden = true;
   els.empty.hidden = false;
-  if (!candidates.length) {
+  if (!initialFrames.length) {
     ctx.clearRect(0, 0, els.view.width, els.view.height);
     els.empty.textContent = "No image of this spot at that wavelength. Select another wavelength in the chart.";
     return;
   }
   let got = 0;
-  els.empty.textContent = "Loading images…";
-  await Promise.all(candidates.map(async (f) => {
-    for (let attempt = 0; attempt < 3 && f.status !== "ready"; attempt++) {
-      try {
-        const q = `ra=${state.ra}&dec=${state.dec}&size=${state.size}&npix=${state.npix}&id=${encodeURIComponent(f.exp.id)}`;
-        const r = await fetch(`/api/cutout?${q}`);
-        if (!r.ok) throw new Error(r.status + " " + r.statusText);
-        const meta = JSON.parse(r.headers.get("X-Frame-Meta") || "{}");
-        const data = new Float32Array(await r.arrayBuffer());
-        Object.assign(f, { data, meta, status: "ready", ...frameStats(data) });
-      } catch (e) {
-        f.status = "failed";
-        f.error = e.message;
-        await new Promise((ok) => setTimeout(ok, 1500 * (attempt + 1)));
+  els.empty.textContent = `Loading images… 0 of ${initialFrames.length}`;
+
+  // Fetch primary frames and render progressively as soon as the first frame arrives!
+  await Promise.all(initialFrames.map(async (f, idx) => {
+    await fetchCutoutFrame(f);
+    if (stale()) return;
+    got++;
+    if (f.status === "ready") {
+      const ready = readyIndexes();
+      if (ready.length === 1) {
+        state.ref = idx;
+        state.cur = idx;
+      } else {
+        state.ref = ready[0];
+        state.cur = ready[ready.length - 1];
       }
+      updateWhite();
+      refreshThumbs();
+      buildRefSelect();
+      render();
+      updateButtons();
+    } else {
+      els.empty.textContent = `Loading images… ${got} of ${initialFrames.length}`;
     }
-    if (!stale()) els.empty.textContent = `Loading images… ${++got} of ${candidates.length}`;
   }));
   if (stale()) return;
 
-  // Part of each detector is blank, so some frames only half-cover the view.
-  // Keep the most complete frames of each sweep, then the closest wavelength.
-  const kept = [];
-  for (const ep of state.epochs) {
-    const ok = candidates.filter((f) => f.status === "ready" && f.exp.epoch === ep.index && f.meta.coverage > 0.3)
-      .sort((x, y) => (y.meta.coverage > 0.97) - (x.meta.coverage > 0.97)
-        || (x.meta.coverage > 0.97 ? 0 : y.meta.coverage - x.meta.coverage)
-        || Math.abs(x.exp.lam - state.lam) - Math.abs(y.exp.lam - state.lam))
-      .slice(0, FRAMES_PER_SWEEP);
-    kept.push(...ok.sort((x, y) => x.exp.mjd - y.exp.mjd));
+  // Only fetch backups for any sweep where a primary frame failed or was <35% covered.
+  const backupTasks = [];
+  for (const sc of sweepChoices) {
+    const goodInSweep = state.frames.filter(
+      (f) => f.exp.epoch === sc.epoch && f.status === "ready" && (f.meta?.coverage ?? 1) > 0.35
+    );
+    const needed = FRAMES_PER_SWEEP - goodInSweep.length;
+    if (needed > 0 && sc.backups.length > 0) {
+      for (const bexp of sc.backups.slice(0, needed)) {
+        const bf = { exp: bexp, data: null, status: "loading" };
+        backupTasks.push(fetchCutoutFrame(bf).then(() => bf));
+      }
+    }
   }
-  if (!kept.length) {
-    els.empty.textContent = candidates.some((f) => f.status === "failed")
-      ? `The images could not be loaded (${candidates.find((f) => f.error)?.error || "no reply"}). Select "Look here" to retry.`
+  if (backupTasks.length) {
+    const extras = await Promise.all(backupTasks);
+    if (stale()) return;
+    const allCandidates = [...state.frames, ...extras];
+    const kept = [];
+    for (const ep of state.epochs) {
+      const ok = allCandidates
+        .filter((f) => f.status === "ready" && f.exp.epoch === ep.index && f.meta.coverage > 0.3)
+        .sort((x, y) => (y.meta.coverage > 0.97) - (x.meta.coverage > 0.97)
+          || (x.meta.coverage > 0.97 ? 0 : y.meta.coverage - x.meta.coverage)
+          || Math.abs(x.exp.lam - state.lam) - Math.abs(y.exp.lam - state.lam))
+        .slice(0, FRAMES_PER_SWEEP);
+      kept.push(...ok.sort((x, y) => x.exp.mjd - y.exp.mjd));
+    }
+    if (kept.length) state.frames = kept;
+  } else {
+    const kept = state.frames.filter((f) => f.status === "ready" && (f.meta?.coverage ?? 1) > 0.3);
+    if (kept.length) state.frames = kept;
+  }
+
+  const ready = readyIndexes();
+  if (!ready.length) {
+    els.empty.hidden = false;
+    els.empty.textContent = initialFrames.some((f) => f.status === "failed")
+      ? `The images could not be loaded (${initialFrames.find((f) => f.error)?.error || "no reply"}). Select "Look here" to retry.`
       : "No usable image of this spot at that wavelength. Select another wavelength in the chart.";
     return;
   }
-  state.frames = kept;
-  state.ref = 0;
-  state.cur = kept.length - 1;   // default comparison: first against last, the longest gap
+  state.ref = ready[0];
+  state.cur = ready[ready.length - 1];   // default comparison: first against last, the longest gap
   updateWhite();
   buildTimeline();
   refreshThumbs();
@@ -484,7 +542,12 @@ async function loadSpectrum(run) {
   els.specStatus.textContent = "Measuring the centre point in every image…";
   drawSpectrum();
   try {
-    const r = await fetch(`/api/spectrum?ra=${state.ra}&dec=${state.dec}`, { signal: ac.signal });
+    const r = await fetch(`/api/spectrum?ra=${state.ra}&dec=${state.dec}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ exposures: state.exposures }),
+      signal: ac.signal,
+    });
     if (!r.ok) throw new Error(r.statusText);
     const reader = r.body.getReader();
     const dec = new TextDecoder();
