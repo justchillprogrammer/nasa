@@ -205,6 +205,10 @@ async def cache_static(request, call_next):
     if path.startswith("/showcase/") and response.status_code == 200:
         # Pre-computed results change only when the site is rebuilt.
         response.headers.setdefault("Cache-Control", "public, max-age=3600")
+    elif path.endswith((".js", ".css", ".html")) or path in ("/", "/explore.html"):
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
     return response
 
 
