@@ -17,7 +17,9 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
+import detect
 import imaging
+import narrate
 import spherex as sx
 
 WEB = Path(__file__).resolve().parent.parent / "web"
@@ -130,6 +132,53 @@ def api_spectrum(ra: float, dec: float):
             stop.set()   # client went away: let queued work drain quickly
 
     return StreamingResponse(stream(), media_type="application/x-ndjson")
+
+
+@app.get("/api/changes")
+def api_changes(ra: float, dec: float, size: float = Query(0.25, ge=0.05, le=0.5)):
+    """Quick change detection for any position.
+
+    Stacks each sweep, finds sources, and reports what moved or changed
+    brightness. Skips the slower single-exposure confirmation used for the
+    showcase, so every brightness change here is a candidate.
+    """
+    _check(ra, dec)
+    cache = sx._cache_path("changes", f"v1:{ra:.4f}:{dec:.4f}:{size:.3f}", ".json")
+    if cache.exists():
+        return json.loads(cache.read_text())
+    try:
+        stacks = detect.stack_sweeps(ra, dec, size, 300, log=lambda *a: None)
+        result = detect.find_changes(stacks)
+    except Exception as e:
+        raise HTTPException(502, f"change detection failed: {e}")
+    for c in result["changes"]:
+        if c["kind"] != "moved" and c.get("verified") is None:
+            c["verified"] = False
+        if c.get("season_pattern"):
+            c["check"] = "seen only when the telescope faced the other way; could be a reflection inside the instrument"
+    result["changes"].sort(key=lambda c: (c["kind"] != "moved", -c["significance"]))
+    for n, c in enumerate(result["changes"], 1):
+        c["rank"] = n
+    sweeps = stacks["sweeps"]
+    target = {"name": f"the position {ra:.4f} {dec:+.4f}"}
+    text = narrate.describe(target, sweeps, result)
+    out = {
+        "ra": ra, "dec": dec, "size": size, "npix": stacks["npix"],
+        "sweeps": [{"label": s["label"], "n": s["n"], "mjd": s["mjd"]} for s in sweeps],
+        "changes": result["changes"], "n_sources": result.get("n_sources"), "text": text,
+    }
+    cache.write_text(json.dumps(out, default=float))
+    return out
+
+
+@app.middleware("http")
+async def cache_static(request, call_next):
+    response = await call_next(request)
+    path = request.url.path
+    if path.startswith("/showcase/") and response.status_code == 200:
+        # Pre-computed results change only when the site is rebuilt.
+        response.headers.setdefault("Cache-Control", "public, max-age=3600")
+    return response
 
 
 @app.get("/")

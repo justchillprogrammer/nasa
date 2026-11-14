@@ -1,0 +1,400 @@
+{
+"note": "Well-known objects for name search (J2000 positions).",
+"objects": [
+{
+"name": "Crab Nebula",
+"aka": [
+"M1",
+"Messier 1"
+],
+"ra": 83.633,
+"dec": 22.0145,
+"size": 0.25
+},
+{
+"name": "Lagoon Nebula",
+"aka": [
+"M8",
+"Messier 8"
+],
+"ra": 270.925,
+"dec": -24.38,
+"size": 0.5
+},
+{
+"name": "Hercules Globular Cluster",
+"aka": [
+"M13",
+"Messier 13"
+],
+"ra": 250.4235,
+"dec": 36.4613,
+"size": 0.25
+},
+{
+"name": "Eagle Nebula",
+"aka": [
+"M16",
+"Messier 16",
+"Pillars of Creation"
+],
+"ra": 274.7,
+"dec": -13.807,
+"size": 0.5
+},
+{
+"name": "Omega Nebula",
+"aka": [
+"M17",
+"Messier 17",
+"Swan Nebula"
+],
+"ra": 275.196,
+"dec": -16.171,
+"size": 0.5
+},
+{
+"name": "Trifid Nebula",
+"aka": [
+"M20",
+"Messier 20"
+],
+"ra": 270.675,
+"dec": -22.971,
+"size": 0.5
+},
+{
+"name": "Dumbbell Nebula",
+"aka": [
+"M27",
+"Messier 27"
+],
+"ra": 299.9016,
+"dec": 22.7211,
+"size": 0.25
+},
+{
+"name": "Andromeda Galaxy",
+"aka": [
+"M31",
+"Messier 31"
+],
+"ra": 10.6847,
+"dec": 41.2687,
+"size": 1.0
+},
+{
+"name": "Triangulum Galaxy",
+"aka": [
+"M33",
+"Messier 33"
+],
+"ra": 23.4621,
+"dec": 30.6599,
+"size": 1.0
+},
+{
+"name": "Orion Nebula",
+"aka": [
+"M42",
+"Messier 42"
+],
+"ra": 83.822,
+"dec": -5.391,
+"size": 0.5
+},
+{
+"name": "Beehive Cluster",
+"aka": [
+"M44",
+"Messier 44",
+"Praesepe"
+],
+"ra": 130.1,
+"dec": 19.667,
+"size": 1.0
+},
+{
+"name": "Pleiades",
+"aka": [
+"M45",
+"Messier 45",
+"Seven Sisters"
+],
+"ra": 56.75,
+"dec": 24.1167,
+"size": 0.5
+},
+{
+"name": "Whirlpool Galaxy",
+"aka": [
+"M51",
+"Messier 51"
+],
+"ra": 202.4696,
+"dec": 47.1952,
+"size": 0.25
+},
+{
+"name": "Ring Nebula",
+"aka": [
+"M57",
+"Messier 57"
+],
+"ra": 283.3963,
+"dec": 33.0292,
+"size": 0.1
+},
+{
+"name": "Bode's Galaxy",
+"aka": [
+"M81",
+"Messier 81"
+],
+"ra": 148.8882,
+"dec": 69.0653,
+"size": 0.5
+},
+{
+"name": "Cigar Galaxy",
+"aka": [
+"M82",
+"Messier 82"
+],
+"ra": 148.9685,
+"dec": 69.6797,
+"size": 0.25
+},
+{
+"name": "Messier 87",
+"aka": [
+"M87",
+"Virgo A"
+],
+"ra": 187.7059,
+"dec": 12.3911,
+"size": 0.25
+},
+{
+"name": "Pinwheel Galaxy",
+"aka": [
+"M101",
+"Messier 101"
+],
+"ra": 210.8024,
+"dec": 54.3489,
+"size": 0.5
+},
+{
+"name": "Sombrero Galaxy",
+"aka": [
+"M104",
+"Messier 104"
+],
+"ra": 189.9976,
+"dec": -11.6231,
+"size": 0.25
+},
+{
+"name": "Horsehead Nebula",
+"aka": [
+"Barnard 33"
+],
+"ra": 85.2479,
+"dec": -2.4583,
+"size": 0.25
+},
+{
+"name": "Helix Nebula",
+"aka": [
+"NGC 7293"
+],
+"ra": 337.411,
+"dec": -20.8372,
+"size": 0.5
+},
+{
+"name": "Cat's Eye Nebula",
+"aka": [
+"NGC 6543"
+],
+"ra": 269.6391,
+"dec": 66.6331,
+"size": 0.1
+},
+{
+"name": "Rosette Nebula",
+"aka": [
+"NGC 2237"
+],
+"ra": 97.98,
+"dec": 4.95,
+"size": 1.0
+},
+{
+"name": "North America Nebula",
+"aka": [
+"NGC 7000"
+],
+"ra": 314.75,
+"dec": 44.33,
+"size": 1.0
+},
+{
+"name": "Carina Nebula",
+"aka": [
+"NGC 3372"
+],
+"ra": 160.9,
+"dec": -59.87,
+"size": 1.0
+},
+{
+"name": "Tarantula Nebula",
+"aka": [
+"30 Doradus",
+"NGC 2070"
+],
+"ra": 84.6765,
+"dec": -69.1009,
+"size": 0.5
+},
+{
+"name": "Large Magellanic Cloud",
+"aka": [
+"LMC"
+],
+"ra": 80.8938,
+"dec": -69.7561,
+"size": 1.5
+},
+{
+"name": "Small Magellanic Cloud",
+"aka": [
+"SMC"
+],
+"ra": 13.1867,
+"dec": -72.8286,
+"size": 1.5
+},
+{
+"name": "Omega Centauri",
+"aka": [
+"NGC 5139"
+],
+"ra": 201.697,
+"dec": -47.4795,
+"size": 0.5
+},
+{
+"name": "47 Tucanae",
+"aka": [
+"NGC 104"
+],
+"ra": 6.0236,
+"dec": -72.0813,
+"size": 0.5
+},
+{
+"name": "Galactic Centre",
+"aka": [
+"Sagittarius A*",
+"Sgr A*",
+"Milky Way centre"
+],
+"ra": 266.4168,
+"dec": -29.0078,
+"size": 0.5
+},
+{
+"name": "Eta Carinae",
+"aka": [],
+"ra": 161.2648,
+"dec": -59.6844,
+"size": 0.25
+},
+{
+"name": "Betelgeuse",
+"aka": [
+"Alpha Orionis"
+],
+"ra": 88.7929,
+"dec": 7.4071,
+"size": 0.25
+},
+{
+"name": "Rigel",
+"aka": [
+"Beta Orionis"
+],
+"ra": 78.6345,
+"dec": -8.2016,
+"size": 0.25
+},
+{
+"name": "Sirius",
+"aka": [
+"Alpha Canis Majoris",
+"Dog Star"
+],
+"ra": 101.2872,
+"dec": -16.7161,
+"size": 0.25
+},
+{
+"name": "Vega",
+"aka": [
+"Alpha Lyrae"
+],
+"ra": 279.2347,
+"dec": 38.7837,
+"size": 0.25
+},
+{
+"name": "Polaris",
+"aka": [
+"North Star",
+"Alpha Ursae Minoris"
+],
+"ra": 37.9546,
+"dec": 89.2641,
+"size": 0.25
+},
+{
+"name": "Antares",
+"aka": [
+"Alpha Scorpii"
+],
+"ra": 247.3519,
+"dec": -26.432,
+"size": 0.25
+},
+{
+"name": "Aldebaran",
+"aka": [
+"Alpha Tauri"
+],
+"ra": 68.9802,
+"dec": 16.5093,
+"size": 0.25
+},
+{
+"name": "Arcturus",
+"aka": [
+"Alpha Bootis"
+],
+"ra": 213.9153,
+"dec": 19.1824,
+"size": 0.25
+},
+{
+"name": "Deneb",
+"aka": [
+"Alpha Cygni"
+],
+"ra": 310.358,
+"dec": 45.2803,
+"size": 0.25
+}
+]
+}

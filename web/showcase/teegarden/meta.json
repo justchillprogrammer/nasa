@@ -1,0 +1,233 @@
+{
+ "slug": "teegarden",
+ "name": "Teegarden's Star",
+ "note": "A small red dwarf 12.5 light-years away with Earth-sized planets.",
+ "ra": 43.2796,
+ "dec": 16.854,
+ "size": 0.25,
+ "npix": 300,
+ "lam_lo": 1.0,
+ "lam_hi": 2.0,
+ "sweeps": [
+  {
+   "index": 0,
+   "label": "Aug 2025",
+   "mjd": 60896.151,
+   "mjd0": 60891.8349,
+   "mjd1": 60897.9519,
+   "n": 34,
+   "frame": "s0.bin",
+   "thumb": "s0.png",
+   "lams": [
+    1.063,
+    1.089,
+    1.115,
+    1.008,
+    1.575,
+    1.613,
+    1.651,
+    1.098,
+    1.124,
+    1.151,
+    1.178,
+    1.206,
+    1.235,
+    1.032,
+    1.056,
+    1.654,
+    1.692,
+    1.264,
+    1.294,
+    1.325,
+    1.357,
+    1.389,
+    1.422,
+    1.456,
+    1.491,
+    1.527,
+    1.564,
+    1.732,
+    1.771,
+    1.813,
+    1.856,
+    1.899,
+    1.942,
+    1.988
+   ]
+  },
+  {
+   "index": 1,
+   "label": "Jan 2026",
+   "mjd": 61072.883,
+   "mjd0": 61062.2544,
+   "mjd1": 61078.4869,
+   "n": 34,
+   "frame": "s1.bin",
+   "thumb": "s1.png",
+   "lams": [
+    1.74,
+    1.78,
+    1.822,
+    1.864,
+    1.907,
+    1.951,
+    1.996,
+    1.154,
+    1.182,
+    1.21,
+    1.239,
+    1.651,
+    1.688,
+    1.268,
+    1.299,
+    1.329,
+    1.361,
+    1.393,
+    1.427,
+    1.46,
+    1.496,
+    1.727,
+    1.093,
+    1.119,
+    1.532,
+    1.569,
+    1.607,
+    1.645,
+    1.01,
+    1.145,
+    1.034,
+    1.058,
+    1.084,
+    1.109
+   ]
+  },
+  {
+   "index": 2,
+   "label": "Aug 2026",
+   "mjd": 61263.2402,
+   "mjd0": 61254.0765,
+   "mjd1": 61267.9908,
+   "n": 32,
+   "frame": "s2.bin",
+   "thumb": "s2.png",
+   "lams": [
+    1.078,
+    1.103,
+    1.597,
+    1.635,
+    1.021,
+    1.046,
+    1.07,
+    1.113,
+    1.139,
+    1.166,
+    1.194,
+    1.223,
+    1.252,
+    1.282,
+    1.312,
+    1.343,
+    1.375,
+    1.407,
+    1.638,
+    1.676,
+    1.714,
+    1.754,
+    1.441,
+    1.476,
+    1.511,
+    1.548,
+    1.585,
+    1.794,
+    1.837,
+    1.88,
+    1.923,
+    1.967
+   ]
+  }
+ ],
+ "changes": [
+  {
+   "kind": "moved",
+   "significance": 9.3,
+   "track": [
+    {
+     "x": 150.10098657180853,
+     "y": 149.1442864602109
+    },
+    {
+     "x": 149.28535734317708,
+     "y": 149.9125335493941
+    },
+    {
+     "x": 148.82398435201017,
+     "y": 150.28545581888977
+    }
+   ],
+   "x": 150.10098657180853,
+   "y": 149.1442864602109,
+   "shift_arcsec": 5.1,
+   "rate_arcsec_per_year": 5.1,
+   "direction": "south-east",
+   "snr": 63522.1,
+   "saturated": false,
+   "rank": 1,
+   "offset_arcmin": 0.03,
+   "ra": 43.27908,
+   "dec": 16.8543
+  },
+  {
+   "kind": "appeared",
+   "significance": 12.7,
+   "track": [
+    {
+     "x": 209.04367148438155,
+     "y": 66.19842767726256
+    },
+    {
+     "x": 209.04367148438155,
+     "y": 66.19842767726256
+    },
+    {
+     "x": 209.04367148438155,
+     "y": 66.19842767726256
+    }
+   ],
+   "x": 209.04367148438155,
+   "y": 66.19842767726256,
+   "flux": [
+    -0.0253,
+    0.8642,
+    0.0121
+   ],
+   "ratio": 7.5,
+   "magnitudes": 2.19,
+   "brightest_sweep": "Jan 2026",
+   "faintest_sweep": "Aug 2025",
+   "snr": 22.0,
+   "verified": false,
+   "season_pattern": true,
+   "rank": 2,
+   "offset_arcmin": 5.12,
+   "ra": 43.22773,
+   "dec": 16.92341,
+   "check": "seen only when the telescope faced the other way; could be a reflection inside the instrument"
+  }
+ ],
+ "n_sources": 205,
+ "text": {
+  "summary": "Teegarden's Star moved by 5.1 arcsec over the course of the observations. This small red dwarf is located 12.5 light-years away and hosts Earth-sized planets.",
+  "items": [
+   {
+    "rank": 1,
+    "text": "Teegarden's Star shifted 5.1 arcsec toward the south-east, a distance equal to 1/366 of the width of a full moon."
+   },
+   {
+    "rank": 2,
+    "text": "A source in the view appeared as a candidate change with a magnitude of 2.19, but it still needs checking because it was seen only when the telescope faced the other way and could be a reflection inside the instrument."
+   }
+  ],
+  "writer": "AI (gemini-3.1-flash-lite)"
+ },
+ "built": "2026-11-14T08:44:03+00:00"
+}

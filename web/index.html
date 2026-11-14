@@ -3,104 +3,99 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sky Blink: see what changed in the SPHEREx sky</title>
-<meta name="description" content="Flip between NASA SPHEREx images of the same patch of sky taken months apart. Anything that moved or changed jumps out.">
+<title>Sky Blink: what changed in the SPHEREx sky</title>
+<meta name="description" content="Watch the sky change between NASA SPHEREx sweeps. Sky Blink finds stars that moved or changed brightness and explains each change in plain language.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="showcase.css">
 </head>
 <body>
 
-<header class="masthead">
-  <div class="brand">
-    <h1>Sky Blink</h1>
-    <p>Flip between SPHEREx images of one patch of sky, taken months apart. Whatever moved or changed jumps out.</p>
-  </div>
-
-  <form id="target-form" class="target" autocomplete="off">
-    <label for="coords">Where to look</label>
-    <div class="target-row">
-      <input id="coords" name="coords" type="text" inputmode="text" spellcheck="false"
-             placeholder="56.75 +24.12  or  03:47:00 +24:07:12" aria-describedby="coords-help">
-      <select id="size" aria-label="Width of the view">
-        <option value="0.1">6 arcmin wide</option>
-        <option value="0.25" selected>15 arcmin wide</option>
-        <option value="0.5">30 arcmin wide</option>
-        <option value="1">1 degree wide</option>
-      </select>
-      <button type="submit" class="primary">Look here</button>
-    </div>
-    <p id="coords-help" class="help">Right ascension and declination, in degrees or hours:minutes:seconds. Or start from one of these:</p>
-    <div id="presets" class="presets"></div>
+<header class="bar">
+  <a href="/" class="wordmark" id="home">Sky Blink</a>
+  <form id="search" class="search" role="search" autocomplete="off">
+    <label for="q" class="visually-hidden">Search the sky</label>
+    <input id="q" type="search" placeholder="Search a star, nebula or coordinates" spellcheck="false">
+    <button type="submit">Search</button>
+    <ul id="suggest" class="suggest" role="listbox" hidden></ul>
   </form>
 </header>
 
 <p id="status" class="status" role="status" aria-live="polite"></p>
 
-<main class="bench">
-
-  <section class="viewer" aria-label="Image viewer">
-    <div class="plate" id="plate">
-      <canvas id="view" width="384" height="384" aria-label="SPHEREx image of the selected patch of sky"></canvas>
-      <svg id="overlay" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
-      <div class="plate-empty" id="plate-empty">Pick a spot above to load its images.</div>
-      <div class="caption" id="caption" hidden>
-        <span id="cap-epoch" class="cap-epoch"></span>
-        <span id="cap-date"></span>
-        <span id="cap-lam"></span>
-      </div>
-      <div class="readout" id="readout" hidden></div>
-    </div>
-
-    <div class="controls">
-      <div class="transport">
-        <button id="prev" type="button" aria-label="Previous image" title="Previous image (left arrow)">&#9664;</button>
-        <button id="play" type="button" class="primary">Play all images</button>
-        <button id="next" type="button" aria-label="Next image" title="Next image (right arrow)">&#9654;</button>
-        <button id="blink" type="button" title="Space bar">Blink against reference</button>
-      </div>
-      <div class="options">
-        <label class="check"><input id="diff" type="checkbox"> Show only what changed</label>
-        <label class="check"><input id="negative" type="checkbox"> Negative, like a glass plate</label>
-        <label class="check"><input id="reticle" type="checkbox" checked> Mark the centre</label>
-      </div>
-      <div class="sliders">
-        <label>Reference image
-          <select id="ref"></select>
-        </label>
-        <label>Speed
-          <input id="speed" type="range" min="150" max="1500" step="50" value="600" dir="rtl">
-        </label>
-        <label>Brightness
-          <input id="stretch" type="range" min="0" max="100" value="55">
-        </label>
-      </div>
-      <p class="help" id="diff-help" hidden>White is brighter than in the reference image, black is fainter. Something that moved shows as a white dot touching a black one. Ordinary stars leave small smudges too, because SPHEREx pixels are coarse, so blink the two images to confirm what you see.</p>
-    </div>
+<!-- ======================= home: the changes feed ======================= -->
+<main id="feed-view">
+  <section class="intro">
+    <h1>The sky is not as still as it looks.</h1>
+    <p>NASA's SPHEREx telescope photographs the whole sky every six months. Sky Blink lines those photographs up, finds what moved or changed, and tells you about it. Pick any card to travel through time.</p>
   </section>
+  <div id="feed"></div>
+  <section class="explore-cta">
+    <h2>Somewhere else in mind?</h2>
+    <p>Search above, or open the explorer to look at any position in the sky. Live searches take up to a minute the first time.</p>
+    <a class="button-link" href="explore.html">Open the explorer</a>
+  </section>
+</main>
 
-  <aside class="side">
-    <section class="panel">
-      <h2>Images of this spot</h2>
-      <p class="help" id="timeline-help">SPHEREx sweeps the whole sky about every six months. Each group below is one sweep.</p>
-      <div id="timeline" class="timeline"></div>
+<!-- ======================= one target: the time machine ======================= -->
+<main id="target-view" hidden>
+  <nav class="crumbs"><a href="/" id="back">All changes</a></nav>
+  <header class="target-head">
+    <h1 id="t-name"></h1>
+    <p id="t-note"></p>
+  </header>
+
+  <div class="machine">
+    <section class="stage" aria-label="Time machine">
+      <div class="plate" id="plate">
+        <canvas id="view" width="720" height="720" aria-label="SPHEREx image of this part of the sky"></canvas>
+        <div class="plate-tag" id="tag"></div>
+        <div class="plate-zoom" id="zoom-tag" hidden></div>
+        <div class="plate-empty" id="t-empty">Loading images…</div>
+      </div>
+
+      <div class="timebar">
+        <button id="play" type="button" class="primary play" aria-label="Play">Play</button>
+        <div class="track" id="track">
+          <input id="time" type="range" min="0" max="1000" value="0" step="1" aria-label="Date">
+          <div class="ticks" id="ticks"></div>
+        </div>
+      </div>
+      <p class="when" id="when"></p>
+
+      <div class="modes" role="radiogroup" aria-label="View">
+        <label><input type="radio" name="mode" value="fade" checked> Time machine</label>
+        <label><input type="radio" name="mode" value="blink"> Blink first and last</label>
+        <label><input type="radio" name="mode" value="diff"> Show only what changed</label>
+        <label class="check"><input id="marks" type="checkbox" checked> Mark changes</label>
+        <label class="bright">Brightness <input id="stretch" type="range" min="0" max="100" value="55"></label>
+      </div>
+      <p class="help" id="mode-help"></p>
     </section>
 
-    <section class="panel">
-      <h2>Colour of the centre point</h2>
-      <p class="help">Each dot is how bright the centre looked in one image. Every image sees a different infrared wavelength, so together they draw a spectrum. Select a wavelength to view the sky in it.</p>
-      <div id="spectrum" class="spectrum"></div>
-      <p id="spec-status" class="help"></p>
-    </section>
-  </aside>
-
+    <aside class="report" aria-label="What changed">
+      <h2>What changed here</h2>
+      <p id="summary" class="summary"></p>
+      <p id="writer" class="writer"></p>
+      <ol id="changes" class="changes"></ol>
+      <button id="zoom-out" type="button" hidden>Show the whole view</button>
+      <details class="how">
+        <summary>How Sky Blink finds changes</summary>
+        <p>For each six-monthly sweep, Sky Blink stacks the 30 to 40 SPHEREx exposures taken between 1 and 2 micrometres into one clean image. It finds every star, matches them between sweeps, and keeps only changes far larger than the measurement noise.</p>
+        <p>A brightness change is then checked again in the single exposures, comparing the star only at matching wavelengths and against nearby ordinary stars. Changes that pass are marked confirmed; the rest are shown as candidates.</p>
+        <p>Very bright stars overload the detector; their centres carry no data and are drawn white.</p>
+        <p>The plain-language text is written by an AI from these measurements only, and every number it uses is checked against them. Images shown between two sweeps are blends, not new observations.</p>
+      </details>
+    </aside>
+  </div>
 </main>
 
 <footer class="foot">
-  <p>Images: NASA SPHEREx Level 2 spectral images, served by the NASA/IPAC Infrared Science Archive. Brightness values are quick-look measurements, not calibrated science products.</p>
+  <p>Images: NASA SPHEREx Level 2 spectral images from the NASA/IPAC Infrared Science Archive. Detections are automated measurements and can be wrong; candidates are labelled as such.</p>
 </footer>
 
-<script src="app.js"></script>
+<script src="showcase.js"></script>
 </body>
 </html>

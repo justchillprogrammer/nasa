@@ -1,0 +1,238 @@
+{
+ "targets": [
+  {
+   "slug": "barnard",
+   "name": "Barnard's Star",
+   "note": "A red dwarf 6 light-years away. It crosses our sky faster than any other star.",
+   "group": "Stars on the move",
+   "ra": 269.4462,
+   "dec": 4.7697,
+   "kinds": {
+    "moved": 1
+   },
+   "candidates": 0,
+   "summary": "Barnard's Star moved 9.1 arcsec to the north, a shift equal to 1/205 of the width of the full moon. This red dwarf is 6 light-years away and crosses our sky faster than any other star.",
+   "writer": "AI (gemini-3.1-flash-lite)",
+   "thumbs": [
+    "barnard/s0.png",
+    "barnard/s1.png",
+    "barnard/s2.png"
+   ],
+   "labels": [
+    "Sep 2025",
+    "Apr 2026",
+    "Sep 2026"
+   ]
+  },
+  {
+   "slug": "kapteyn",
+   "name": "Kapteyn's Star",
+   "note": "A very old star about 13 light-years away, with the second-fastest motion across the sky.",
+   "group": "Stars on the move",
+   "ra": 77.9871,
+   "dec": -45.0607,
+   "kinds": {
+    "moved": 1
+   },
+   "candidates": 0,
+   "summary": "Kapteyn's Star was measured to have moved 8.3 arcsec per year toward the south-east. This is a very old star about 13 light-years away, with the second-fastest motion across the sky.",
+   "writer": "AI (gemini-3.1-flash-lite)",
+   "thumbs": [
+    "kapteyn/s0.png",
+    "kapteyn/s1.png",
+    "kapteyn/s2.png"
+   ],
+   "labels": [
+    "Aug 2025",
+    "Feb 2026",
+    "Aug 2026"
+   ]
+  },
+  {
+   "slug": "groombridge-1830",
+   "name": "Groombridge 1830",
+   "note": "A star about 30 light-years away that races across the sky at 7 arcseconds a year.",
+   "group": "Stars on the move",
+   "ra": 178.2823,
+   "dec": 37.6757,
+   "kinds": {
+    "moved": 1
+   },
+   "candidates": 0,
+   "summary": "Groombridge 1830 moved 7.0 arcsec south between the observations. This star is about 30 light-years away and races across the sky at 7 arcseconds a year.",
+   "writer": "AI (gemini-3.1-flash-lite)",
+   "thumbs": [
+    "groombridge-1830/s0.png",
+    "groombridge-1830/s1.png",
+    "groombridge-1830/s2.png"
+   ],
+   "labels": [
+    "May 2025",
+    "Dec 2025",
+    "May 2026"
+   ]
+  },
+  {
+   "slug": "lacaille-9352",
+   "name": "Lacaille 9352",
+   "note": "A red dwarf about 10.7 light-years away in the southern sky.",
+   "group": "Stars on the move",
+   "ra": 346.5285,
+   "dec": -35.8433,
+   "kinds": {
+    "moved": 1
+   },
+   "candidates": 0,
+   "summary": "Lacaille 9352 moved by 8.0 arcsec to the east, a shift equal to 1/233 of the full moon's width. This is a red dwarf about 10.7 light-years away in the southern sky.",
+   "writer": "AI (gemini-3.1-flash-lite)",
+   "thumbs": [
+    "lacaille-9352/s0.png",
+    "lacaille-9352/s1.png",
+    "lacaille-9352/s2.png"
+   ],
+   "labels": [
+    "May 2025",
+    "Nov 2025",
+    "Jun 2026"
+   ]
+  },
+  {
+   "slug": "wolf-359",
+   "name": "Wolf 359",
+   "note": "One of the closest stars to the Sun, about 7.9 light-years away.",
+   "group": "Stars on the move",
+   "ra": 164.0919,
+   "dec": 6.9946,
+   "kinds": {
+    "moved": 1
+   },
+   "candidates": 0,
+   "summary": "Wolf 359 moved by 4.2 arcsec across the sky. This star is one of the closest to the Sun, located about 7.9 light-years away.",
+   "writer": "AI (gemini-3.1-flash-lite)",
+   "thumbs": [
+    "wolf-359/s0.png",
+    "wolf-359/s1.png",
+    "wolf-359/s2.png"
+   ],
+   "labels": [
+    "May 2025",
+    "Dec 2025",
+    "May 2026"
+   ]
+  },
+  {
+   "slug": "teegarden",
+   "name": "Teegarden's Star",
+   "note": "A small red dwarf 12.5 light-years away with Earth-sized planets.",
+   "group": "Stars on the move",
+   "ra": 43.2796,
+   "dec": 16.854,
+   "kinds": {
+    "moved": 1
+   },
+   "candidates": 1,
+   "summary": "Teegarden's Star moved by 5.1 arcsec over the course of the observations. This small red dwarf is located 12.5 light-years away and hosts Earth-sized planets.",
+   "writer": "AI (gemini-3.1-flash-lite)",
+   "thumbs": [
+    "teegarden/s0.png",
+    "teegarden/s1.png",
+    "teegarden/s2.png"
+   ],
+   "labels": [
+    "Aug 2025",
+    "Jan 2026",
+    "Aug 2026"
+   ]
+  },
+  {
+   "slug": "wise-j184125",
+   "name": "WISE J184125.47+095436.5",
+   "note": "A star that NASA's WISE telescope flagged as variable years earlier. Can SPHEREx see it change?",
+   "group": "Changing brightness",
+   "ra": 280.356162,
+   "dec": 9.9101421,
+   "kinds": {
+    "faded": 1
+   },
+   "candidates": 0,
+   "summary": "WISE J184125.47+095436.5 faded by 0.66 magnitudes between September 2025 and September 2026. This star was previously flagged as variable by NASA's WISE telescope, and SPHEREx is now observing it for further changes.",
+   "writer": "AI (gemini-3.1-flash-lite)",
+   "thumbs": [
+    "wise-j184125/s0.png",
+    "wise-j184125/s1.png",
+    "wise-j184125/s2.png"
+   ],
+   "labels": [
+    "Sep 2025",
+    "Apr 2026",
+    "Sep 2026"
+   ]
+  },
+  {
+   "slug": "pleiades",
+   "name": "Pleiades",
+   "note": "A young star cluster about 440 light-years away, wrapped in dust that reflects starlight.",
+   "group": "Steady skies",
+   "ra": 56.75,
+   "dec": 24.12,
+   "kinds": {},
+   "candidates": 0,
+   "summary": "No measurable changes were found in the sky across the three observation periods. The Pleiades is a young star cluster about 440 light-years away, wrapped in dust that reflects starlight.",
+   "writer": "AI (gemini-3.1-flash-lite)",
+   "thumbs": [
+    "pleiades/s0.png",
+    "pleiades/s1.png",
+    "pleiades/s2.png"
+   ],
+   "labels": [
+    "Aug 2025",
+    "Feb 2026",
+    "Aug 2026"
+   ]
+  },
+  {
+   "slug": "crab",
+   "name": "Crab Nebula",
+   "note": "The remains of a star that exploded and was seen from Earth in the year 1054.",
+   "group": "Steady skies",
+   "ra": 83.633,
+   "dec": 22.0145,
+   "kinds": {},
+   "candidates": 0,
+   "summary": "No measurable changes were found in the sky view of the Crab Nebula across the available observations. This object is the remains of a star that exploded and was seen from Earth in the year 1054.",
+   "writer": "AI (gemini-3.1-flash-lite)",
+   "thumbs": [
+    "crab/s0.png",
+    "crab/s1.png",
+    "crab/s2.png"
+   ],
+   "labels": [
+    "Sep 2025",
+    "Mar 2026",
+    "Sep 2026"
+   ]
+  },
+  {
+   "slug": "orion",
+   "name": "Orion Nebula",
+   "note": "A cloud 1,300 light-years away where new stars are forming.",
+   "group": "Steady skies",
+   "ra": 83.822,
+   "dec": -5.391,
+   "kinds": {},
+   "candidates": 0,
+   "summary": "No measurable changes were detected in the Orion Nebula across the observed periods. This cloud is 1,300 light-years away where new stars are forming.",
+   "writer": "AI (gemini-3.1-flash-lite)",
+   "thumbs": [
+    "orion/s0.png",
+    "orion/s1.png",
+    "orion/s2.png"
+   ],
+   "labels": [
+    "Sep 2025",
+    "Mar 2026",
+    "Sep 2026"
+   ]
+  }
+ ]
+}

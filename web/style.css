@@ -229,3 +229,12 @@ button.on { border-color: var(--amber); box-shadow: inset 0 0 0 1px var(--amber)
   .masthead, .bench { grid-template-columns: minmax(0, 1fr); gap: 18px; }
   .sliders input[type="range"] { width: 120px; }
 }
+
+.home-link { color: inherit; text-decoration: none; }
+
+#find-changes { margin-top: 10px; }
+.found { margin-top: 12px; display: grid; gap: 8px; }
+.found p { margin: 0; }
+.found .found-item { padding: 8px 10px; border-radius: 6px; background: var(--panel-2); border: 1px solid var(--line); }
+.found .found-item b { margin-right: 4px; }
+.found small { color: var(--muted); }

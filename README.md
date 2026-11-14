@@ -7,17 +7,32 @@ brightness jumps out, the same way Pluto was found with a blink comparator.
 
 ## What it does
 
-- **Finds every SPHEREx image of a position** in the public NASA/IPAC archive
-  and groups them into the mission's six-monthly sweeps of the sky.
-- **Aligns them pixel for pixel**, north up, so they can be compared directly.
-- **Blink, play, or subtract.** Flip between two dates, play all of them, or
-  show only what changed.
-- **Draws a spectrum of the centre point.** Each SPHEREx image sees a spot at
-  a different infrared wavelength, so the measurements from all images
-  together form a spectrum. Selecting a wavelength in the chart shows the sky
-  in that wavelength.
-- **Shareable links.** The address bar always holds the current position,
-  view width and wavelength.
+- **Changes feed (home page).** Pre-computed showcase targets, grouped into
+  stars on the move, changing brightness, and steady skies. Each card shows
+  the change and a one-sentence summary.
+- **Time machine.** A date slider that blends smoothly between sweeps (and
+  says when you are looking at a blend rather than an observation), motion
+  trails, one-click zoom onto each change, a blink mode and a "show only what
+  changed" mode.
+- **Change detection.** For every sweep, 30 to 40 exposures between 1 and
+  2 µm are stacked into one complete image. Sources are matched between
+  sweeps; stars that moved in a straight line and sources whose brightness
+  changed are reported with their significance.
+- **Checks against false alarms.** Brightness changes are re-measured in the
+  single exposures at matching wavelengths and compared with nearby stars.
+  Sources near very bright stars, in nebulae, fuzzy sources, and changes that
+  follow the telescope's orientation (likely reflections) are rejected or
+  labelled as candidates.
+- **Plain-language report.** Gemini rewrites the measurements as short text.
+  It sees only the numbers, and every number it writes is checked against
+  them; otherwise the site falls back to sentences built from the numbers.
+- **Name search** for well-known objects, plus coordinates.
+- **Explorer** (`explore.html`) for any position: blink, spectrum, and a
+  "Find what changed" button that runs change detection live.
+
+Detected motions match published values for the showcase stars (for example
+Barnard's Star: 9.1 arcseconds north in a year; Teegarden's Star: 5.1
+arcseconds south-east).
 
 ## Run it
 
@@ -37,6 +52,21 @@ key is needed; the data is public.
 The first search of a new position takes 15 to 60 seconds because the archive
 query is slow. Results are cached in `.cache/`, so repeat visits are instant.
 
+## Rebuild the showcase
+
+The home page reads pre-computed files in `web/showcase/`. To rebuild them
+(about 2 minutes per target, needs archive access):
+
+```bash
+python tools/build_showcase.py
+```
+
+Targets are listed in `tools/targets.json`. Other modes:
+`python tools/build_showcase.py barnard` rebuilds one target,
+`--refresh` redoes only the text and preview pictures, and `--index-only`
+rebuilds the list. Set `GEMINI_API_KEY` to have the text written by Gemini;
+without it the text is built from the measurements.
+
 ## How it works
 
 | Part | File | Job |
@@ -44,7 +74,10 @@ query is slow. Results are cached in `.cache/`, so repeat visits are instant.
 | Archive access | `backend/spherex.py` | Searches the archive, reads image headers and pixel rows with HTTP range requests (kilobytes instead of 65 MB files), and works out the wavelength each image samples at a position |
 | Image processing | `backend/imaging.py` | Resamples each image onto a shared sky grid; measures brightness at a point |
 | Web server | `backend/app.py` | `/api/search`, `/api/cutout`, `/api/spectrum`, and the static page |
-| Page | `web/` | Plain HTML, CSS and JavaScript. Receives raw brightness values and does all stretching, blinking and subtracting in the browser |
+| Change detection | `backend/detect.py` | Stacks sweeps, finds sources, reports motion and brightness changes, and confirms them |
+| Text | `backend/narrate.py` | Gemini or rule-based descriptions of the measurements, with number checking |
+| Showcase build | `tools/build_showcase.py` | Pre-computes targets into `web/showcase/` |
+| Pages | `web/` | `index.html` + `showcase.js` (feed and time machine), `explore.html` + `app.js` (any position) |
 
 `backend/data/wave_tables.json` holds the mission's per-detector wavelength
 lookup grids, copied from the image files.
@@ -66,10 +99,12 @@ The cache lives in `/tmp` there, so it is lost whenever the function restarts.
 
 ## Known limits of this first version
 
-- Positions are entered as coordinates or chosen from presets. There is no
-  search by object name yet.
+- Name search covers a built-in list of well-known objects only.
 - The view stays on a fixed patch of sky. It does not yet follow a comet or
   asteroid along its path.
+- Motions below about 4 arcseconds (1.2 stacked pixels) are not detected,
+  and very bright stars that saturate badly (such as 61 Cygni) cannot be
+  measured.
 - The "what changed" view subtracts pixels. SPHEREx pixels are coarse (6
   arcseconds), so ordinary stars leave small smudges; changes should be
   confirmed by blinking.

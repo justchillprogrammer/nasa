@@ -86,6 +86,8 @@ function setStatus(msg, kind = "") {
 
 async function lookAt(ra, dec, size, lam) {
   stopMotion();
+  const found = document.getElementById("found");
+  if (found) found.replaceChildren();
   const run = ++state.run;
   Object.assign(state, { ra, dec, size, lam: lam || DEFAULT_LAM, npix: size >= 1 ? 512 : 384,
     frames: [], exposures: [], epochs: [], points: [], specTotal: 0, specDone: false });
@@ -343,6 +345,55 @@ function render() {
   drawOverlay();
 }
 
+/* ---------------------------------------------------------- find changes */
+
+const CHANGE_COLORS = { moved: "#ffb347", brightened: "#62d2c3", faded: "#f2849e", appeared: "#62d2c3", vanished: "#f2849e" };
+const CHANGE_NOUN = { moved: "Moved", brightened: "Brightened", faded: "Faded", appeared: "Appeared", vanished: "Disappeared" };
+state.found = null;
+
+async function findChanges() {
+  if (state.ra === null) return;
+  const btn = $("find-changes"), box = $("found");
+  const at = { ra: state.ra, dec: state.dec, size: Math.min(state.size, 0.5) };
+  btn.disabled = true;
+  box.innerHTML = "<p class='help'>Stacking every sweep and comparing them. This takes about a minute…</p>";
+  try {
+    const r = await fetch(`/api/changes?ra=${at.ra}&dec=${at.dec}&size=${at.size}`);
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.statusText);
+    const res = await r.json();
+    if (at.ra !== state.ra || at.dec !== state.dec) return;
+    state.found = res;
+    const texts = Object.fromEntries((res.text.items || []).map((i) => [i.rank, i.text]));
+    box.innerHTML = `<p>${res.text.summary}</p>` + res.changes.map((c) =>
+      `<div class="found-item"><b style="color:${CHANGE_COLORS[c.kind]}">${c.rank}. ${CHANGE_NOUN[c.kind]}.</b>${texts[c.rank] || ""}
+       <br><small>${c.kind === "moved" ? "Measured motion" : c.season_pattern ? "Candidate: may be a reflection inside the instrument" : "Candidate: not double-checked in single images"}, ${c.significance}σ</small></div>`).join("")
+      + `<p><small>${res.text.writer.startsWith("AI") ? "Text written by AI from the measurements; numbers checked." : "Text written automatically from the measurements."}</small></p>`;
+    drawOverlay();
+  } catch (e) {
+    box.innerHTML = `<p class="help">Change detection did not finish (${e.message}). Select the button to try again.</p>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+$("find-changes").addEventListener("click", findChanges);
+
+function changeMarks(light) {
+  const f = state.found;
+  if (!f || Math.abs(f.ra - state.ra) > 1e-6 || Math.abs(f.dec - state.dec) > 1e-6) return [];
+  const out = [];
+  const cosd = Math.cos(state.dec * Math.PI / 180);
+  for (const c of f.changes) {
+    // sky position -> fraction of this view (north up, east left)
+    let dra = c.ra - state.ra; if (dra > 180) dra -= 360; if (dra < -180) dra += 360;
+    const fx = 50 - (dra * cosd / state.size) * 100, fy = 50 - ((c.dec - state.dec) / state.size) * 100;
+    if (fx < 0 || fx > 100 || fy < 0 || fy > 100) continue;
+    const col = CHANGE_COLORS[c.kind];
+    out.push(`<circle cx="${fx}" cy="${fy}" r="3" fill="none" stroke="${col}" stroke-width="0.5"${c.kind === "moved" ? "" : ' stroke-dasharray="1 0.8"'}/>`);
+    out.push(`<text x="${fx + 2.4}" y="${fy - 2.4}" font-size="3" fill="${col}" font-family="Atkinson Hyperlegible, sans-serif">${c.rank}</text>`);
+  }
+  return out;
+}
+
 function drawOverlay() {
   const parts = [];
   const light = els.negative.checked && !els.diff.checked ? "#1b2440" : "#ece7da";
@@ -363,6 +414,7 @@ function drawOverlay() {
     parts.push(`<text x="92.1" y="4.2" font-size="2.6" fill="${light}" font-family="Atkinson Hyperlegible, sans-serif">N</text>`);
     parts.push(`<text x="83.2" y="12.9" font-size="2.6" fill="${light}" font-family="Atkinson Hyperlegible, sans-serif">E</text>`);
   }
+  parts.push(...changeMarks(light));
   els.overlay.innerHTML = parts.join("");
 }
 

@@ -1,0 +1,82 @@
+[
+ {
+  "slug": "barnard",
+  "name": "Barnard's Star",
+  "group": "Stars on the move",
+  "ra": 269.4462,
+  "dec": 4.7697,
+  "note": "A red dwarf 6 light-years away. It crosses our sky faster than any other star."
+ },
+ {
+  "slug": "kapteyn",
+  "name": "Kapteyn's Star",
+  "group": "Stars on the move",
+  "ra": 77.9871,
+  "dec": -45.0607,
+  "note": "A very old star about 13 light-years away, with the second-fastest motion across the sky."
+ },
+ {
+  "slug": "groombridge-1830",
+  "name": "Groombridge 1830",
+  "group": "Stars on the move",
+  "ra": 178.2823,
+  "dec": 37.6757,
+  "note": "A star about 30 light-years away that races across the sky at 7 arcseconds a year."
+ },
+ {
+  "slug": "lacaille-9352",
+  "name": "Lacaille 9352",
+  "group": "Stars on the move",
+  "ra": 346.5285,
+  "dec": -35.8433,
+  "note": "A red dwarf about 10.7 light-years away in the southern sky."
+ },
+ {
+  "slug": "wolf-359",
+  "name": "Wolf 359",
+  "group": "Stars on the move",
+  "ra": 164.0919,
+  "dec": 6.9946,
+  "note": "One of the closest stars to the Sun, about 7.9 light-years away."
+ },
+ {
+  "slug": "teegarden",
+  "name": "Teegarden's Star",
+  "group": "Stars on the move",
+  "ra": 43.2796,
+  "dec": 16.854,
+  "note": "A small red dwarf 12.5 light-years away with Earth-sized planets."
+ },
+ {
+  "slug": "wise-j184125",
+  "name": "WISE J184125.47+095436.5",
+  "group": "Changing brightness",
+  "ra": 280.356162,
+  "dec": 9.9101421,
+  "note": "A star that NASA's WISE telescope flagged as variable years earlier. Can SPHEREx see it change?"
+ },
+ {
+  "slug": "pleiades",
+  "name": "Pleiades",
+  "group": "Steady skies",
+  "ra": 56.75,
+  "dec": 24.12,
+  "note": "A young star cluster about 440 light-years away, wrapped in dust that reflects starlight."
+ },
+ {
+  "slug": "crab",
+  "name": "Crab Nebula",
+  "group": "Steady skies",
+  "ra": 83.633,
+  "dec": 22.0145,
+  "note": "The remains of a star that exploded and was seen from Earth in the year 1054."
+ },
+ {
+  "slug": "orion",
+  "name": "Orion Nebula",
+  "group": "Steady skies",
+  "ra": 83.822,
+  "dec": -5.391,
+  "note": "A cloud 1,300 light-years away where new stars are forming."
+ }
+]
