@@ -21,6 +21,7 @@ import os
 import struct
 import threading
 import time
+from collections import OrderedDict
 from pathlib import Path
 
 import numpy as np
@@ -300,12 +301,17 @@ def _parse_headers(buf: bytes) -> tuple[fits.Header, int] | None:
     return header, ends[1]
 
 
-_exposures: dict[str, Exposure] = {}
+# Parsed headers are large (hundreds of cards plus a sky projection), so keep
+# only the few most recently used; the raw bytes stay cached on disk.
+_exposures: "OrderedDict[str, Exposure]" = OrderedDict()
+_MAX_OPEN = 24
 
 
 def load_exposure(key: str) -> Exposure:
-    if key in _exposures:
-        return _exposures[key]
+    with _locks_guard:
+        if key in _exposures:
+            _exposures.move_to_end(key)
+            return _exposures[key]
     path = _cache_path("header", key, ".bin")
     with _lock(str(path)):
         buf = path.read_bytes() if path.exists() else b""
@@ -321,5 +327,8 @@ def load_exposure(key: str) -> Exposure:
             else:
                 path.write_bytes(buf[:parsed[1]])
         exp = Exposure(key, *parsed)
-        _exposures[key] = exp
+        with _locks_guard:
+            _exposures[key] = exp
+            while len(_exposures) > _MAX_OPEN:
+                _exposures.popitem(last=False)
         return exp

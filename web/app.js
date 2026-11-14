@@ -124,8 +124,8 @@ async function lookAt(ra, dec, size, lam) {
   }
   const n = res.exposures.length, s = res.epochs.length;
   setStatus(`${n} images of this spot, from ${s} ${s === 1 ? "sweep" : "sweeps"} of the sky.`, "quiet");
-  loadSpectrum(run);
   await loadFrames(run);
+  if (run === state.run) loadSpectrum(run);
 }
 
 /* Pick, for each sweep, the exposures that saw the spot closest to the
@@ -170,15 +170,19 @@ async function loadFrames(run) {
   let got = 0;
   els.empty.textContent = "Loading images…";
   await Promise.all(candidates.map(async (f) => {
-    try {
-      const q = `ra=${state.ra}&dec=${state.dec}&size=${state.size}&npix=${state.npix}&id=${encodeURIComponent(f.exp.id)}`;
-      const r = await fetch(`/api/cutout?${q}`);
-      if (!r.ok) throw new Error(r.statusText);
-      const meta = JSON.parse(r.headers.get("X-Frame-Meta") || "{}");
-      const data = new Float32Array(await r.arrayBuffer());
-      Object.assign(f, { data, meta, status: "ready", ...frameStats(data) });
-    } catch (e) {
-      f.status = "failed";
+    for (let attempt = 0; attempt < 3 && f.status !== "ready"; attempt++) {
+      try {
+        const q = `ra=${state.ra}&dec=${state.dec}&size=${state.size}&npix=${state.npix}&id=${encodeURIComponent(f.exp.id)}`;
+        const r = await fetch(`/api/cutout?${q}`);
+        if (!r.ok) throw new Error(r.status + " " + r.statusText);
+        const meta = JSON.parse(r.headers.get("X-Frame-Meta") || "{}");
+        const data = new Float32Array(await r.arrayBuffer());
+        Object.assign(f, { data, meta, status: "ready", ...frameStats(data) });
+      } catch (e) {
+        f.status = "failed";
+        f.error = e.message;
+        await new Promise((ok) => setTimeout(ok, 1500 * (attempt + 1)));
+      }
     }
     if (!stale()) els.empty.textContent = `Loading images… ${++got} of ${candidates.length}`;
   }));
@@ -197,7 +201,7 @@ async function loadFrames(run) {
   }
   if (!kept.length) {
     els.empty.textContent = candidates.some((f) => f.status === "failed")
-      ? "The images could not be loaded. Select the wavelength in the chart again to retry."
+      ? `The images could not be loaded (${candidates.find((f) => f.error)?.error || "no reply"}). Select "Look here" to retry.`
       : "No usable image of this spot at that wavelength. Select another wavelength in the chart.";
     return;
   }

@@ -6,6 +6,7 @@ Run with:  uvicorn app:app --app-dir backend --port 8000
 from __future__ import annotations
 
 import json
+import os
 import queue
 import threading
 from concurrent.futures import ThreadPoolExecutor
@@ -24,7 +25,9 @@ MAX_NPIX = 512
 MAX_SIZE_DEG = 1.5
 
 app = FastAPI(title="SPHEREx Blink")
-_pool = ThreadPoolExecutor(max_workers=16)
+# Small on purpose: the free hosting tiers have little CPU and memory.
+_pool = ThreadPoolExecutor(max_workers=int(os.environ.get("SPECTRUM_WORKERS", "4")))
+_cutout_slots = threading.BoundedSemaphore(int(os.environ.get("CUTOUT_SLOTS", "3")))
 
 
 def _check(ra: float, dec: float) -> None:
@@ -63,7 +66,8 @@ def api_cutout(
     except KeyError:
         raise HTTPException(404, "unknown exposure for this position")
     try:
-        img, meta = imaging.cutout(exp["key"], ra, dec, size, npix)
+        with _cutout_slots:
+            img, meta = imaging.cutout(exp["key"], ra, dec, size, npix)
     except Exception as e:
         raise HTTPException(502, f"could not read the image: {e}")
     return Response(
