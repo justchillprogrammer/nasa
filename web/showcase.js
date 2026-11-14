@@ -32,6 +32,7 @@ const el = {
 const vctx = el.view.getContext("2d");
 
 const S = {
+  swipe: 0.3,
   index: [], names: [],
   meta: null, frames: [], canvases: [], white: 1, sigma: 1,
   mode: "fade", t: 0,            // t: 0..1 along the time axis
@@ -363,6 +364,7 @@ function draw() {
   vctx.fillRect(0, 0, W, W);
 
   let shown;
+  if (S.mode !== "swipe") swipeLabels(null);
   if (S.mode === "stack" && S.stackCanvas) {
     vctx.drawImage(S.stackCanvas, r.sx, r.sy, r.sw, r.sh, 0, 0, W, W);
     if (el.marks.checked) drawMarks(r);
@@ -373,6 +375,23 @@ function draw() {
     const i = S.blinkOn ? m.sweeps.length - 1 : 0;
     vctx.drawImage(S.canvases[i], r.sx, r.sy, r.sw, r.sh, 0, 0, W, W);
     shown = { k: i, w: 0, exact: true };
+  } else if (S.mode === "swipe") {
+    // first image on the left of the divider, last image on the right
+    const last = m.sweeps.length - 1, x = Math.round(S.swipe * W);
+    vctx.drawImage(S.canvases[0], r.sx, r.sy, r.sw, r.sh, 0, 0, W, W);
+    vctx.save();
+    vctx.beginPath(); vctx.rect(x, 0, W - x, W); vctx.clip();
+    vctx.drawImage(S.canvases[last], r.sx, r.sy, r.sw, r.sh, 0, 0, W, W);
+    vctx.restore();
+    vctx.fillStyle = "#ffb347"; vctx.fillRect(x - 1.5, 0, 3, W);
+    vctx.beginPath(); vctx.arc(x, W / 2, 16, 0, 7); vctx.fill();
+    vctx.fillStyle = "#2a1a00"; vctx.font = "700 16px 'Atkinson Hyperlegible', sans-serif";
+    vctx.textAlign = "center"; vctx.fillText("↔", x, W / 2 + 6); vctx.textAlign = "start";
+    swipeLabels(m.sweeps[0].label, m.sweeps[last].label);
+    if (el.marks.checked) drawMarks(r);
+    el.tag.innerHTML = `<strong>${m.sweeps[0].label} on the left, ${m.sweeps[last].label} on the right</strong> drag the divider across the picture`;
+    if (S.burn) burnIn();
+    return;
   } else if (S.mode === "diff") {
     drawDiff(k, w, r);
     shown = { k, w, exact: w < 0.01 || w > 0.99 };
@@ -443,7 +462,9 @@ function drawMarks(r) {
       vctx.fillStyle = col;
       for (const p of c.track) { vctx.beginPath(); vctx.arc(toX(p.x), toY(p.y), 2.5, 0, 7); vctx.fill(); }
     }
-    const p = S.mode === "blink" ? c.track[S.blinkOn ? c.track.length - 1 : 0] : trackAt(c, S.t);
+    const p = S.mode === "blink" ? c.track[S.blinkOn ? c.track.length - 1 : 0]
+      : S.mode === "swipe" ? c.track[(toX(c.track[0].x) < S.swipe * W) ? 0 : c.track.length - 1]
+      : trackAt(c, S.t);
     vctx.globalAlpha = sel ? 1 : 0.85;
     vctx.strokeStyle = col;
     vctx.lineWidth = sel ? 3 : 2;
@@ -634,7 +655,7 @@ function tourStop() {
 
 function play() {
   if (!S.meta || !S.canvases.length) return;
-  if (S.mode === "stack") setMode("fade");
+  if (S.mode === "stack" || S.mode === "swipe") setMode("fade");
   if (S.mode === "blink") { startBlink(); return; }
   if (S.t >= 0.999) S.t = 0;
   S.playing = true;
@@ -704,6 +725,7 @@ function startBlink() {
 
 function buildReport() {
   const m = S.meta;
+  document.getElementById("guide").textContent = guideText();
   el.summary.textContent = m.text.summary;
   if (S.track) { buildTrackReport(); return; }
   el.writer.textContent = m.text.writer.startsWith("AI")
@@ -806,12 +828,35 @@ function setMode(m) {
     blink: "Flips between the first and the last sweep, like the blink comparator that found Pluto. Anything that jumps has changed.",
     stack: "Every image is centred on the object, then they are combined. Each star lands somewhere different in every image and smears away; the object lands in the same place every time and adds up. This is how astronomers find faint comets and asteroids.",
     diff: "Each sweep minus the first one. Stars that did not change vanish. White is brighter than before, black is fainter; a star that moved leaves a black spot next to a white one.",
+    swipe: "The first image is on the left of the divider, the last on the right. Drag the divider (or use the arrow keys) and watch what jumps as it passes.",
   };
   el.modeHelp.textContent = help[m];
   const wasPlaying = S.playing;
   stop();
-  if (m !== "stack" && (wasPlaying || m === "blink")) play();
+  if (m !== "stack" && m !== "swipe" && (wasPlaying || m === "blink")) play();
   else draw();
+}
+
+function swipeLabels(left, right) {
+  const L = document.getElementById("swipe-left"), R = document.getElementById("swipe-right");
+  L.hidden = R.hidden = !left;
+  if (left) { L.textContent = left; R.textContent = right; }
+}
+
+/* One plain sentence above the picture: what this is and what to do. */
+function guideText() {
+  const m = S.meta;
+  if (!m) return "";
+  if (S.track) {
+    return m.facts && m.facts.visible_when_stacked
+      ? `These are real SPHEREx images, centred on ${m.name}, so the stars stream past. It is too faint to spot in one image: choose “Stack all images on it” to make it appear.`
+      : `These are real SPHEREx images, centred on where the orbit puts ${m.name}, so the stars stream past.`;
+  }
+  const top = m.changes.find((c) => c.kind === "moved" || c.verified);
+  if (!top) return `The same patch of sky, photographed ${m.sweeps.length} times months apart. Nothing measurable changed: press Play and the stars stay put. That is a result too.`;
+  const what = top.kind === "moved" ? "creeps across the background stars"
+    : top.kind === "faded" || top.kind === "vanished" ? "gets fainter" : "gets brighter";
+  return `The same patch of sky, photographed months apart. Press Play: the circled object ${what}. Try “Swipe first and last” to compare the two ends side by side.`;
 }
 
 /* ---------------------------------------------------------- search */
@@ -931,12 +976,30 @@ el.tourPause.addEventListener("click", () => {
   if (S.tour.paused) { clearTimeout(S.tourTimer); stop(); }
   else { play(); S.onLoop = () => { S.onLoop = null; if (S.tour && !S.tour.paused) S.tourTimer = setTimeout(tourNext, TOUR_HOLD_MS); }; }
 });
+function swipeTo(ev) {
+  const box = el.view.getBoundingClientRect();
+  S.swipe = Math.min(1, Math.max(0, (ev.clientX - box.left) / box.width));
+  draw();
+}
+el.view.addEventListener("pointerdown", (ev) => {
+  if (S.mode !== "swipe") return;
+  el.view.setPointerCapture(ev.pointerId);
+  swipeTo(ev);
+});
+el.view.addEventListener("pointermove", (ev) => { if (S.mode === "swipe" && ev.buttons) swipeTo(ev); });
+el.view.style.touchAction = "pan-y";
 el.shareLink.addEventListener("click", copyLink);
 el.savePicture.addEventListener("click", savePicture);
 el.saveVideo.addEventListener("click", saveVideo);
 document.addEventListener("keydown", (e) => {
   if (el.targetView.hidden || e.target.matches("input[type=search], input[type=text]")) return;
   if (e.key === " " && !e.target.matches("button, input")) { e.preventDefault(); S.playing ? stop() : play(); }
+  if ((e.key === "ArrowRight" || e.key === "ArrowLeft") && S.mode === "swipe") {
+    if (e.target.matches("input[type=range]")) return;
+    S.swipe = Math.min(1, Math.max(0, S.swipe + (e.key === "ArrowRight" ? 0.05 : -0.05)));
+    draw();
+    return;
+  }
   if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
     if (e.target.matches("input[type=range]")) return;
     stop();
@@ -963,6 +1026,72 @@ async function route() {
   }
 }
 
+/* ---------------------------------------------------------- home hero */
+
+// A real result playing on the home page: the top mover, zoomed in.
+async function heroInit() {
+  const box = document.getElementById("hero");
+  const t = S.index.find((x) => x.slug === "barnard") || S.index.find((x) => (x.kinds || {}).moved);
+  if (!t) return;
+  let meta;
+  try { meta = await fetch(`showcase/${t.slug}/meta.json`).then((r) => r.json()); } catch (_) { return; }
+  const c = meta.changes.find((x) => x.kind === "moved");
+  if (!c || !c.track) return;
+  const n = meta.npix;
+  const bufs = await Promise.all(meta.sweeps.map((s) => fetch(`showcase/${t.slug}/${s.frame}`).then((r) => r.arrayBuffer())));
+  const frames = bufs.map(decodeF16);
+  const med = quantile(frames[0], 0.5), sig = Math.max(med - quantile(frames[0], 0.16), 1e-4);
+  const white = Math.max(quantile(frames[0], 0.997) - med, 10 * sig), floor = med - 1.5 * sig;
+  const soft = 8, normv = Math.asinh(soft);
+  const canv = frames.map((d) => {
+    const cv = document.createElement("canvas"); cv.width = cv.height = n;
+    const cx = cv.getContext("2d"), img = cx.createImageData(n, n), px = img.data;
+    for (let i = 0, j = 0; i < d.length; i++, j += 4) {
+      const v = d[i];
+      let s = v !== v ? 1 : Math.asinh(soft * (v - floor) / white) / normv;
+      s = s < 0 ? 0 : s > 1 ? 1 : s;
+      px[j] = 255 * s; px[j + 1] = 255 * Math.pow(s, 1.08); px[j + 2] = 255 * Math.pow(s, 1.22); px[j + 3] = 255;
+    }
+    cx.putImageData(img, 0, 0);
+    return cv;
+  });
+  const mid = c.track[Math.floor(c.track.length / 2)], span = 64;
+  const sx = Math.max(0, Math.min(n - span, mid.x - span / 2)), sy = Math.max(0, Math.min(n - span, mid.y - span / 2));
+  const cvs = document.getElementById("hero-canvas"), ctx = cvs.getContext("2d"), W = cvs.width;
+  const dateEl = document.getElementById("hero-date");
+  const toX = (x) => (x - sx + 0.5) * W / span, toY = (y) => (y - sy + 0.5) * W / span;
+  const years = c.rate_arcsec_per_year ? (c.shift_arcsec / c.rate_arcsec_per_year).toFixed(1) : null;
+  document.getElementById("hero-caption").innerHTML =
+    `<strong>${meta.name}</strong> moved ${c.shift_arcsec}″ to the ${c.direction} between ${meta.sweeps[0].label} and ${meta.sweeps[meta.sweeps.length - 1].label}` +
+    `${years ? `, in ${years} year${years === "1.0" ? "" : "s"}` : ""}. Real SPHEREx images, magnified. Tap to open the time machine.`;
+  document.getElementById("hero-open").addEventListener("click", () => { location.hash = `#/${t.slug}`; });
+  box.hidden = false;
+  const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const HOLD = 1100, MOVE = 1600, seg = HOLD + MOVE, total = seg * (canv.length - 1) + HOLD;
+  function frame(now) {
+    if (!document.getElementById("feed-view").hidden) {
+      const tt = still ? total - 1 : now % (total + 800);
+      let k = Math.min(canv.length - 1, Math.floor(tt / seg)), w = 0;
+      const into = tt - k * seg;
+      if (k < canv.length - 1 && into > HOLD) w = (into - HOLD) / MOVE;
+      if (k >= canv.length - 1) { k = canv.length - 1; w = 0; }
+      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+      ctx.globalAlpha = 1; ctx.drawImage(canv[k], sx, sy, span, span, 0, 0, W, W);
+      if (w > 0) { ctx.globalAlpha = w; ctx.drawImage(canv[k + 1], sx, sy, span, span, 0, 0, W, W); ctx.globalAlpha = 1; }
+      // measured track and the star's position now
+      ctx.strokeStyle = "#ffb347"; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.8; ctx.beginPath();
+      c.track.forEach((p, i) => (i ? ctx.lineTo(toX(p.x), toY(p.y)) : ctx.moveTo(toX(p.x), toY(p.y))));
+      ctx.stroke(); ctx.globalAlpha = 1;
+      const a = c.track[k], b = c.track[Math.min(k + 1, c.track.length - 1)];
+      const px = a.x + w * (b.x - a.x), py = a.y + w * (b.y - a.y);
+      ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(toX(px), toY(py), 34, 0, 7); ctx.stroke();
+      dateEl.textContent = w > 0.02 && w < 0.98 ? "…" : meta.sweeps[w > 0.5 ? k + 1 : k].label;
+    }
+    if (!still) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
 window.addEventListener("hashchange", route);
 setMode("fade");
-loadIndex().then(() => { renderFeed(); route(); });
+loadIndex().then(() => { renderFeed(); route(); heroInit(); });

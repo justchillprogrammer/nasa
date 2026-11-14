@@ -18,6 +18,7 @@ import csv
 import io
 import json
 import math
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
@@ -112,12 +113,23 @@ def _query_day(mjd: float, ra: float, dec: float, half: float = 1.0) -> list[dic
     cache = sx._cache_path("track", key, ".json")
     if cache.exists():
         return json.loads(cache.read_text())
-    r = sx._session().get(sx.TAP_URL, params={"QUERY": adql, "FORMAT": "csv"}, timeout=180)
-    r.raise_for_status()
-    if r.text.lstrip().startswith("<"):
-        raise RuntimeError("archive query failed")
+    # The archive sometimes answers 502 when busy: retry, then skip the day
+    # rather than abandon the whole search (finished days stay cached).
+    text = None
+    for attempt in range(4):
+        try:
+            r = sx._session().get(sx.TAP_URL, params={"QUERY": adql, "FORMAT": "csv"}, timeout=180)
+            if r.status_code == 200 and not r.text.lstrip().startswith("<"):
+                text = r.text
+                break
+        except Exception:
+            pass
+        time.sleep(5 * (attempt + 1))
+    if text is None:
+        return []          # not cached, so a later run tries this day again
+    r_text = text
     out = []
-    for row in csv.DictReader(io.StringIO(r.text)):
+    for row in csv.DictReader(io.StringIO(r_text)):
         if not row["uri"].startswith(sx.URI_PREFIX):
             continue
         did = row["obs_publisher_did"]
@@ -138,7 +150,7 @@ def find_exposures(command: str, start: str = MISSION_START, stop: str | None = 
     log(f"  {len(daily)} days in the ephemeris, {len(days)} at a usable angle from the Sun")
     # Query every second usable day with a two-day window.
     picks = days[::2]
-    with ThreadPoolExecutor(4) as pool:
+    with ThreadPoolExecutor(2) as pool:
         found = list(pool.map(lambda r: _query_day(r["mjd"], r["ra"], r["dec"]), picks))
     best: dict[str, dict] = {}
     for lst in found:

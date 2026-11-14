@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=3">
-<link rel="stylesheet" href="showcase.css?v=3">
+<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="showcase.css?v=4">
 </head>
 <body>
 
@@ -21,6 +21,7 @@
     <button type="submit">Search</button>
     <ul id="suggest" class="suggest" role="listbox" hidden></ul>
   </form>
+  <a class="nav-how" href="how.html">How it works</a>
   <a class="button-link nav-explorer" href="explore.html">Explorer &rarr;</a>
 </header>
 
@@ -28,13 +29,22 @@
 
 <!-- ======================= home: the changes feed ======================= -->
 <main id="feed-view">
-  <section class="intro">
-    <h1>The sky is not as still as it looks.</h1>
-    <p>NASA's SPHEREx telescope photographs the whole sky every six months. Sky Blink lines those photographs up, finds what moved or changed, and tells you about it. Pick any card to travel through time.</p>
-    <div class="intro-actions">
-      <button id="tour-start" type="button" class="primary tour-start">Take the 2-minute tour</button>
-      <a class="button-link secondary-cta" href="explore.html">Open Explorer</a>
+  <section class="intro hero">
+    <div class="hero-text">
+      <h1>The sky is not as still as it looks.</h1>
+      <p>NASA's SPHEREx telescope photographs the whole sky every six months. Sky Blink lines those photographs up, finds what moved or changed, and tells you about it. Pick any card to travel through time.</p>
+      <div class="intro-actions">
+        <button id="tour-start" type="button" class="primary tour-start">Take the 2-minute tour</button>
+        <a class="button-link secondary-cta" href="explore.html">Open Explorer</a>
+      </div>
     </div>
+    <figure class="hero-demo" id="hero" hidden>
+      <button type="button" class="hero-plate" id="hero-open" aria-label="Open this star in the time machine">
+        <canvas id="hero-canvas" width="440" height="440"></canvas>
+        <span class="hero-date" id="hero-date"></span>
+      </button>
+      <figcaption id="hero-caption"></figcaption>
+    </figure>
   </section>
   <div id="feed"></div>
   <section class="explore-cta">
@@ -63,10 +73,13 @@
 
   <div class="machine">
     <section class="stage" aria-label="Time machine">
+      <p class="guide" id="guide"></p>
       <div class="plate" id="plate">
         <canvas id="view" width="720" height="720" aria-label="SPHEREx image of this part of the sky"></canvas>
         <div class="plate-tag" id="tag"></div>
         <div class="plate-zoom" id="zoom-tag" hidden></div>
+        <div class="swipe-label left" id="swipe-left" hidden></div>
+        <div class="swipe-label right" id="swipe-right" hidden></div>
         <div class="plate-empty" id="t-empty">Loading images…</div>
       </div>
 
@@ -82,6 +95,7 @@
       <div class="modes" role="radiogroup" aria-label="View">
         <label><input type="radio" name="mode" value="fade" checked> Time machine</label>
         <label><input type="radio" name="mode" value="blink"> Blink first and last</label>
+        <label><input type="radio" name="mode" value="swipe"> Swipe first and last</label>
         <label id="mode-diff"><input type="radio" name="mode" value="diff"> Show only what changed</label>
         <label id="mode-stack" hidden><input type="radio" name="mode" value="stack"> Stack all images on it</label>
         <label class="check"><input id="marks" type="checkbox" checked> Mark changes</label>
@@ -117,6 +131,6 @@
   <p>Images: NASA SPHEREx Level 2 spectral images from the NASA/IPAC Infrared Science Archive. Detections are automated measurements and can be wrong; candidates are labelled as such.</p>
 </footer>
 
-<script src="showcase.js?v=3"></script>
+<script src="showcase.js?v=4"></script>
 </body>
 </html>

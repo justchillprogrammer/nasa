@@ -293,3 +293,41 @@
 .mini-h { font-size: 1rem; margin: 14px 0 6px; }
 .mini-spec { width: 100%; height: auto; display: block; }
 .mini-spec text { fill: var(--muted); font-size: 11px; font-family: var(--body); }
+
+/* ---------- home hero: one real result, playing ---------- */
+.hero { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 28px; align-items: center; max-width: none; }
+.hero-text { max-width: 64ch; }
+.hero-demo { margin: 0; }
+.hero-plate {
+  position: relative; display: block; width: 100%; padding: 0; min-height: 0;
+  aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: #05070d;
+  border: 1px solid var(--line); cursor: pointer;
+}
+.hero-plate:hover { border-color: var(--amber); }
+.hero-plate canvas { display: block; width: 100%; height: 100%; }
+.hero-date {
+  position: absolute; left: 10px; bottom: 10px; padding: 2px 9px; border-radius: 4px;
+  background: rgba(8, 11, 22, 0.8); font-variant-numeric: tabular-nums; font-weight: 700;
+}
+.hero-demo figcaption { margin-top: 8px; color: var(--muted); font-size: 0.95rem; }
+.hero-demo figcaption strong { color: var(--text); }
+.nav-how { color: var(--muted); text-decoration: none; margin-left: 4px; white-space: nowrap; }
+.nav-how:hover { color: var(--text); }
+
+/* ---------- one-line guide above every time machine ---------- */
+.guide {
+  margin: 0 0 10px; padding: 10px 12px; border-radius: 8px;
+  background: var(--panel-2); border-left: 3px solid var(--amber); max-width: 80ch;
+}
+
+@media (max-width: 900px) {
+  .hero { grid-template-columns: minmax(0, 1fr); }
+  .hero-demo { max-width: 420px; }
+}
+
+.swipe-label {
+  position: absolute; top: 10px; z-index: 5; padding: 2px 9px; border-radius: 4px; pointer-events: none;
+  background: rgba(8, 11, 22, 0.8); font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.swipe-label.left { left: 10px; }
+.swipe-label.right { right: 10px; }

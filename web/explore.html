@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 
@@ -34,14 +34,14 @@
       </select>
       <button type="submit" class="primary">Look here</button>
     </div>
-    <p id="coords-help" class="help">Start typing any object name (A &rarr; An &rarr; Andromeda) or filter by category below:</p>
+    <p id="coords-help" class="help">Type the name of a star, nebula or galaxy (suggestions appear as you type), or pick one below.</p>
     <div class="filters-container">
-      <div class="filter-row">
+      <div class="filter-row" hidden>
         <span class="filter-label">Homepage Categories:</span>
         <div id="filter-home" class="filter-tabs" role="tablist" aria-label="Homepage Categories"></div>
       </div>
       <div class="filter-row">
-        <span class="filter-label">Object Types:</span>
+        <span class="filter-label">Show:</span>
         <div id="filter-astro" class="filter-tabs" role="tablist" aria-label="Astronomical Categories"></div>
       </div>
     </div>
@@ -66,6 +66,7 @@
 <main class="bench">
 
   <section class="viewer" aria-label="Image viewer">
+    <p class="guide">Every picture here is a real SPHEREx image of this spot, taken months apart. Press Play or Blink: anything that jumps has changed. Or press “Find what changed” and Sky Blink looks for you.</p>
     <div class="plate" id="plate">
       <canvas id="view" width="384" height="384" aria-label="SPHEREx image of the selected patch of sky"></canvas>
       <svg id="overlay" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
@@ -133,6 +134,6 @@
   <p>Images: NASA SPHEREx Level 2 spectral images, served by the NASA/IPAC Infrared Science Archive. Brightness values are quick-look measurements, not calibrated science products.</p>
 </footer>
 
-<script src="app.js?v=3"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>

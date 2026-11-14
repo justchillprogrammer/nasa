@@ -380,3 +380,8 @@ button.on { border-color: var(--amber); box-shadow: inset 0 0 0 1px var(--amber)
 .found .found-item { padding: 8px 10px; border-radius: 6px; background: var(--panel-2); border: 1px solid var(--line); }
 .found .found-item b { margin-right: 4px; }
 .found small { color: var(--muted); }
+
+.guide {
+  margin: 0 0 10px; padding: 10px 12px; border-radius: 8px;
+  background: var(--panel-2); border-left: 3px solid var(--amber); max-width: 80ch;
+}

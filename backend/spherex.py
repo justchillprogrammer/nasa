@@ -148,9 +148,27 @@ def _pixel_from_corners(corners, ra, dec) -> tuple[float, float]:
     return float(x), float(y)
 
 
+# Results shipped with the site (tools/build_spots.py), checked before the
+# archive so popular spots open instantly even on a fresh server.
+BUNDLED = Path(__file__).resolve().parent / "data"
+
+
+def search_key(ra: float, dec: float) -> str:
+    return f"v3:{ra:.4f}:{dec:.4f}"
+
+
+def bundled_path(kind: str, key: str) -> Path:
+    return BUNDLED / kind / (hashlib.sha1(key.encode()).hexdigest()[:20] + ".json.gz")
+
+
 def search(ra: float, dec: float) -> dict:
     """All exposures whose footprint contains (ra, dec), grouped into sky passes."""
-    key = f"v3:{ra:.4f}:{dec:.4f}"
+    key = search_key(ra, dec)
+    shipped = bundled_path("search", key)
+    if shipped.exists():
+        import gzip
+        with gzip.open(shipped, "rt") as f:
+            return json.load(f)
     path = _cache_path("search", key, ".json")
     with _lock(str(path)):
         if path.exists():
