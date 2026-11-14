@@ -334,10 +334,10 @@ function renderFeed() {
     "Steady skies": "Places where Sky Blink found nothing measurable. Knowing what did not change matters as much as what did.",
   };
   const catQuery = {
-    "Moving objects": "0",
-    "Stars on the move": "1",
-    "Changing brightness": "3",
-    "Steady skies": "4",
+    "Moving objects": "Moving objects",
+    "Stars on the move": "Stars on the move",
+    "Changing brightness": "Changing brightness",
+    "Steady skies": "Steady skies",
   };
   for (const g of groups) {
     const sec = document.createElement("section");
@@ -346,7 +346,7 @@ function renderFeed() {
     const grid = document.createElement("div");
     grid.className = "cards";
     for (const t of g.items) grid.append(card(t));
-    grid.append(moreCard(g.name, catQuery[g.name] || "0"));
+    grid.append(moreCard(g.name, catQuery[g.name] || g.name));
     sec.append(grid);
     el.feed.append(sec);
   }
@@ -375,10 +375,10 @@ function card(t) {
   return b;
 }
 
-function moreCard(groupName, catIdx) {
+function moreCard(groupName, homeCat) {
   const a = document.createElement("a");
   a.className = "card more-card";
-  a.href = `explore.html?cat=${catIdx}`;
+  a.href = `explore.html?homecat=${encodeURIComponent(homeCat || groupName)}`;
   a.innerHTML = `
     <div class="more-card-visual">
       <span class="more-card-arrow">&rarr;</span>
@@ -387,7 +387,7 @@ function moreCard(groupName, catIdx) {
     <div class="card-body">
       <h3>More</h3>
       <div class="badges"><span class="badge"><i style="background:var(--amber)"></i>Open Explorer</span></div>
-      <p>Browse more objects in "${groupName}" or search any coordinates and star name in the NASA SPHEREx archive.</p>
+      <p>Browse all objects in "${groupName}" or search any coordinates and star name in the NASA SPHEREx archive.</p>
     </div>`;
   return a;
 }

@@ -4,7 +4,41 @@
    step, blink and subtract them. All image stretching happens here, on raw
    brightness values, so every control responds instantly. */
 
-const VISIBLE_PILLS = 6;
+const VISIBLE_PILLS = 8;
+
+const HOMEPAGE_CATS = [
+  "All",
+  "Moving objects",
+  "Stars on the move",
+  "Changing brightness",
+  "Steady skies",
+];
+
+const ASTRO_CATS = [
+  "All",
+  "Comets & Asteroids",
+  "Fast-Moving Stars",
+  "Brown Dwarfs & Cool Worlds",
+  "Variable & Pulsating Stars",
+  "Nebulae & Star Clusters",
+  "Galaxies & Deep Sky",
+];
+
+const ASTRO_TO_HOME = {
+  "Comets & Asteroids": "Moving objects",
+  "Fast-Moving Stars": "Stars on the move",
+  "Brown Dwarfs & Cool Worlds": "Stars on the move",
+  "Variable & Pulsating Stars": "Changing brightness",
+  "Nebulae & Star Clusters": "Steady skies",
+  "Galaxies & Deep Sky": "Steady skies",
+};
+
+const HOME_TO_ASTRO = {
+  "Moving objects": ["Comets & Asteroids"],
+  "Stars on the move": ["Fast-Moving Stars", "Brown Dwarfs & Cool Worlds"],
+  "Changing brightness": ["Variable & Pulsating Stars"],
+  "Steady skies": ["Nebulae & Star Clusters", "Galaxies & Deep Sky"],
+};
 
 const PRESET_CATEGORIES = [
   {
@@ -181,7 +215,7 @@ const NODATA = [58, 42, 85];
 const $ = (id) => document.getElementById(id);
 const els = {
   form: $("target-form"), coords: $("coords"), suggest: $("coords-suggest"), size: $("size"),
-  presetCats: $("preset-cats"), presets: $("presets"),
+  filterHome: $("filter-home"), filterAstro: $("filter-astro"), presets: $("presets"),
   morePanel: $("cat-more-panel"), moreQ: $("cat-more-q"), moreBtn: $("cat-more-btn"),
   moreClose: $("cat-more-close"), moreList: $("cat-more-list"),
   status: $("status"), view: $("view"), overlay: $("overlay"), empty: $("plate-empty"),
@@ -867,18 +901,81 @@ function syncUrl() {
   history.replaceState(null, "", "?" + q);
 }
 
-let activeCatIndex = 0;
+let currentHomeFilter = "All";
+let currentAstroFilter = "All";
 let moreSelectedIndex = -1;
 let moreFilteredItems = [];
 
+function getFilteredItems() {
+  const all = PRESET_CATEGORIES.flatMap((c) =>
+    c.items.map((it) => ({
+      ...it,
+      astroCat: c.category,
+      homeCat: ASTRO_TO_HOME[c.category] || "Steady skies",
+    }))
+  );
+  return all.filter((it) => {
+    const homeOk = currentHomeFilter === "All" || it.homeCat === currentHomeFilter;
+    const astroOk = currentAstroFilter === "All" || it.astroCat === currentAstroFilter;
+    return homeOk && astroOk;
+  });
+}
+
+function renderFilterTabs() {
+  if (els.filterHome) {
+    els.filterHome.replaceChildren();
+    HOMEPAGE_CATS.forEach((cat) => {
+      const tab = document.createElement("button");
+      tab.type = "button";
+      tab.role = "tab";
+      const isOn = cat === currentHomeFilter;
+      tab.className = "filter-tab" + (isOn ? " on" : "");
+      tab.textContent = cat;
+      tab.setAttribute("aria-selected", String(isOn));
+      tab.addEventListener("click", () => {
+        currentHomeFilter = cat;
+        if (cat !== "All" && currentAstroFilter !== "All") {
+          const allowed = HOME_TO_ASTRO[cat] || [];
+          if (!allowed.includes(currentAstroFilter)) {
+            currentAstroFilter = "All";
+          }
+        }
+        applyFilters();
+      });
+      els.filterHome.append(tab);
+    });
+  }
+
+  if (els.filterAstro) {
+    els.filterAstro.replaceChildren();
+    ASTRO_CATS.forEach((cat) => {
+      const tab = document.createElement("button");
+      tab.type = "button";
+      tab.role = "tab";
+      const isOn = cat === currentAstroFilter;
+      tab.className = "filter-tab" + (isOn ? " on" : "");
+      tab.textContent = cat;
+      tab.setAttribute("aria-selected", String(isOn));
+      tab.addEventListener("click", () => {
+        currentAstroFilter = cat;
+        if (cat !== "All") {
+          currentHomeFilter = ASTRO_TO_HOME[cat] || "All";
+        }
+        applyFilters();
+      });
+      els.filterAstro.append(tab);
+    });
+  }
+}
+
 function renderMoreList() {
   if (!els.moreList) return;
-  const cat = PRESET_CATEGORIES[activeCatIndex] || PRESET_CATEGORIES[0];
   const rawQ = els.moreQ ? els.moreQ.value.trim() : "";
   const q = normPrefix(rawQ);
 
-  // All objects in this category sorted in strict alphabetical order (A -> Z)
-  const alphaItems = [...cat.items].sort((a, b) => a.name.localeCompare(b.name));
+  const filtered = getFilteredItems();
+  // All objects in current selection sorted in strict alphabetical order (A -> Z)
+  const alphaItems = [...filtered].sort((a, b) => a.name.localeCompare(b.name));
 
   if (!q) {
     moreFilteredItems = alphaItems.map((obj) => ({ obj, matchedAlias: null }));
@@ -911,7 +1008,8 @@ function renderMoreList() {
   if (!moreFilteredItems.length) {
     const emptyLi = document.createElement("div");
     emptyLi.className = "cat-more-empty";
-    emptyLi.textContent = `No objects in "${cat.category}" starting with "${rawQ}". Press Search to look it up across all catalogs (SIMBAD/NED).`;
+    const filterDesc = currentAstroFilter !== "All" ? currentAstroFilter : (currentHomeFilter !== "All" ? currentHomeFilter : "selection");
+    emptyLi.textContent = `No objects in "${filterDesc}" starting with "${rawQ}". Press Search to look it up across all catalogs (SIMBAD/NED).`;
     els.moreList.append(emptyLi);
     return;
   }
@@ -934,11 +1032,11 @@ function renderMoreList() {
 
 function openMorePanel() {
   if (!els.morePanel) return;
-  const cat = PRESET_CATEGORIES[activeCatIndex] || PRESET_CATEGORIES[0];
+  const filterDesc = currentAstroFilter !== "All" ? currentAstroFilter : (currentHomeFilter !== "All" ? currentHomeFilter : "All Objects");
   els.morePanel.hidden = false;
   if (els.moreQ) {
     els.moreQ.value = "";
-    els.moreQ.placeholder = `Search in ${cat.category} (type A, An...)`;
+    els.moreQ.placeholder = `Search in ${filterDesc} (type A, An...)`;
   }
   const moreToggle = els.presets.querySelector(".more-btn");
   if (moreToggle) moreToggle.classList.add("on");
@@ -953,18 +1051,13 @@ function closeMorePanel() {
   if (moreToggle) moreToggle.classList.remove("on");
 }
 
-function renderPresetCategory(catIndex) {
-  activeCatIndex = catIndex;
+function applyFilters() {
+  renderFilterTabs();
   closeMorePanel();
   els.presets.replaceChildren();
-  if (els.presetCats) {
-    [...els.presetCats.children].forEach((btn, idx) => {
-      btn.classList.toggle("on", idx === catIndex);
-      btn.setAttribute("aria-selected", String(idx === catIndex));
-    });
-  }
-  const cat = PRESET_CATEGORIES[catIndex] || PRESET_CATEGORIES[0];
-  const visible = cat.items.slice(0, VISIBLE_PILLS);
+
+  const items = getFilteredItems();
+  const visible = items.slice(0, VISIBLE_PILLS);
   for (const p of visible) {
     const b = document.createElement("button");
     b.type = "button";
@@ -975,28 +1068,20 @@ function renderPresetCategory(catIndex) {
     });
     els.presets.append(b);
   }
-  const moreBtn = document.createElement("button");
-  moreBtn.type = "button";
-  moreBtn.className = "more-btn";
-  moreBtn.textContent = `More (${cat.items.length}) ▾`;
-  moreBtn.title = `Show all ${cat.items.length} objects in ${cat.category} in alphabetical order`;
-  moreBtn.addEventListener("click", () => {
-    if (els.morePanel && !els.morePanel.hidden) closeMorePanel();
-    else openMorePanel();
-  });
-  els.presets.append(moreBtn);
-}
 
-if (els.presetCats) {
-  PRESET_CATEGORIES.forEach((cat, idx) => {
-    const tab = document.createElement("button");
-    tab.type = "button";
-    tab.role = "tab";
-    tab.className = "cat-tab" + (idx === 0 ? " on" : "");
-    tab.textContent = cat.category;
-    tab.addEventListener("click", () => renderPresetCategory(idx));
-    els.presetCats.append(tab);
-  });
+  if (items.length > 0) {
+    const moreBtn = document.createElement("button");
+    moreBtn.type = "button";
+    moreBtn.className = "more-btn";
+    moreBtn.textContent = `More (${items.length}) ▾`;
+    const filterDesc = currentAstroFilter !== "All" ? currentAstroFilter : (currentHomeFilter !== "All" ? currentHomeFilter : "all categories");
+    moreBtn.title = `Show all ${items.length} objects in ${filterDesc} in alphabetical order`;
+    moreBtn.addEventListener("click", () => {
+      if (els.morePanel && !els.morePanel.hidden) closeMorePanel();
+      else openMorePanel();
+    });
+    els.presets.append(moreBtn);
+  }
 }
 
 if (els.moreQ) {
@@ -1232,15 +1317,37 @@ els.plate.addEventListener("mouseleave", () => { els.readout.hidden = true; });
 updateButtons();
 {
   const q = new URLSearchParams(location.search);
-  const cat = parseInt(q.get("cat"), 10);
-  const startCatIdx = Number.isFinite(cat) && cat >= 0 && cat < PRESET_CATEGORIES.length ? cat : 0;
-  renderPresetCategory(startCatIdx);
+  const homeCatParam = q.get("homecat");
+  const catParam = q.get("cat");
+
+  if (homeCatParam && HOMEPAGE_CATS.includes(homeCatParam)) {
+    currentHomeFilter = homeCatParam;
+    currentAstroFilter = "All";
+  } else if (catParam) {
+    if (HOMEPAGE_CATS.includes(catParam)) {
+      currentHomeFilter = catParam;
+      currentAstroFilter = "All";
+    } else if (ASTRO_CATS.includes(catParam)) {
+      currentAstroFilter = catParam;
+      currentHomeFilter = ASTRO_TO_HOME[catParam] || "All";
+    } else {
+      const idx = parseInt(catParam, 10);
+      if (Number.isFinite(idx) && idx >= 0 && idx < PRESET_CATEGORIES.length) {
+        currentAstroFilter = PRESET_CATEGORIES[idx].category;
+        currentHomeFilter = ASTRO_TO_HOME[currentAstroFilter] || "All";
+      }
+    }
+  }
+
+  applyFilters();
+
   const ra = parseFloat(q.get("ra")), dec = parseFloat(q.get("dec"));
   const name = q.get("name") || null;
   if (Number.isFinite(ra) && Number.isFinite(dec)) {
     lookAt(ra, dec, parseFloat(q.get("size")) || 0.25, parseFloat(q.get("lam")) || null, name);
   } else {
-    const startObj = PRESET_CATEGORIES[startCatIdx].items[0];
+    const pool = getFilteredItems();
+    const startObj = pool[0] || PRESET_CATEGORIES[0].items[0];
     lookAt(startObj.ra, startObj.dec, startObj.size, null, startObj.name);
   }
 }
