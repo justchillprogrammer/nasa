@@ -1,0 +1,9 @@
+{
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 300,
+      "includeFiles": "{backend,web}/**"
+    }
+  },
+  "rewrites": [{ "source": "/(.*)", "destination": "/api/index" }]
+}

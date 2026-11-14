@@ -57,6 +57,13 @@ automatically. The free plan sleeps after about 15 minutes without traffic and
 wipes the `.cache/` folder on each deploy, so the first visit afterwards is
 slow.
 
+## Deploy (Vercel)
+
+`vercel.json` and `api/index.py` run the same server as a Vercel Python
+function. In Vercel choose Add New, then Project, import this GitHub repo, and
+deploy with the default settings. Pushes to `main` redeploy automatically.
+The cache lives in `/tmp` there, so it is lost whenever the function restarts.
+
 ## Known limits of this first version
 
 - Positions are entered as coordinates or chosen from presets. There is no
