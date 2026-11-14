@@ -841,7 +841,16 @@ els.plate.addEventListener("mouseleave", () => { els.readout.hidden = true; });
 updateButtons();
 {
   const q = new URLSearchParams(location.search);
+  const cat = parseInt(q.get("cat"), 10);
+  if (Number.isFinite(cat) && cat >= 0 && cat < PRESET_CATEGORIES.length) {
+    renderPresetCategory(cat);
+  }
   const ra = parseFloat(q.get("ra")), dec = parseFloat(q.get("dec"));
-  if (Number.isFinite(ra) && Number.isFinite(dec)) lookAt(ra, dec, parseFloat(q.get("size")) || 0.25, parseFloat(q.get("lam")) || null);
-  else lookAt(PRESETS[0].ra, PRESETS[0].dec, PRESETS[0].size);
+  const name = q.get("name") || null;
+  if (Number.isFinite(ra) && Number.isFinite(dec)) {
+    lookAt(ra, dec, parseFloat(q.get("size")) || 0.25, parseFloat(q.get("lam")) || null, name);
+  } else {
+    const startCat = Number.isFinite(cat) && PRESET_CATEGORIES[cat] ? PRESET_CATEGORIES[cat].items[0] : PRESETS[0];
+    lookAt(startCat.ra, startCat.dec, startCat.size, null, startCat.name);
+  }
 }

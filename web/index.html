@@ -21,6 +21,7 @@
     <button type="submit">Search</button>
     <ul id="suggest" class="suggest" role="listbox" hidden></ul>
   </form>
+  <a class="button-link nav-explorer" href="explore.html">Explorer &rarr;</a>
 </header>
 
 <p id="status" class="status" role="status" aria-live="polite"></p>
@@ -30,7 +31,10 @@
   <section class="intro">
     <h1>The sky is not as still as it looks.</h1>
     <p>NASA's SPHEREx telescope photographs the whole sky every six months. Sky Blink lines those photographs up, finds what moved or changed, and tells you about it. Pick any card to travel through time.</p>
-    <button id="tour-start" type="button" class="primary tour-start">Take the 2-minute tour</button>
+    <div class="intro-actions">
+      <button id="tour-start" type="button" class="primary tour-start">Take the 2-minute tour</button>
+      <a class="button-link secondary-cta" href="explore.html">Open Explorer</a>
+    </div>
   </section>
   <div id="feed"></div>
   <section class="explore-cta">

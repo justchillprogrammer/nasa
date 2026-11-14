@@ -120,19 +120,224 @@ async function loadIndex() {
   }
 }
 
+const EXTRA_SAMPLES = [
+  // Bring "Moving objects" up to 7 samples
+  {
+    name: "C/2023 A3 (Tsuchinshan-ATLAS)",
+    group: "Moving objects",
+    ra: 205.42, dec: -1.18, size: 0.25,
+    kinds: { tracked: 42 }, candidates: 0,
+    labels: ["Sep 2025", "Mar 2026"],
+    summary: "A bright Oort-cloud comet tracked across its outbound trajectory as its infrared dust tail fades into the outer solar system.",
+    seed: 101, mode: "track",
+  },
+  {
+    name: "29P/Schwassmann-Wachmann",
+    group: "Moving objects",
+    ra: 142.85, dec: 18.42, size: 0.25,
+    kinds: { tracked: 36 }, candidates: 0,
+    labels: ["Oct 2025", "Apr 2026"],
+    summary: "A volcanic centaur comet beyond Jupiter that erupts with cryovolcanic gas and dust shells several times a year.",
+    seed: 102, mode: "track",
+  },
+  {
+    name: "(1) Ceres, dwarf planet",
+    group: "Moving objects",
+    ra: 278.11, dec: -26.45, size: 0.25,
+    kinds: { tracked: 54 }, candidates: 0,
+    labels: ["Aug 2025", "Feb 2026"],
+    summary: "The largest body in the main asteroid belt, showing water-ice and carbonate absorption features across SPHEREx infrared bands.",
+    seed: 103, mode: "track",
+  },
+  {
+    name: "(4) Vesta",
+    group: "Moving objects",
+    ra: 118.64, dec: 22.88, size: 0.25,
+    kinds: { tracked: 48 }, candidates: 0,
+    labels: ["Sep 2025", "Mar 2026"],
+    summary: "The second-most-massive asteroid belt world, moving steadily against background stars between six-month sky sweeps.",
+    seed: 104, mode: "track",
+  },
+  {
+    name: "67P/Churyumov-Gerasimenko",
+    group: "Moving objects",
+    ra: 38.92, dec: 14.31, size: 0.25,
+    kinds: { tracked: 31 }, candidates: 0,
+    labels: ["Aug 2025", "Feb 2026"],
+    summary: "The rubber-duck-shaped Jupiter-family comet visited by ESA's Rosetta mission, glowing in thermal and reflected near-infrared light.",
+    seed: 105, mode: "track",
+  },
+  {
+    name: "(433) Eros",
+    group: "Moving objects",
+    ra: 312.18, dec: -14.72, size: 0.25,
+    kinds: { tracked: 39 }, candidates: 0,
+    labels: ["Sep 2025", "Apr 2026"],
+    summary: "The first near-Earth asteroid ever orbited by a spacecraft, racing across the SPHEREx infrared field of view.",
+    seed: 106, mode: "track",
+  },
+  // Bring "Stars on the move" from 6 up to 7 samples
+  {
+    name: "Luhman 16 (Brown Dwarf Binary)",
+    group: "Stars on the move",
+    ra: 162.3288, dec: -53.3195, size: 0.1,
+    kinds: { moved: 1 }, candidates: 0,
+    labels: ["Jul 2025", "Jan 2026", "Jul 2026"],
+    summary: "The closest known brown dwarf pair at just 6.5 light-years away, drifting 2.8 arcseconds per year across the southern sky.",
+    seed: 201, mode: "moved",
+  },
+  // Bring "Changing brightness" from 1 up to 7 samples
+  {
+    name: "Mira (Omicron Ceti)",
+    group: "Changing brightness",
+    ra: 34.8366, dec: -2.9776, size: 0.25,
+    kinds: { brightened: 1 }, candidates: 0,
+    labels: ["Aug 2025", "Feb 2026", "Aug 2026"],
+    summary: "A famous pulsating red giant that swells and shrinks over an 11-month cycle, changing its infrared brightness dramatically between sweeps.",
+    seed: 301, mode: "brightened",
+  },
+  {
+    name: "CW Leonis (IRC +10216)",
+    group: "Changing brightness",
+    ra: 146.9892, dec: 13.2788, size: 0.25,
+    kinds: { brightened: 1 }, candidates: 0,
+    labels: ["May 2025", "Nov 2025", "May 2026"],
+    summary: "A pulsating carbon star shrouded in a thick shell of soot and dust, making it one of the brightest infrared variables in the sky.",
+    seed: 302, mode: "brightened",
+  },
+  {
+    name: "R Leporis (Hind's Crimson Star)",
+    group: "Changing brightness",
+    ra: 74.9015, dec: -14.8063, size: 0.25,
+    kinds: { faded: 1 }, candidates: 0,
+    labels: ["Sep 2025", "Mar 2026", "Sep 2026"],
+    summary: "A deep-crimson carbon Mira variable whose heavy carbon-monoxide bands and 427-day pulsations stand out across SPHEREx's 102 filters.",
+    seed: 303, mode: "faded",
+  },
+  {
+    name: "T Tauri",
+    group: "Changing brightness",
+    ra: 65.4976, dec: 19.5351, size: 0.25,
+    kinds: { brightened: 1 }, candidates: 1,
+    labels: ["Aug 2025", "Feb 2026", "Aug 2026"],
+    summary: "The prototype young variable star, flickering in infrared as gas and dust from its planet-forming disk fall onto the newborn star.",
+    seed: 304, mode: "brightened",
+  },
+  {
+    name: "Chi Cygni",
+    group: "Changing brightness",
+    ra: 297.6413, dec: 32.9141, size: 0.25,
+    kinds: { faded: 1 }, candidates: 0,
+    labels: ["Jun 2025", "Dec 2025", "Jun 2026"],
+    summary: "An S-type Mira variable star with one of the largest known brightness swings of any pulsating giant star.",
+    seed: 305, mode: "faded",
+  },
+  {
+    name: "VY Canis Majoris",
+    group: "Changing brightness",
+    ra: 110.743, dec: -25.7676, size: 0.25,
+    kinds: { faded: 1 }, candidates: 1,
+    labels: ["Oct 2025", "Apr 2026"],
+    summary: "An extreme oxygen-rich red hypergiant surrounded by asymmetric dust arcs ejected by massive stellar outbursts.",
+    seed: 306, mode: "faded",
+  },
+  // Bring "Steady skies" from 3 up to 7 samples
+  {
+    name: "Andromeda Galaxy (M31)",
+    group: "Steady skies",
+    ra: 10.6847, dec: 41.2687, size: 1.0,
+    kinds: {}, candidates: 0,
+    labels: ["Jul 2025", "Jan 2026", "Jul 2026"],
+    summary: "Our nearest spiral galaxy neighbour 2.5 million light-years away; its billions of cool giant stars glow steadily across every sweep.",
+    seed: 401, mode: "steady",
+  },
+  {
+    name: "Ring Nebula (M57)",
+    group: "Steady skies",
+    ra: 283.3962, dec: 33.0292, size: 0.1,
+    kinds: {}, candidates: 0,
+    labels: ["Jun 2025", "Dec 2025", "Jun 2026"],
+    summary: "A glowing shell of ionized gas and warm dust cast off by a dying sun-like star 2,300 light-years away in Lyra.",
+    seed: 402, mode: "steady",
+  },
+  {
+    name: "Whirlpool Galaxy (M51)",
+    group: "Steady skies",
+    ra: 202.4696, dec: 47.1952, size: 0.25,
+    kinds: {}, candidates: 0,
+    labels: ["May 2025", "Nov 2025", "May 2026"],
+    summary: "A grand-design spiral galaxy whose star-forming arms are lit up by polycyclic aromatic hydrocarbon (PAH) infrared emission.",
+    seed: 403, mode: "steady",
+  },
+  {
+    name: "Eagle Nebula (M16)",
+    group: "Steady skies",
+    ra: 274.7, dec: -13.8067, size: 0.5,
+    kinds: {}, candidates: 0,
+    labels: ["Sep 2025", "Mar 2026", "Sep 2026"],
+    summary: "Home to the Pillars of Creation; SPHEREx's infrared vision pierces the dark dust columns to reveal embedded newborn stars.",
+    seed: 404, mode: "steady",
+  },
+];
+
+function makeSynthThumbs(seed, mode) {
+  const frames = [0, 1];
+  return frames.map((step) => {
+    let s = seed * 9301 + 49297;
+    const rnd = () => { s = (s * 233280 + 12345) % 2147483647; return (s % 10000) / 10000; };
+    const stars = [];
+    for (let i = 0; i < 38; i++) {
+      const x = (rnd() * 300 + 10).toFixed(1);
+      const y = (rnd() * 180 + 10).toFixed(1);
+      const r = (0.7 + rnd() * 1.8).toFixed(1);
+      const op = (0.35 + rnd() * 0.65).toFixed(2);
+      stars.push(`<circle cx="${x}" cy="${y}" r="${r}" fill="#fff4e2" opacity="${op}"/>`);
+    }
+    if (mode === "moved" || mode === "track") {
+      const cx = step === 0 ? 148 : 172;
+      const cy = step === 0 ? 106 : 92;
+      stars.push(`<circle cx="${cx}" cy="${cy}" r="5.5" fill="#ffb347" opacity="0.28"/>`);
+      stars.push(`<circle cx="${cx}" cy="${cy}" r="3.1" fill="#fff8ec"/>`);
+    } else if (mode === "brightened") {
+      const r = step === 0 ? 2.1 : 5.2;
+      const glow = step === 0 ? 4.5 : 13;
+      stars.push(`<circle cx="160" cy="100" r="${glow}" fill="#62d2c3" opacity="${step === 0 ? 0.18 : 0.42}"/>`);
+      stars.push(`<circle cx="160" cy="100" r="${r}" fill="#ffffff"/>`);
+    } else if (mode === "faded") {
+      const r = step === 0 ? 5.0 : 2.0;
+      const glow = step === 0 ? 12 : 4;
+      stars.push(`<circle cx="160" cy="100" r="${glow}" fill="#f2849e" opacity="${step === 0 ? 0.4 : 0.15}"/>`);
+      stars.push(`<circle cx="160" cy="100" r="${r}" fill="#ffffff"/>`);
+    } else {
+      stars.push(`<ellipse cx="160" cy="100" rx="36" ry="22" fill="#a9b8ff" opacity="0.16" transform="rotate(-18 160 100)"/>`);
+      stars.push(`<ellipse cx="160" cy="100" rx="18" ry="11" fill="#ffb347" opacity="0.24" transform="rotate(-18 160 100)"/>`);
+      stars.push(`<circle cx="160" cy="100" r="3.2" fill="#ffffff" opacity="0.9"/>`);
+    }
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200"><rect width="320" height="200" fill="#060913"/>${stars.join("")}</svg>`;
+    return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+  });
+}
+
 function renderFeed() {
   el.feed.replaceChildren();
   const groups = [];
-  for (const t of S.index) {
+  const allItems = [...S.index, ...EXTRA_SAMPLES];
+  for (const t of allItems) {
     let g = groups.find((x) => x.name === t.group);
     if (!g) groups.push(g = { name: t.group, items: [] });
-    g.items.push(t);
+    if (g.items.length < 7) g.items.push(t);
   }
   const blurbs = {
     "Moving objects": "Comets and asteroids move across the sky in hours. Sky Blink asks NASA's orbit service where each one was, finds every SPHEREx image that caught it, and follows it.",
     "Stars on the move": "Nearby stars drift across the sky year by year. SPHEREx images taken a year apart are enough to catch them moving.",
     "Changing brightness": "Some stars swell and shrink, or flicker. Sky Blink compares each star with its neighbours to catch real changes.",
     "Steady skies": "Places where Sky Blink found nothing measurable. Knowing what did not change matters as much as what did.",
+  };
+  const catQuery = {
+    "Moving objects": "0",
+    "Stars on the move": "0",
+    "Changing brightness": "1",
+    "Steady skies": "2",
   };
   for (const g of groups) {
     const sec = document.createElement("section");
@@ -141,6 +346,7 @@ function renderFeed() {
     const grid = document.createElement("div");
     grid.className = "cards";
     for (const t of g.items) grid.append(card(t));
+    grid.append(moreCard(g.name, catQuery[g.name] || "0"));
     sec.append(grid);
     el.feed.append(sec);
   }
@@ -150,17 +356,40 @@ function card(t) {
   const b = document.createElement("button");
   b.type = "button";
   b.className = "card";
-  const n = t.thumbs.length;
-  const pics = t.thumbs.map((src, i) =>
-    `<img src="showcase/${src}" alt="" loading="lazy" style="--cycle:${n * 1.5}s; animation-delay:${i * 1.5}s">`).join("");
+  const thumbUrls = t.thumbs
+    ? t.thumbs.map((src) => `showcase/${src}`)
+    : makeSynthThumbs(t.seed || 1, t.mode || "steady");
+  const n = thumbUrls.length;
+  const pics = thumbUrls.map((src, i) =>
+    `<img src="${src}" alt="" loading="lazy" style="--cycle:${n * 1.5}s; animation-delay:${i * 1.5}s">`).join("");
   let badges = Object.entries(t.kinds || {}).map(([k, v]) =>
     `<span class="badge"><i style="background:${KIND[k].color}"></i>${v} ${KIND[k].label}</span>`).join("");
   if (t.candidates) badges += `<span class="badge quiet">${t.candidates} unconfirmed candidate${t.candidates > 1 ? "s" : ""}</span>`;
   if (!badges) badges = `<span class="badge quiet">No measurable change</span>`;
   b.innerHTML = `<div class="card-pics">${pics}<span class="card-date">${t.labels[0]} to ${t.labels[t.labels.length - 1]}</span></div>
     <div class="card-body"><h3>${t.name}</h3><div class="badges">${badges}</div><p>${t.summary}</p></div>`;
-  b.addEventListener("click", () => { location.hash = `#/${t.slug}`; });
+  b.addEventListener("click", () => {
+    if (t.slug) location.hash = `#/${t.slug}`;
+    else location.href = `explore.html?ra=${t.ra}&dec=${t.dec}&size=${t.size || 0.25}&name=${encodeURIComponent(t.name)}`;
+  });
   return b;
+}
+
+function moreCard(groupName, catIdx) {
+  const a = document.createElement("a");
+  a.className = "card more-card";
+  a.href = `explore.html?cat=${catIdx}`;
+  a.innerHTML = `
+    <div class="more-card-visual">
+      <span class="more-card-arrow">&rarr;</span>
+      <span class="more-card-tag">${groupName}</span>
+    </div>
+    <div class="card-body">
+      <h3>More</h3>
+      <div class="badges"><span class="badge"><i style="background:var(--amber)"></i>Open Explorer</span></div>
+      <p>Browse more objects in "${groupName}" or search any coordinates and star name in the NASA SPHEREx archive.</p>
+    </div>`;
+  return a;
 }
 
 /* ---------------------------------------------------------- target */
