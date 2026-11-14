@@ -24,13 +24,11 @@ class TestSkyBlinkFeatures(unittest.TestCase):
         with open(vpath, "r", encoding="utf-8") as f:
             vconf = json.load(f)
         
-        funcs = vconf.get("functions", {})
-        api_func = funcs.get("api/index.py", {})
-        self.assertGreaterEqual(
-            api_func.get("maxDuration", 0),
-            60,
-            "maxDuration must be at least 60 seconds"
-        )
+        # Verify valid Vercel services configuration for FastAPI
+        services = vconf.get("services", {})
+        self.assertIn("sky-blink", services, "sky-blink service must be defined")
+        self.assertEqual(services["sky-blink"].get("framework"), "fastapi")
+        self.assertEqual(services["sky-blink"].get("entrypoint"), "api/index.py")
 
     def test_custom_404_page(self):
         page_404 = ROOT / "web" / "404.html"

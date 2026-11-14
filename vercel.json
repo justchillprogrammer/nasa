@@ -1,21 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "functions": {
-    "api/index.py": {
-      "maxDuration": 60
-    }
-  },
   "services": {
     "sky-blink": {
       "root": ".",
       "framework": "fastapi",
-      "entrypoint": "api/index.py",
-      "buildCommand": "pip install -r backend/requirements.txt",
-      "functions": {
-        "api/index.py": {
-          "maxDuration": 60
-        }
-      }
+      "entrypoint": "api/index.py"
     }
   },
   "rewrites": [
