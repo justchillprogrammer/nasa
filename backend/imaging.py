@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import math
+import warnings
+from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 
@@ -61,6 +63,44 @@ def _bilinear(img: np.ndarray, x: np.ndarray, y: np.ndarray) -> np.ndarray:
     return out
 
 
+_flag_pool = ThreadPoolExecutor(8)
+
+
+def _read_rows_and_flags(exp: sx.Exposure, y0: int, y1: int):
+    """Image rows and their FLAGS rows, fetched at the same time."""
+    fut = _flag_pool.submit(exp.read_flag_rows, y0, y1)
+    rows = exp.read_rows(y0, y1)
+    return rows, fut.result()
+
+
+def _clean_rows(exp: sx.Exposure, y0: int, y1: int) -> tuple[np.ndarray, int]:
+    """Image rows with pixels the pipeline flags as bad (hot, cold, transient,
+    outlier, missing...) filled from their good neighbours, at the detector's
+    own resolution. Saturated star centres stay empty (NaN): they hold no
+    measurement and are drawn as saturated."""
+    rows, flags = _read_rows_and_flags(exp, y0, y1)
+    if flags is None or flags.shape != rows.shape:
+        return rows, 0
+    bad = (flags & exp.BAD_FLAGS) != 0
+    n = int(bad.sum())
+    if not n:
+        return rows, 0
+    work = rows.copy()
+    work[bad] = np.nan
+    for _ in range(2):                       # two passes fill clumps up to ~4 px
+        hole = bad & np.isnan(work)
+        if not hole.any():
+            break
+        pad = np.pad(work, 1, constant_values=np.nan)
+        nb = np.stack([pad[1 + dy:pad.shape[0] - 1 + dy, 1 + dx:pad.shape[1] - 1 + dx]
+                       for dy in (-1, 0, 1) for dx in (-1, 0, 1) if dy or dx])
+        with np.errstate(all="ignore"), warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            med = np.nanmedian(nb, axis=0)
+        work[hole] = med[hole]
+    return work, n
+
+
 def cutout(key: str, ra: float, dec: float, size_deg: float, npix: int) -> tuple[np.ndarray, dict]:
     """A north-up patch of sky from one exposure, resampled to npix x npix.
 
@@ -76,8 +116,9 @@ def cutout(key: str, ra: float, dec: float, size_deg: float, npix: int) -> tuple
     y_hi = min(int(np.ceil(np.nanmax(y))) + 1, exp.ny - 1)
     if y_hi <= y_lo or np.nanmax(x) < 0 or np.nanmin(x) > exp.nx - 1:
         img = np.full((npix, npix), np.nan, np.float32)
+        flagged = 0
     else:
-        rows = exp.read_rows(y_lo, y_hi)
+        rows, flagged = _clean_rows(exp, y_lo, y_hi)
         img = _bilinear(rows, x, y - y_lo)
 
     tx, ty = (float(v) for v in exp.world_to_pixel(ra, dec))
@@ -86,6 +127,7 @@ def cutout(key: str, ra: float, dec: float, size_deg: float, npix: int) -> tuple
         "lam": round(lam, 4), "dlam": round(dlam, 4), "det": exp.det,
         "mjd": round(exp.mjd, 6), "x": round(tx, 1), "y": round(ty, 1),
         "coverage": round(float(np.isfinite(img).mean()), 3),
+        "flagged_filled": int(flagged),
     }
     return img, meta
 
@@ -106,7 +148,10 @@ def photometry(key: str, ra: float, dec: float) -> dict | None:
     if not (HALF <= tx < exp.nx - HALF and HALF <= ty < exp.ny - HALF):
         return None
     y0 = int(round(ty)) - HALF
-    rows = exp.read_rows(y0, y0 + 2 * HALF)
+    rows, flags = _read_rows_and_flags(exp, y0, y0 + 2 * HALF)
+    if flags is not None and flags.shape == rows.shape:
+        rows = rows.copy()
+        rows[(flags & exp.BAD_FLAGS) != 0] = np.nan      # flagged pixels count as missing
 
     n = int(2 * R_OUT * OVER) + 1
     off = (np.arange(n) - (n - 1) / 2) / OVER

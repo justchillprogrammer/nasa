@@ -5,6 +5,7 @@ Run with:  uvicorn app:app --app-dir backend --port 8000
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import queue
@@ -125,7 +126,10 @@ def api_spectrum(ra: float, dec: float, payload: dict | None = Body(default=None
             exposures = sx.search(ra, dec)["exposures"]
         except Exception as e:
             raise HTTPException(502, f"archive search failed: {e}")
-    cache = sx._cache_path("spectrum", f"v2:{ra:.4f}:{dec:.4f}", ".json")
+    # The page may ask for a sample of the exposures first, so the cache key
+    # says exactly which exposures were measured.
+    ids = hashlib.sha1("|".join(sorted(e["id"] for e in exposures)).encode()).hexdigest()[:12]
+    cache = sx._cache_path("spectrum", f"v3:{ra:.4f}:{dec:.4f}:{ids}", ".json")
 
     def stream():
         if cache.exists():

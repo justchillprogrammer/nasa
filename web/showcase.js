@@ -67,7 +67,8 @@ const S = {
   zoom: null,                    // {cx, cy, scale}
   selected: null,
   loadToken: 0,
-  blendMode: "blend",
+  blendMode: "steps",          // real images only, unless the viewer asks for blends
+  flagArmed: false,
   flagPending: null,
   findings: [],
   reviewQueue: [],
@@ -316,7 +317,26 @@ async function openTarget(slug, opts = {}) {
   if (opts.mode && opts.mode !== S.mode) setMode(opts.mode);
   const pick = opts.change && S.meta.changes.find((c) => c.rank === +opts.change);
   if (pick) { focusChange(pick); return; }
+  // Open magnified on the main change: a moving star shifts only a few
+  // pixels, too little to see in the whole view.
+  const top = !S.track && S.meta.changes.find((c) => c.kind === "moved" || c.verified);
+  if (top) { focusChange(top); return; }
   play();          // start the journey straight away
+}
+
+// Is this empty pixel the centre of a saturated star? Look for bright
+// starlight within a few pixels.
+function saturatedHole(d, n, i, bright) {
+  const x0 = i % n, y0 = (i / n) | 0;
+  for (let r = 1; r <= 4; r++) {
+    for (const [dx, dy] of [[r, 0], [-r, 0], [0, r], [0, -r], [r, r], [-r, -r], [r, -r], [-r, r]]) {
+      const x = x0 + dx, y = y0 + dy;
+      if (x < 0 || y < 0 || x >= n || y >= n) continue;
+      const v = d[y * n + x];
+      if (v === v) return v > 0.25 * bright;
+    }
+  }
+  return false;
 }
 
 function renderSweepCanvases() {
@@ -335,8 +355,13 @@ function renderSweepCanvases() {
     const img = cx.createImageData(n, n), px = img.data;
     for (let i = 0, j = 0; i < d.length; i++, j += 4) {
       const v = d[i];
-      // no data = a saturated star core: draw it white, as a camera would
-      if (v !== v) { px[j] = px[j + 1] = px[j + 2] = 255; px[j + 3] = 255; continue; }
+      // No data: a saturated star centre (bright all around) is drawn white,
+      // as a camera would; anything else (off the detector) as dark "no data".
+      if (v !== v) {
+        const sat = saturatedHole(d, n, i, white + floor);
+        px[j] = sat ? 255 : 30; px[j + 1] = sat ? 255 : 34; px[j + 2] = sat ? 255 : 52; px[j + 3] = 255;
+        continue;
+      }
 
       let s = Math.asinh(soft * (v - floor) / white) / norm;
       s = s < 0 ? 0 : s > 1 ? 1 : s;
@@ -637,7 +662,7 @@ function caption(shown) {
   if (shown.exact || S.blendMode === "steps") {
     const s = sw[shown.w > 0.5 ? shown.k + 1 : shown.k] || sw[shown.k];
     const extra = S.mode === "diff" && s !== sw[0] ? ` minus ${sw[0].label}` : "";
-    const stepLabel = S.blendMode === "steps" ? " [Real observation]" : "";
+    const stepLabel = S.blendMode === "steps" ? ", a real observation" : "";
     el.tag.innerHTML = `<strong>${s.label}${extra}</strong> ${s.n} exposures stacked, ${fmtDay(s.mjd0)} to ${fmtDay(s.mjd1)}${stepLabel}`;
   } else {
     el.tag.innerHTML = `<strong>${fmtDay(mjdAt(S.t))}</strong> <span class="blend">blend of ${sw[shown.k].label} and ${sw[shown.k + 1].label} (not observed)</span>`;
@@ -964,6 +989,19 @@ function zoomOut() {
   draw();
 }
 
+// Zoom by a factor around a point of the image (in image pixels).
+function zoomBy(factor, cx, cy) {
+  if (!S.meta) return;
+  const n = S.meta.npix, r = viewRect();
+  const scale = Math.min(12, Math.max(1, (S.zoom ? S.zoom.scale : 1) * factor));
+  if (scale <= 1.001) { zoomOut(); return; }
+  S.zoom = { cx: cx ?? r.sx + r.sw / 2, cy: cy ?? r.sy + r.sh / 2, scale };
+  el.zoomTag.hidden = false;
+  el.zoomTag.textContent = `Magnified ${scale.toFixed(1)}×: real pixels, enlarged`;
+  el.zoomOut.hidden = false;
+  if (n) draw();
+}
+
 function setMode(m) {
   S.mode = m;
   for (const r of document.querySelectorAll('input[name="mode"]')) r.checked = r.value === m;
@@ -1262,6 +1300,18 @@ function updateFindingsBadge() {
   if (el.findingsCount) el.findingsCount.textContent = String(S.findings.length);
 }
 
+/* Sky position of an image point, inverting the tangent-plane grid the
+   server builds (north up, east left, pixel centres at i + 0.5). */
+function pixelToSky(ix, iy) {
+  const n = S.meta.npix, step = (S.meta.size * Math.PI / 180) / n;
+  const xi = -(ix - n / 2) * step, eta = -(iy - n / 2) * step;
+  const a0 = S.meta.ra * Math.PI / 180, d0 = S.meta.dec * Math.PI / 180;
+  const rho = Math.hypot(xi, eta), c = Math.atan(rho);
+  const dec = rho ? Math.asin(Math.cos(c) * Math.sin(d0) + eta * Math.sin(c) * Math.cos(d0) / rho) : d0;
+  const ra = a0 + Math.atan2(xi * Math.sin(c), rho * Math.cos(d0) * Math.cos(c) - eta * Math.sin(d0) * Math.sin(c));
+  return { ra: ((ra * 180 / Math.PI) % 360 + 360) % 360, dec: dec * 180 / Math.PI };
+}
+
 function openFlagModal(clickX, clickY) {
   if (!S.meta) return;
   const r = viewRect();
@@ -1269,11 +1319,7 @@ function openFlagModal(clickX, clickY) {
   const iy = r.sy + (clickY / el.view.height) * r.sh;
   const npix = S.meta.npix, sz = S.meta.size;
   const arcsec_per_pix = (sz * 3600) / npix;
-  const dx_arcsec = (ix - npix / 2) * arcsec_per_pix;
-  const dy_arcsec = (npix / 2 - iy) * arcsec_per_pix;
-  const cosDec = Math.cos((S.meta.dec * Math.PI) / 180);
-  const ra = (S.meta.ra - (dx_arcsec / 3600) / cosDec + 360) % 360;
-  const dec = S.meta.dec + (dy_arcsec / 3600);
+  const { ra, dec } = pixelToSky(ix, iy);
   const dateStr = fmtDay(mjdAt(S.t));
 
   // Check if click coordinates match any candidate in S.meta.changes within 15 arcseconds
@@ -1293,16 +1339,24 @@ function openFlagModal(clickX, clickY) {
   el.flagObsDate.textContent = dateStr;
   if (match) {
     el.flagMatchAlert.hidden = false;
-    el.flagMatchAlert.textContent = `🎯 Coordinates match detected change #${match.rank} (${match.kind || "candidate"})!`;
+    el.flagMatchAlert.textContent = `This spot is where Sky Blink found change ${match.rank} (${match.kind || "candidate"}).`;
   } else {
     el.flagMatchAlert.hidden = true;
   }
   el.flagNotes.value = "";
+  el.flagType.value = "";               // no answer chosen for the viewer
+  el.flagType.setCustomValidity("");
   el.flagModal.hidden = false;
 }
 
 function saveFlagFinding() {
   if (!S.flagPending) return;
+  if (!el.flagType.value) {
+    el.flagType.setCustomValidity("Choose what you saw, or “Not sure”.");
+    el.flagType.reportValidity();
+    el.flagType.focus();
+    return;
+  }
   const finding = {
     id: Date.now(),
     target: S.flagPending.target,
@@ -1469,18 +1523,36 @@ function clearAllFindings() {
   }
 }
 
-// Click plate to flag finding
+// Flagging is a deliberate step: press "Flag a finding", then click the spot.
+function armFlag(on) {
+  S.flagArmed = on;
+  el.view.classList.toggle("aiming", on);
+  if (el.flagBtn) {
+    el.flagBtn.classList.toggle("on", on);
+    el.flagBtn.textContent = on ? "Click the spot in the picture (Esc to cancel)" : "Flag a finding";
+  }
+}
 el.view.addEventListener("click", (ev) => {
-  if (S.mode === "swipe") return;
+  if (!S.flagArmed || S.mode === "swipe") return;
   const rect = el.view.getBoundingClientRect();
   const clickX = ((ev.clientX - rect.left) / rect.width) * el.view.width;
   const clickY = ((ev.clientY - rect.top) / rect.height) * el.view.height;
+  armFlag(false);
   openFlagModal(clickX, clickY);
 });
+el.view.addEventListener("dblclick", (ev) => {
+  if (S.flagArmed || S.mode === "swipe" || !S.meta) return;
+  const rect = el.view.getBoundingClientRect(), r = viewRect();
+  zoomBy(2, r.sx + ((ev.clientX - rect.left) / rect.width) * r.sw, r.sy + ((ev.clientY - rect.top) / rect.height) * r.sh);
+});
+document.getElementById("zoom-in").addEventListener("click", () => zoomBy(2));
+document.getElementById("zoom-less").addEventListener("click", () => zoomBy(0.5));
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && S.flagArmed) armFlag(false); });
 
 // Flag modal listeners
-if (el.flagBtn) el.flagBtn.addEventListener("click", () => openFlagModal(el.view.width / 2, el.view.height / 2));
+if (el.flagBtn) el.flagBtn.addEventListener("click", () => armFlag(!S.flagArmed));
 if (el.flagSave) el.flagSave.addEventListener("click", saveFlagFinding);
+if (el.flagType) el.flagType.addEventListener("change", () => el.flagType.setCustomValidity(""));
 if (el.flagCancel) el.flagCancel.addEventListener("click", closeFlagModal);
 
 // Blend / Real steps toggle listener

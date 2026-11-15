@@ -127,7 +127,8 @@ class TestSkyBlinkFeatures(unittest.TestCase):
         # Real steps vs blend
         self.assertIn('blendMode === "steps"', showcase_js)
         self.assertIn("(not observed)", showcase_js, "Blended frames must be labelled 'not observed'")
-        self.assertIn("[Real observation]", showcase_js)
+        self.assertIn("a real observation", showcase_js)
+        self.assertIn('blendMode: "steps"', showcase_js, "Real images are the default")
         
         # Citizen science wording
         self.assertIn("A report ready to share", showcase_js, "Findings must be worded as 'A report ready to share'")

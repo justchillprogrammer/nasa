@@ -327,10 +327,7 @@ async function lookAt(ra, dec, size, lam, label) {
       }
       const r = await fetch(`/api/search?ra=${ra}&dec=${dec}`, { signal: ac.signal });
       clearTimeout(timer);
-      if (!r.ok) {
-        const errDetail = (await r.json().catch(() => ({}))).detail || r.statusText;
-        throw new Error(errDetail);
-      }
+      if (!r.ok) throw await apiError(r, "the list of images");
       res = await r.json();
       break;
     } catch (e) {
@@ -345,7 +342,7 @@ async function lookAt(ra, dec, size, lam, label) {
       // Say what actually happened: our timeout, or the server's own reason.
       const why = e.name === "AbortError"
         ? "The search took longer than 25 seconds, so Sky Blink stopped waiting."
-        : `The search failed: ${e.message}.`;
+        : `The search failed: ${networkMessage(e)}.`;
       els.empty.textContent = "No images loaded.";
       setStatus(`${why} Try again, or pick one of the ready-made spots below.`, "error");
       return;
@@ -391,19 +388,40 @@ function chooseFrames(lam) {
   return chosen;
 }
 
+/* A failed request as a plain sentence: what happened and what to do.
+   Sky Blink's server already words its own errors; raw HTTP codes and
+   status texts are never shown. */
+async function apiError(r, what) {
+  const detail = (await r.json().catch(() => ({}))).detail;
+  if (typeof detail === "string" && detail && r.status !== 404) return new Error(detail);
+  const msg = {
+    400: `the request for ${what} was not valid`,
+    404: `${what} could not be found`,
+    429: "Sky Blink is busy; try again in a minute",
+    500: `Sky Blink's server ran into a problem with ${what}; try again`,
+    502: `NASA's image archive did not send ${what}; try again in a minute`,
+    503: "Sky Blink is busy with other visitors; try again in a minute",
+    504: `${what} took too long to arrive; try again`,
+  }[r.status] || `${what} could not be loaded; try again`;
+  return new Error(msg);
+}
+function networkMessage(e) {
+  return e instanceof TypeError ? "Sky Blink's server could not be reached; check your connection" : e.message;
+}
+
 async function fetchCutoutFrame(f) {
   for (let attempt = 0; attempt < 3 && f.status !== "ready"; attempt++) {
     try {
       const keyParam = f.exp.key ? `&key=${encodeURIComponent(f.exp.key)}` : "";
       const q = `ra=${state.ra}&dec=${state.dec}&size=${state.size}&npix=${state.npix}&id=${encodeURIComponent(f.exp.id)}${keyParam}`;
       const r = await fetch(`/api/cutout?${q}`);
-      if (!r.ok) throw new Error(r.status + " " + r.statusText);
+      if (!r.ok) throw await apiError(r, "this image");
       const meta = JSON.parse(r.headers.get("X-Frame-Meta") || "{}");
       const data = new Float32Array(await r.arrayBuffer());
       Object.assign(f, { data, meta, status: "ready", ...frameStats(data) });
     } catch (e) {
       f.status = "failed";
-      f.error = e.message;
+      f.error = networkMessage(e);
       if (attempt < 2) await new Promise((ok) => setTimeout(ok, 800 * (attempt + 1)));
     }
   }
@@ -498,7 +516,7 @@ async function loadFrames(run) {
   if (!ready.length) {
     els.empty.hidden = false;
     els.empty.textContent = initialFrames.some((f) => f.status === "failed")
-      ? `The images could not be loaded (${initialFrames.find((f) => f.error)?.error || "no reply"}). Select "Look here" to retry.`
+      ? `The images could not be loaded: ${initialFrames.find((f) => f.error)?.error || "there was no reply"}. Select "Look here" to try again.`
       : "No usable image of this spot at that wavelength. Select another wavelength in the chart.";
     return;
   }
@@ -598,6 +616,21 @@ function updateWhite() {
 
 /* ---------------------------------------------------------- drawing */
 
+// Is this empty pixel the centre of a saturated star? Look for bright
+// starlight within a few pixels.
+function saturatedHole(d, n, i, bright) {
+  const x0 = i % n, y0 = (i / n) | 0;
+  for (let r = 1; r <= 6; r++) {
+    for (const [dx, dy] of [[r, 0], [-r, 0], [0, r], [0, -r], [r, r], [-r, -r], [r, -r], [-r, r]]) {
+      const x = x0 + dx, y = y0 + dy;
+      if (x < 0 || y < 0 || x >= n || y >= n) continue;
+      const v = d[y * n + x];
+      if (Number.isFinite(v)) return v > bright;
+    }
+  }
+  return false;
+}
+
 function paint(canvasCtx, n, frame, refFrame, opts) {
   const img = canvasCtx.createImageData(n, n);
   const px = img.data;
@@ -627,7 +660,15 @@ function paint(canvasCtx, n, frame, refFrame, opts) {
     const white = state.white, floor = frame.bg - 1.5 * frame.sigma;
     for (let i = 0, j = 0; i < d.length; i++, j += 4) {
       const v = d[i];
-      if (!Number.isFinite(v)) { px[j] = NODATA[0]; px[j + 1] = NODATA[1]; px[j + 2] = NODATA[2]; px[j + 3] = 255; continue; }
+      if (!Number.isFinite(v)) {
+        // a saturated star centre is drawn as full brightness, like a camera;
+        // only places off the detector get the "no data" colour
+        if (saturatedHole(d, n, i, floor + 0.25 * white)) {
+          const s = opts.negative ? 0 : 255;
+          px[j] = s; px[j + 1] = s; px[j + 2] = s; px[j + 3] = 255;
+        } else { px[j] = NODATA[0]; px[j + 1] = NODATA[1]; px[j + 2] = NODATA[2]; px[j + 3] = 255; }
+        continue;
+      }
       let s = Math.asinh(soft * (v - floor) / white) / norm;
       s = s < 0 ? 0 : s > 1 ? 1 : s;
       if (opts.negative) s = 1 - s;
@@ -680,7 +721,7 @@ async function findChanges() {
   box.innerHTML = "<p class='help'>Stacking every sweep and comparing them. This takes about a minute…</p>";
   try {
     const r = await fetch(`/api/changes?ra=${at.ra}&dec=${at.dec}&size=${at.size}`);
-    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.statusText);
+    if (!r.ok) throw await apiError(r, "the change report");
     const res = await r.json();
     if (at.ra !== state.ra || at.dec !== state.dec) return;
     state.found = res;
@@ -692,7 +733,7 @@ async function findChanges() {
       + `${res.text.writer.startsWith("AI") ? "Text written by AI from the measurements; numbers checked." : "Text written automatically from the measurements."}</small></p>`;
     render();
   } catch (e) {
-    box.innerHTML = `<p class="help">Change detection did not finish (${e.message}). Select the button to try again.</p>`;
+    box.innerHTML = `<p class="help">Sky Blink could not finish: ${networkMessage(e)}. Select the button to try again.</p>`;
   } finally {
     btn.disabled = false;
   }
@@ -852,19 +893,31 @@ function updateButtons() {
 
 /* ---------------------------------------------------------- spectrum */
 
-async function loadSpectrum(run) {
+/* An even sample across all wavelengths, so the spectrum's shape appears
+   in a few seconds; "Measure all" fills in the rest. */
+const SPECTRUM_SAMPLE = 90;
+function spectrumSample(list, n) {
+  if (list.length <= n) return list;
+  const byLam = [...list].sort((a, b) => a.lam - b.lam);
+  return Array.from({ length: n }, (_, i) => byLam[Math.round(i * (byLam.length - 1) / (n - 1))]);
+}
+
+async function loadSpectrum(run, all = false) {
+  if (state.specAbort) state.specAbort.abort();
   const ac = new AbortController();
   state.specAbort = ac;
-  els.specStatus.textContent = "Measuring the centre point in every image…";
+  const chosen = all ? state.exposures : spectrumSample(state.exposures, SPECTRUM_SAMPLE);
+  Object.assign(state, { points: [], specTotal: chosen.length, specDone: false, specPartial: null });
+  els.specStatus.textContent = all ? "Measuring the centre point in every image…" : "Measuring the centre point in a sample of images…";
   drawSpectrum();
   try {
     const r = await fetch(`/api/spectrum?ra=${state.ra}&dec=${state.dec}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ exposures: state.exposures }),
+      body: JSON.stringify({ exposures: chosen }),
       signal: ac.signal,
     });
-    if (!r.ok) throw new Error(r.statusText);
+    if (!r.ok) throw await apiError(r, "the brightness measurements");
     const reader = r.body.getReader();
     const dec = new TextDecoder();
     let buf = "", seen = 0, last = 0;
@@ -887,10 +940,20 @@ async function loadSpectrum(run) {
         drawSpectrum();
         els.specStatus.textContent = state.specDone && state.specPartial
           ? `${state.points.length} measurements so far: ${state.specPartial}.`
+          : state.specDone && !state.points.length
+          ? `None of the ${seen} images could be measured: the centre is saturated (too bright for the detector) or flagged in every one.`
           : state.specDone
-          ? `${state.points.length} measurements. Dots are missing where the centre fell on a bad or saturated pixel.`
+          ? `${state.points.length} of ${seen} images measured${chosen.length < state.exposures.length ? `, a sample across all wavelengths of the ${state.exposures.length} available` : ""}. Missing dots are images where the centre fell on a saturated or flagged pixel.`
           : `Measured ${seen} of ${state.specTotal} images…`;
       }
+    }
+    if (state.specDone && run === state.run && chosen.length < state.exposures.length) {
+      const more = document.createElement("button");
+      more.type = "button";
+      more.className = "link-button";
+      more.textContent = `Measure all ${state.exposures.length} images`;
+      more.addEventListener("click", () => loadSpectrum(run, true));
+      els.specStatus.append(" ", more);
     }
   } catch (e) {
     if (e.name !== "AbortError" && run === state.run)
@@ -1347,15 +1410,12 @@ els.form.addEventListener("submit", async (ev) => {
   setStatus(`Looking up "${cleaned}" in astronomical catalogs (SIMBAD/NED)…`);
   try {
     const r = await fetch(`/api/resolve?name=${encodeURIComponent(cleaned)}`);
-    if (!r.ok) {
-      const err = await r.json().catch(() => ({}));
-      throw new Error(err.detail || r.statusText);
-    }
+    if (!r.ok) throw await apiError(r, "an object with that name");
     const resolved = await r.json();
     const label = resolved.otype ? `${resolved.name} [${resolved.otype}]` : resolved.name;
     lookAt(resolved.ra, resolved.dec, +els.size.value, state.ra === null ? null : state.lam, label);
   } catch (e) {
-    setStatus(`Could not find "${cleaned}" (${e.message}). Enter an object name (e.g. Barnard's Star, M51, TRAPPIST-1) or coordinates like 56.75 +24.12.`, "error");
+    setStatus(`Could not find "${cleaned}": ${networkMessage(e)}. Enter an object name (e.g. Barnard's Star, M51, TRAPPIST-1) or coordinates like 56.75 +24.12.`, "error");
     els.coords.focus();
   }
 });

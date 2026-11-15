@@ -452,6 +452,61 @@ class Exposure:
         x, y = out[:, 0].reshape(ra_a.shape), out[:, 1].reshape(ra_a.shape)
         return (float(x), float(y)) if ra_a.ndim == 0 else (x, y)
 
+    # Pixels the pipeline marks as unusable for display and photometry:
+    # TRANSIENT, SUR_ERROR, NONFUNC, MISSING_DATA, HOT, COLD, OUTLIER.
+    BAD_FLAGS = (1 << 0) | (1 << 2) | (1 << 6) | (1 << 9) | (1 << 10) | (1 << 11) | (1 << 19)
+
+    def _flags_layout(self) -> dict | None:
+        """Where the compressed FLAGS extension sits (read once per file)."""
+        if hasattr(self, "_flags"):
+            return self._flags
+        self._flags = None
+        try:
+            start = -(-(self.data_offset + self.nx * self.ny * 4) // BLOCK) * BLOCK
+            buf = _get_range(self.key, start, start + 12 * BLOCK - 1)
+            cards, end = {}, None
+            for i in range(0, len(buf) - 79, 80):
+                card = buf[i:i + 80].decode("latin1")
+                if card.startswith("END"):
+                    end = i + 80
+                    break
+                if "=" in card[:10]:
+                    k, v = card[:8].strip(), card[10:].split("/")[0].strip().strip("'").strip()
+                    cards[k] = v
+            if end is None or cards.get("EXTNAME") != "FLAGS" or cards.get("ZCMPTYPE") != "RICE_1":
+                return None
+            hdr_len = -(-end // BLOCK) * BLOCK
+            table = start + hdr_len
+            self._flags = {
+                "table": table, "row_bytes": int(cards["NAXIS1"]),
+                "heap": table + int(cards.get("THEAP", int(cards["NAXIS1"]) * int(cards["NAXIS2"]))),
+                "block": int(cards.get("ZVAL1", 32)), "bytepix": int(cards.get("ZVAL2", 4)),
+                "width": int(cards["ZNAXIS1"]),
+            }
+        except Exception:
+            self._flags = None
+        return self._flags
+
+    def read_flag_rows(self, y0: int, y1: int) -> np.ndarray | None:
+        """FLAGS rows y0..y1 (int32), or None when they cannot be read."""
+        lay = self._flags_layout()
+        if not lay:
+            return None
+        try:
+            from astropy.io.fits.hdu.compressed._codecs import Rice1
+            desc = _get_range(self.key, lay["table"] + y0 * lay["row_bytes"],
+                              lay["table"] + (y1 + 1) * lay["row_bytes"] - 1)
+            d = np.frombuffer(desc, dtype=">i4").reshape(-1, 2)        # (length, offset)
+            lo, hi = int(d[:, 1].min()), int((d[:, 1] + d[:, 0]).max())
+            heap = _get_range(self.key, lay["heap"] + lo, lay["heap"] + hi - 1)
+            codec = Rice1(blocksize=lay["block"], bytepix=lay["bytepix"], tilesize=lay["width"])
+            raw = np.frombuffer(heap, dtype=np.uint8)
+            rows = [np.frombuffer(codec.decode(raw[o - lo:o - lo + n]), dtype=np.int32)[:lay["width"]]
+                    for n, o in d]
+            return np.stack(rows)
+        except Exception:
+            return None
+
     def read_rows(self, y0: int, y1: int) -> np.ndarray:
         """Rows y0..y1 inclusive as a float32 array of shape (rows, nx)."""
         start = self.data_offset + y0 * self.nx * 4

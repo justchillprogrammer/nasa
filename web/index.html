@@ -8,9 +8,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=10">
-<link rel="stylesheet" href="showcase.css?v=10">
-<link rel="stylesheet" href="story.css?v=10">
+<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="showcase.css?v=11">
+<link rel="stylesheet" href="story.css?v=11">
 </head>
 <body>
 
@@ -124,11 +124,14 @@
 
   <div class="machine">
     <section class="stage" aria-label="Time machine">
-      <p class="guide" id="guide"></p>
       <div class="plate" id="plate">
         <canvas id="view" width="720" height="720" aria-label="SPHEREx image of this part of the sky"></canvas>
         <div class="plate-tag" id="tag"></div>
         <div class="plate-zoom" id="zoom-tag" hidden></div>
+        <div class="zoom-controls" role="group" aria-label="Zoom">
+          <button type="button" id="zoom-in" aria-label="Zoom in" title="Zoom in (or double-click the picture)">+</button>
+          <button type="button" id="zoom-less" aria-label="Zoom out" title="Zoom out">−</button>
+        </div>
         <div class="swipe-label left" id="swipe-left" hidden></div>
         <div class="swipe-label right" id="swipe-right" hidden></div>
         <div class="plate-empty" id="t-empty">Loading images…</div>
@@ -140,13 +143,15 @@
           <input id="time" type="range" min="0" max="1000" value="0" step="1" aria-label="Date">
           <div class="ticks" id="ticks"></div>
         </div>
-        <!-- Real steps / Blend toggle -->
-        <div class="blend-toggle" id="blend-toggle" role="radiogroup" aria-label="Time machine playback mode">
-          <label class="blend-opt"><input type="radio" name="blend-mode" value="blend" checked> Blend <span class="blend-sub">(smooth)</span></label>
-          <label class="blend-opt"><input type="radio" name="blend-mode" value="steps"> Real steps <span class="blend-sub">(exact)</span></label>
-        </div>
       </div>
       <p class="when" id="when"></p>
+      <p class="guide" id="guide"></p>
+      <!-- Real images by default; blended in-between frames only on request -->
+      <div class="blend-toggle" id="blend-toggle" role="radiogroup" aria-label="Between two sweeps, show">
+        <span class="blend-label">Between sweeps:</span>
+        <label class="blend-opt"><input type="radio" name="blend-mode" value="steps" checked> Real images only</label>
+        <label class="blend-opt"><input type="radio" name="blend-mode" value="blend"> Smooth blend <span class="blend-sub">(not observed)</span></label>
+      </div>
 
       <div class="modes" role="radiogroup" aria-label="View">
         <label><input type="radio" name="mode" value="fade" checked> Time machine</label>
@@ -159,7 +164,7 @@
       </div>
       <p class="help" id="mode-help"></p>
       <div class="share">
-        <button id="flag-btn" type="button" class="flag-trigger-btn">🚩 Flag finding (click image)</button>
+        <button id="flag-btn" type="button" class="flag-trigger-btn">Flag a finding</button>
         <button id="share-link" type="button">Copy link to this view</button>
         <button id="save-picture" type="button">Save picture</button>
         <button id="save-video" type="button">Save video</button>
@@ -206,7 +211,8 @@
     
     <label class="modal-label">
       <span>Observation Category</span>
-      <select id="flag-type" class="modal-input">
+      <select id="flag-type" class="modal-input" required>
+        <option value="" selected disabled>Choose what you saw</option>
         <option value="Moving">Moving object (asteroid, comet, or fast star)</option>
         <option value="Brightness change">Brightness change (variable star, flare)</option>
         <option value="Artifact">Artifact / Instrument reflection</option>
@@ -282,7 +288,7 @@
   <p>Images: NASA SPHEREx Level 2 spectral images from the NASA/IPAC Infrared Science Archive. Detections are automated measurements and can be wrong; candidates are labelled as such.</p>
 </footer>
 
-<script src="showcase.js?v=10"></script>
-<script src="story.js?v=10"></script>
+<script src="showcase.js?v=11"></script>
+<script src="story.js?v=11"></script>
 </body>
 </html>

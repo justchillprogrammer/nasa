@@ -114,8 +114,22 @@
 
 .crumbs { margin: 18px 0 6px; }
 .crumbs a { color: var(--muted); }
-.target-head h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); letter-spacing: -0.025em; }
-.target-head p { color: var(--muted); margin: 6px 0 18px; max-width: 70ch; }
+.target-head h1 { font-size: clamp(1.7rem, 3.4vw, 2.5rem); letter-spacing: -0.025em; }
+.target-head p { color: var(--muted); margin: 4px 0 14px; max-width: 70ch; }
+
+/* The picture never grows taller than the window allows, so the picture
+   and the slider that changes it are on screen together. */
+.machine .plate { width: min(100%, max(300px, calc(100svh - 340px))); margin: 0 auto; }
+.machine .timebar, .machine .when { max-width: min(100%, max(300px, calc(100svh - 340px))); margin-left: auto; margin-right: auto; }
+
+.zoom-controls {
+  position: absolute; z-index: 4; right: 10px; top: 10px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.zoom-controls button {
+  width: 34px; height: 34px; min-height: 0; padding: 0; border-radius: 6px;
+  font-size: 1.2rem; line-height: 1; background: rgba(8, 11, 22, 0.78);
+}
 
 .machine { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 24px; align-items: start; }
 
@@ -131,8 +145,8 @@
 }
 
 .timebar { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
-.play { min-width: 84px; }
-.track { position: relative; flex: 1; padding-bottom: 22px; }
+.play { min-width: 84px; flex: 0 0 auto; }
+.track { position: relative; flex: 1 1 auto; min-width: 0; padding-bottom: 22px; }
 .track input { width: 100%; accent-color: var(--amber); margin: 0; }
 .ticks { position: absolute; left: 0; right: 0; top: 24px; height: 18px; pointer-events: none; }
 .ticks span {
@@ -294,7 +308,7 @@
 
 /* ---------- one-line guide above every time machine ---------- */
 .guide {
-  margin: 0 0 10px; padding: 10px 12px; border-radius: 8px;
+  margin: 10px 0 0; padding: 10px 12px; border-radius: 8px;
   background: var(--panel-2); border-left: 3px solid var(--amber); max-width: 80ch;
 }
 
@@ -320,10 +334,10 @@
 
 /* ---------- Real steps / Blend Toggle ---------- */
 .blend-toggle {
-  display: inline-flex; align-items: center; gap: 12px;
-  margin-left: auto; padding: 4px 10px; border-radius: 6px;
-  background: var(--panel-2); border: 1px solid var(--line); font-size: 0.88rem;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px;
+  margin-top: 10px; font-size: 0.92rem;
 }
+.blend-label { color: var(--muted); }
 .blend-opt { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
 .blend-sub { color: var(--muted); font-size: 0.75rem; }
 
@@ -332,9 +346,10 @@
   background: var(--panel-2); color: var(--text); border: 1px solid var(--amber);
   padding: 8px 12px; border-radius: 6px; font-weight: 700; cursor: pointer;
 }
-.flag-trigger-btn.active {
+.flag-trigger-btn.on {
   background: var(--amber); color: var(--amber-ink);
 }
+#view.aiming { cursor: crosshair; }
 
 /* Pin marker on plate */
 .plate-pin {
