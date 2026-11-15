@@ -8,13 +8,19 @@ const VISIBLE_PILLS = 8;
 
 const HOMEPAGE_CATS = [
   "All",
+  "Moving objects",
   "Stars on the move",
   "Changing brightness",
   "Steady skies",
 ];
 
+// The targets featured on the home page (web/showcase/index.json). They are
+// loaded at start-up, so the Explorer always lists exactly what the home page shows.
+const FEATURED_CAT = "On the home page";
+
 const ASTRO_CATS = [
   "All",
+  FEATURED_CAT,
   "Fast-Moving Stars",
   "Brown Dwarfs & Cool Worlds",
   "Variable & Pulsating Stars",
@@ -31,9 +37,10 @@ const ASTRO_TO_HOME = {
 };
 
 const HOME_TO_ASTRO = {
-  "Stars on the move": ["Fast-Moving Stars", "Brown Dwarfs & Cool Worlds"],
-  "Changing brightness": ["Variable & Pulsating Stars"],
-  "Steady skies": ["Nebulae & Star Clusters", "Galaxies & Deep Sky"],
+  "Moving objects": [FEATURED_CAT],
+  "Stars on the move": [FEATURED_CAT, "Fast-Moving Stars", "Brown Dwarfs & Cool Worlds"],
+  "Changing brightness": [FEATURED_CAT, "Variable & Pulsating Stars"],
+  "Steady skies": [FEATURED_CAT, "Nebulae & Star Clusters", "Galaxies & Deep Sky"],
 };
 
 const PRESET_CATEGORIES = [
@@ -179,6 +186,38 @@ const PRESET_CATEGORIES = [
   },
 ];
 const PRESETS = PRESET_CATEGORIES.flatMap((c) => c.items);
+// Filled by loadFeatured(); kept out of PRESETS so the name search is unchanged.
+const FEATURED = { category: FEATURED_CAT, items: [] };
+
+async function loadFeatured() {
+  try {
+    const r = await fetch("showcase/index.json");
+    if (!r.ok) return;
+    const idx = await r.json();
+    FEATURED.items = (idx.targets || []).map((t) => {
+      const item = {
+        name: t.name, aka: t.group ? [t.group] : [], note: t.note || "", homeCat: t.group, slug: t.slug, featured: true,
+        // the home page's time machine for this target
+        link: `index.html#/${encodeURIComponent(t.slug)}`,
+      };
+      if (Number.isFinite(t.ra) && Number.isFinite(t.dec)) {
+        item.ra = t.ra; item.dec = t.dec; item.size = 0.25; item.link = null;
+      }
+      return item;
+    });
+  } catch (_) { /* the other categories still work */ }
+}
+
+// Moving objects (comets) have no fixed position: open them in the home page's
+// time machine, which follows them. Everything else opens here.
+function openPreset(o, size) {
+  if (o.link) { location.href = o.link; return; }
+  lookAt(o.ra, o.dec, size ?? o.size, null, o.name);
+}
+
+function presetWhere(o) {
+  return o.link ? "Follows its path · opens in the time machine" : fmtCoord(o.ra, o.dec);
+}
 const EPOCH_COLORS = ["#ffb347", "#62d2c3", "#f2849e", "#a9b8ff", "#d6e36b", "#ff8f5a"];
 const FRAMES_PER_SWEEP = 2;
 const CANDIDATES_PER_SWEEP = 5;   // extras, in case some only half-cover the view
@@ -211,7 +250,7 @@ const state = {
   white: 1,              // shared white level so frames are comparable
   run: 0,                // increases with every new target
   load: 0,               // increases with every new set of frames
-  points: [], specTotal: 0, specDone: false, specAbort: null,
+  points: [], specTotal: 0, specDone: false, specPartial: null, specAbort: null,
 };
 
 /* ---------------------------------------------------------- coordinates */
@@ -262,7 +301,7 @@ async function lookAt(ra, dec, size, lam, label) {
   const run = ++state.run;
   Object.assign(state, { ra, dec, size, lam: lam || DEFAULT_LAM, npix: size >= 1 ? 512 : 384,
     label: label || null,
-    frames: [], exposures: [], epochs: [], points: [], specTotal: 0, specDone: false });
+    frames: [], exposures: [], epochs: [], points: [], specTotal: 0, specDone: false, specPartial: null });
   if (state.specAbort) state.specAbort.abort();
   els.coords.value = label ? `${label} (${fmtCoord(ra, dec)})` : fmtCoord(ra, dec);
   els.size.value = String(size);
@@ -808,13 +847,15 @@ async function loadSpectrum(run) {
         const p = JSON.parse(line);
         if (run !== state.run) return;
         if (p.total) state.specTotal = p.total;
-        else if (p.done) state.specDone = true;
+        else if (p.done) { state.specDone = true; if (p.partial) state.specPartial = p.error || "the archive stopped answering"; }
         else { seen++; if (!p.skip) state.points.push(p); }
       }
       if (performance.now() - last > 250 || state.specDone) {
         last = performance.now();
         drawSpectrum();
-        els.specStatus.textContent = state.specDone
+        els.specStatus.textContent = state.specDone && state.specPartial
+          ? `${state.points.length} measurements so far: ${state.specPartial}.`
+          : state.specDone
           ? `${state.points.length} measurements. Dots are missing where the centre fell on a bad or saturated pixel.`
           : `Measured ${seen} of ${state.specTotal} images…`;
       }
@@ -900,14 +941,20 @@ let moreSelectedIndex = -1;
 let moreFilteredItems = [];
 
 function getFilteredItems() {
-  const all = PRESET_CATEGORIES.flatMap((c) =>
+  const all = [FEATURED, ...PRESET_CATEGORIES].flatMap((c) =>
     c.items.map((it) => ({
       ...it,
       astroCat: c.category,
-      homeCat: ASTRO_TO_HOME[c.category] || "Steady skies",
+      homeCat: it.homeCat || ASTRO_TO_HOME[c.category] || "Steady skies",
     }))
   );
+  // A home-page target usually also sits in its own category: list it once,
+  // as the home-page entry, unless that category is picked on its own.
+  const near = (a, b) => a.ra !== undefined && b.ra !== undefined &&
+    Math.abs(a.dec - b.dec) < 0.01 && Math.abs(((a.ra - b.ra + 540) % 360) - 180) < 0.01;
+  const dedupe = currentAstroFilter === "All";
   return all.filter((it) => {
+    if (dedupe && !it.featured && FEATURED.items.some((f) => near(f, it))) return false;
     const homeOk = currentHomeFilter === "All" || it.homeCat === currentHomeFilter;
     const astroOk = currentAstroFilter === "All" || it.astroCat === currentAstroFilter;
     return homeOk && astroOk;
@@ -1012,12 +1059,13 @@ function renderMoreList() {
     const li = document.createElement("li");
     li.setAttribute("role", "option");
     const sub = item.matchedAlias
-      ? `${highlightPrefix(item.matchedAlias, rawQ)} · ${fmtCoord(o.ra, o.dec)}`
-      : `${(o.aka && o.aka[0]) ? o.aka[0] + " · " : ""}${fmtCoord(o.ra, o.dec)}`;
+      ? `${highlightPrefix(item.matchedAlias, rawQ)} · ${presetWhere(o)}`
+      : `${(o.aka && o.aka[0]) ? o.aka[0] + " · " : ""}${presetWhere(o)}`;
     li.innerHTML = `<span>${highlightPrefix(o.name, rawQ)}</span><small>${sub}</small>`;
+    if (o.note) li.title = o.note;
     li.addEventListener("click", () => {
       closeMorePanel();
-      lookAt(o.ra, o.dec, o.size, null, o.name);
+      openPreset(o);
     });
     els.moreList.append(li);
   });
@@ -1055,9 +1103,10 @@ function applyFilters() {
     const b = document.createElement("button");
     b.type = "button";
     b.textContent = p.name;
+    if (p.featured) { b.classList.add("featured"); b.title = (p.note ? p.note + " " : "") + (p.link ? "Opens in the time machine on the home page." : "Featured on the home page."); }
     b.addEventListener("click", () => {
       closeMorePanel();
-      lookAt(p.ra, p.dec, p.size, null, p.name);
+      openPreset(p);
     });
     els.presets.append(b);
   }
@@ -1097,7 +1146,7 @@ if (els.moreQ) {
       if (moreSelectedIndex >= 0 && moreFilteredItems[moreSelectedIndex]) {
         const o = moreFilteredItems[moreSelectedIndex].obj;
         closeMorePanel();
-        lookAt(o.ra, o.dec, o.size, null, o.name);
+        openPreset(o);
       } else if (els.moreBtn) {
         els.moreBtn.click();
       }
@@ -1110,7 +1159,7 @@ if (els.moreBtn) {
     if (moreFilteredItems.length) {
       const pick = moreSelectedIndex >= 0 ? moreFilteredItems[moreSelectedIndex].obj : moreFilteredItems[0].obj;
       closeMorePanel();
-      lookAt(pick.ra, pick.dec, pick.size, null, pick.name);
+      openPreset(pick);
       return;
     }
     const raw = els.moreQ ? els.moreQ.value.trim() : "";
@@ -1308,14 +1357,15 @@ els.plate.addEventListener("mousemove", (ev) => {
 els.plate.addEventListener("mouseleave", () => { els.readout.hidden = true; });
 
 updateButtons();
-{
+(async () => {
   const q = new URLSearchParams(location.search);
   const homeCatParam = q.get("homecat");
   const catParam = q.get("cat");
 
   if (homeCatParam && HOMEPAGE_CATS.includes(homeCatParam)) {
     currentHomeFilter = homeCatParam;
-    currentAstroFilter = "All";
+    // comets live only in the home-page list, so show that tab as picked
+    currentAstroFilter = homeCatParam === "Moving objects" ? FEATURED_CAT : "All";
   } else if (catParam) {
     if (HOMEPAGE_CATS.includes(catParam)) {
       currentHomeFilter = catParam;
@@ -1332,15 +1382,19 @@ updateButtons();
     }
   }
 
-  applyFilters();
+  applyFilters();          // show the built-in categories straight away
+  await loadFeatured();
+  applyFilters();          // then again with the home-page targets
 
   const ra = parseFloat(q.get("ra")), dec = parseFloat(q.get("dec"));
   const name = q.get("name") || null;
   if (Number.isFinite(ra) && Number.isFinite(dec)) {
     lookAt(ra, dec, parseFloat(q.get("size")) || 0.25, parseFloat(q.get("lam")) || null, name);
   } else {
-    const pool = getFilteredItems();
+    // start on the first listed object that has a fixed position (never
+    // jump away to the time machine on page load)
+    const pool = getFilteredItems().filter((o) => !o.link);
     const startObj = pool[0] || PRESET_CATEGORIES[0].items[0];
     lookAt(startObj.ra, startObj.dec, startObj.size, null, startObj.name);
   }
-}
+})();

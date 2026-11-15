@@ -26,12 +26,16 @@ brightness jumps out, the same way Pluto was found with a blink comparator.
 - **Plain-language report.** Gemini rewrites the measurements as short text.
   It sees only the numbers, and every number it writes is checked against
   them; otherwise the site falls back to sentences built from the numbers.
-- **Name search** for well-known objects, plus coordinates.
+- **Name search** for well-known objects, any name SIMBAD/NED knows
+  (`/api/resolve`), plus coordinates.
 - **Home hero**: Barnard's Star moving, from real images, as soon as the page opens.
 - **Swipe mode**: drag a divider between the first and last image.
 - **How it works** page (`how.html`) explaining what is measured and what is blended.
 - **Explorer** (`explore.html`) for any position: blink, spectrum, and a
-  "Find what changed" button that runs change detection live.
+  "Find what changed" button that runs change detection live. Its
+  "On the home page" list (★) holds every home-page target, read from
+  `web/showcase/index.json`; comets such as 3I/ATLAS open in the time machine,
+  which follows them along their path.
 
 Detected motions match published values for the showcase stars (for example
 Barnard's Star: 9.1 arcseconds north in a year; Teegarden's Star: 5.1
@@ -54,6 +58,19 @@ key is needed; the data is public.
 
 The first search of a new position takes 15 to 60 seconds because the archive
 query is slow. Results are cached in `.cache/`, so repeat visits are instant.
+
+## Tests
+
+```bash
+pip install -r backend/requirements.txt httpx
+```
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+The tests run offline (no archive access) and also run on GitHub Actions
+for every push (`.github/workflows/tests.yml`).
 
 ## Pre-searched presets
 
@@ -114,9 +131,10 @@ The cache lives in `/tmp` there, so it is lost whenever the function restarts.
 
 ## Known limits of this first version
 
-- Name search covers a built-in list of well-known objects only.
-- The view stays on a fixed patch of sky. It does not yet follow a comet or
-  asteroid along its path.
+- Only the time machine follows a comet along its path (3I/ATLAS); the
+  Explorer stays on a fixed patch of sky.
+- "Find what changed" runs at most `CHANGES_SLOTS` (default 2) jobs at once;
+  further visitors are asked to try again in a minute.
 - Motions below about 4 arcseconds (1.2 stacked pixels) are not detected,
   and very bright stars that saturate badly (such as 61 Cygni) cannot be
   measured.

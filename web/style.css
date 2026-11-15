@@ -230,6 +230,8 @@ button.on { border-color: var(--amber); box-shadow: inset 0 0 0 1px var(--amber)
 :focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 
 .presets button { min-height: 32px; padding: 3px 12px; border-radius: 16px; font-size: 0.9rem; }
+.presets button.featured { border-color: color-mix(in srgb, var(--amber) 55%, transparent); }
+.presets button.featured::before { content: "★ "; color: var(--amber); }
 
 /* ---------- status line ---------- */
 

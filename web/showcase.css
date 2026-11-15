@@ -52,16 +52,14 @@
 }
 .card:hover { border-color: var(--amber); }
 .card-pics { position: relative; aspect-ratio: 16 / 10; background: #05070d; overflow: hidden; }
+/* Cards show one still picture; the time machine is where images change. */
 .card-pics img {
-  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0;
-  animation: cycle var(--cycle, 4.5s) infinite;
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
 }
-.card-pics img:first-child { opacity: 1; }
 .card-date {
   position: absolute; left: 8px; bottom: 8px; padding: 1px 8px; border-radius: 4px;
   background: rgba(8, 11, 22, 0.8); font-size: 0.8rem; color: var(--muted);
 }
-@keyframes cycle { 0%, 28% { opacity: 1; } 34%, 100% { opacity: 0; } }
 .card-body { padding: 12px 14px 14px; display: grid; gap: 6px; align-content: start; }
 .card-body h3 { margin: 0; font-family: var(--display); font-size: 1.15rem; }
 .card-body p { margin: 0; color: var(--muted); font-size: 0.92rem; }
@@ -266,9 +264,6 @@
   .card-body h3 {
     font-size: 0.88rem;
   }
-}
-@media (prefers-reduced-motion: reduce) {
-  .card-pics img { animation: none; }
 }
 
 /* ---------- tour ---------- */

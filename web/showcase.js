@@ -192,10 +192,9 @@ function card(t) {
   const b = document.createElement("button");
   b.type = "button";
   b.className = "card";
-  const thumbUrls = (t.thumbs || []).map((src) => `showcase/${src}`);
-  const n = thumbUrls.length;
-  const pics = thumbUrls.map((src, i) =>
-    `<img src="${src}" alt="" loading="lazy" style="--cycle:${n * 1.5}s; animation-delay:${i * 1.5}s">`).join("");
+  // One still picture per card: no flipping between sweeps on the home page.
+  const first = (t.thumbs || [])[0];
+  const pics = first ? `<img src="showcase/${first}" alt="" loading="lazy">` : "";
   let badges = Object.entries(t.kinds || {}).map(([k, v]) =>
     `<span class="badge"><i style="background:${KIND[k].color}"></i>${v} ${KIND[k].label}</span>`).join("");
   if (t.candidates) badges += `<span class="badge quiet">${t.candidates} unconfirmed candidate${t.candidates > 1 ? "s" : ""}</span>`;

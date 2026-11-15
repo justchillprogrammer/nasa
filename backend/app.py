@@ -31,6 +31,10 @@ app = FastAPI(title="SPHEREx Blink")
 # Tuned for fast I/O bound S3 range fetches while keeping memory low.
 _pool = ThreadPoolExecutor(max_workers=int(os.environ.get("SPECTRUM_WORKERS", "12")))
 _cutout_slots = threading.BoundedSemaphore(int(os.environ.get("CUTOUT_SLOTS", "6")))
+# Change detection stacks every sweep (tens of exposures each): heavy on memory
+# and on the archive, so only a few may run at once.
+_changes_slots = threading.BoundedSemaphore(int(os.environ.get("CHANGES_SLOTS", "2")))
+SPECTRUM_POINT_TIMEOUT = 120   # seconds to wait for any one exposure
 
 
 def _check(ra: float, dec: float) -> None:
@@ -150,11 +154,18 @@ def api_spectrum(ra: float, dec: float, payload: dict | None = Body(default=None
         points = []
         try:
             for _ in exposures:
-                p = out.get(timeout=120)
+                try:
+                    p = out.get(timeout=SPECTRUM_POINT_TIMEOUT)
+                except queue.Empty:
+                    # The archive stalled: end the stream cleanly (and cache
+                    # nothing) instead of cutting the connection mid-line.
+                    yield json.dumps({"error": "the archive stopped answering; try again later",
+                                      "done": True, "partial": True}) + "\n"
+                    return
                 if not p.get("skip"):
                     points.append(p)
                 yield json.dumps(p) + "\n"
-            cache.write_text(json.dumps(points))
+            sx.write_cache(cache, json.dumps(points))
             yield json.dumps({"done": True}) + "\n"
         finally:
             stop.set()   # client went away: let queued work drain quickly
@@ -174,11 +185,16 @@ def api_changes(ra: float, dec: float, size: float = Query(0.25, ge=0.05, le=0.5
     cache = sx._cache_path("changes", f"v1:{ra:.4f}:{dec:.4f}:{size:.3f}", ".json")
     if cache.exists():
         return json.loads(cache.read_text())
+    if not _changes_slots.acquire(blocking=False):
+        raise HTTPException(503, "Sky Blink is busy finding changes for other visitors. Try again in a minute.",
+                            headers={"Retry-After": "30"})
     try:
         stacks = detect.stack_sweeps(ra, dec, size, 300, log=lambda *a: None)
         result = detect.find_changes(stacks)
     except Exception as e:
         raise HTTPException(502, f"change detection failed: {e}")
+    finally:
+        _changes_slots.release()
     for c in result["changes"]:
         if c["kind"] != "moved" and c.get("verified") is None:
             c["verified"] = False
@@ -195,7 +211,7 @@ def api_changes(ra: float, dec: float, size: float = Query(0.25, ge=0.05, le=0.5
         "sweeps": [{"label": s["label"], "n": s["n"], "mjd": s["mjd"]} for s in sweeps],
         "changes": result["changes"], "n_sources": result.get("n_sources"), "text": text,
     }
-    cache.write_text(json.dumps(out, default=float))
+    sx.write_cache(cache, json.dumps(out, default=float))
     return out
 
 
@@ -223,7 +239,8 @@ async def custom_http_exception_handler(request: Request, exc: StarletteHTTPExce
             if p404.exists():
                 return FileResponse(p404, status_code=404)
         return Response(content=json.dumps({"detail": exc.detail}), status_code=404, media_type="application/json")
-    return Response(content=json.dumps({"detail": exc.detail}), status_code=exc.status_code, media_type="application/json")
+    return Response(content=json.dumps({"detail": exc.detail}), status_code=exc.status_code,
+                    media_type="application/json", headers=getattr(exc, "headers", None))
 
 
 @app.get("/")

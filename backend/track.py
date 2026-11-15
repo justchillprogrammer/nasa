@@ -82,7 +82,7 @@ def ephemeris(command: str, start: str, stop: str, step: str) -> list[dict]:
             "elong": num("S-O-T"),
             "rate_ra": num("dRA*cosD"), "rate_dec": num("d(DEC)/dt"),
         })
-    cache.write_text(json.dumps(rows))
+    sx.write_cache(cache, json.dumps(rows))
     return rows
 
 
@@ -138,7 +138,7 @@ def _query_day(mjd: float, ra: float, dec: float, half: float = 1.0) -> list[dic
             "mjd0": float(row["time_bounds_lower"]), "exptime": float(row["time_exposure"] or 0),
             "release": did.split("?", 1)[0].rsplit("_", 1)[-1],
         })
-    cache.write_text(json.dumps(out))
+    sx.write_cache(cache, json.dumps(out))
     return out
 
 

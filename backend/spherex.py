@@ -89,6 +89,25 @@ def _cache_path(kind: str, key: str, ext: str) -> Path:
     return d / (hashlib.sha1(key.encode()).hexdigest()[:20] + ext)
 
 
+def write_cache(path: Path, data: str | bytes) -> None:
+    """Write a cache file atomically, so a concurrent reader never sees half a file.
+
+    Failures are ignored: the cache is an optimisation, never a requirement.
+    """
+    tmp = path.with_name(f".{path.name}.{os.getpid()}.{threading.get_ident()}.tmp")
+    try:
+        if isinstance(data, bytes):
+            tmp.write_bytes(data)
+        else:
+            tmp.write_text(data)
+        os.replace(tmp, path)
+    except OSError:
+        try:
+            tmp.unlink()
+        except OSError:
+            pass
+
+
 def _get_range(key: str, start: int, end: int | None, suffix: int | None = None) -> bytes:
     """Fetch bytes [start, end] of an archive file (or the last ``suffix`` bytes)."""
     rng = f"bytes=-{suffix}" if suffix else f"bytes={start}-{end}"
@@ -243,7 +262,7 @@ def search(ra: float, dec: float) -> dict:
 
         out = {"ra": ra, "dec": dec, "exposures": exposures, "epochs": epochs}
         if exposures:
-            path.write_text(json.dumps(out))
+            write_cache(path, json.dumps(out))
         return out
 
 
@@ -282,7 +301,7 @@ def resolve_name(name: str) -> dict:
             "ra": round(float(m_ra.group(1)) % 360.0, 5),
             "dec": round(float(m_dec.group(1)), 5),
         }
-        path.write_text(json.dumps(out))
+        write_cache(path, json.dumps(out))
         return out
 
 
@@ -399,7 +418,7 @@ def load_exposure(key: str) -> Exposure:
                     raise RuntimeError(f"no image header found in {key}")
                 size *= 2
             else:
-                path.write_bytes(buf[:parsed[1]])
+                write_cache(path, buf[:parsed[1]])
         exp = Exposure(key, *parsed)
         with _locks_guard:
             _exposures[key] = exp
