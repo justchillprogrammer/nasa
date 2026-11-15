@@ -407,16 +407,6 @@
 .review-pane canvas { border: 1px solid var(--line); border-radius: 8px; background: #05070d; width: 100%; aspect-ratio: 1; }
 .review-meta { color: var(--muted); font-size: 0.88rem; margin: 6px 0 14px; text-align: center; }
 
-/* ---------- jargon explained on hover or focus ---------- */
-.term { border-bottom: 1px dotted currentColor; cursor: help; position: relative; }
-.term:hover::after, .term:focus-visible::after {
-  content: attr(data-tip);
-  position: absolute; z-index: 30; left: 50%; bottom: calc(100% + 8px); translate: -50% 0;
-  width: max-content; max-width: min(300px, 80vw);
-  padding: 8px 10px; border-radius: 6px; background: #0b1020; border: 1px solid var(--line);
-  color: var(--text); font-size: 0.85rem; font-weight: 400; line-height: 1.4; text-align: left; white-space: normal;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
-}
 .c-check { margin: 4px 0 0; font-size: 0.88rem; color: var(--muted); }
 .c-check.ok::before { content: "✓ "; color: var(--bright); font-weight: 700; }
 .c-check.bad::before { content: "✕ "; color: var(--faint); font-weight: 700; }

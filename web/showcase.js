@@ -310,6 +310,8 @@ async function openTarget(slug, opts = {}) {
   if (S.tour) { tourStop(); return; }
   el.tourbar.hidden = true;
   if (opts.mode && opts.mode !== S.mode) setMode(opts.mode);
+  // a shared link to a still view (stack, swipe) opens on that view, not playing
+  if (opts.mode === "stack" || opts.mode === "swipe") { draw(); return; }
   const pick = opts.change && S.meta.changes.find((c) => c.rank === +opts.change);
   if (pick) { focusChange(pick); return; }
   // Open magnified on the main change: a moving star shifts only a few

@@ -728,7 +728,11 @@ async function findChanges() {
     const texts = Object.fromEntries((res.text.items || []).map((i) => [i.rank, i.text]));
     box.innerHTML = `<p>${res.text.summary}</p>` + res.changes.map((c) =>
       `<div class="found-item"><b style="color:${CHANGE_COLORS[c.kind]}">${c.rank}. ${CHANGE_NOUN[c.kind]}.</b>${texts[c.rank] || ""}
-       <br><small>${c.kind === "moved" ? "Measured motion" : c.season_pattern ? "Candidate: may be a reflection inside the instrument" : "Candidate: not double-checked in single images"}, ${c.significance}σ</small></div>`).join("")
+       <br><small>${c.kind === "moved"
+         ? `Moving ${c.rate_arcsec_per_year}${c.rate_err_arcsec_per_year != null ? ` ± ${c.rate_err_arcsec_per_year}` : ""} arcseconds a year toward the ${c.direction}${c.pa_deg != null ? ` (${c.pa_deg}°)` : ""}`
+         : c.season_pattern ? "Candidate: may be a reflection inside the instrument" : "Candidate: not double-checked in single images"}.
+       <span class="term" tabindex="0" data-tip="σ (sigma) says how far a change stands above the measurement noise. At 5σ or more, noise alone would almost never produce it.">${c.significance}σ</span>
+       (${c.significance >= 5 ? "near-certain" : c.significance >= 3 ? "likely" : "uncertain"})</small></div>`).join("")
       + `<p><small>${res.checked ? `Measured from ${res.checked.images_used} real images in ${res.sweeps.length} sweeps (${res.sweeps.map((w) => w.label).join(", ")})${res.checked.images_failed ? `; ${res.checked.images_failed} could not be read and were left out` : ""}. ` : ""}`
       + `${res.text.writer.startsWith("AI") ? "Text written by AI from the measurements; numbers checked." : "Text written automatically from the measurements."}</small></p>`;
     render();

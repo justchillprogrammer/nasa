@@ -7,17 +7,21 @@ brightness jumps out, the same way Pluto was found with a blink comparator.
 
 ## What it does
 
-- **Changes feed (home page).** Pre-computed showcase targets, grouped into
-  stars on the move, changing brightness, and steady skies. Each card shows
-  the change and a one-sentence summary.
-- **Time machine.** A date slider that blends smoothly between sweeps (and
-  says when you are looking at a blend rather than an observation), motion
-  trails, one-click zoom onto each change, a blink mode and a "show only what
-  changed" mode.
+- **Changes feed (home page).** Fourteen pre-computed targets, grouped into
+  moving objects (the interstellar comet 3I/ATLAS and the asteroids Psyche,
+  Eros and Vesta), stars on the move, changing brightness, and steady skies.
+  Each card softly blinks between its first and last image while hovered.
+- **Time machine.** A date slider over the real sweeps (smooth blends only on
+  request, and labelled as not observed), motion trails, zoom, a blink mode,
+  a swipe mode and a "show only what changed" mode that colours real
+  differences (teal brighter, pink fainter) above the leftover every star
+  leaves.
 - **Change detection.** For every sweep, 30 to 40 exposures between 1 and
   2 µm are stacked into one complete image. Sources are matched between
   sweeps; stars that moved in a straight line and sources whose brightness
-  changed are reported with their significance.
+  changed are reported with their significance. A moving star is reported
+  once, as a rate with its uncertainty and a direction in degrees
+  (`backend/motion.py`).
 - **Checks against false alarms.** Brightness changes are re-measured in the
   single exposures at matching wavelengths and compared with nearby stars.
   Sources near very bright stars, in nebulae, fuzzy sources, and changes that
@@ -66,8 +70,9 @@ Then open http://localhost:8000. The server needs outbound HTTPS access to
 `nasa-irsa-spherex.s3.us-east-1.amazonaws.com` (image pixels). No account or
 key is needed; the data is public.
 
-The first search of a new position takes 15 to 60 seconds because the archive
-query is slow. Results are cached in `.cache/`, so repeat visits are instant.
+A new position is found in 2 to 3 seconds with IRSA's image search (SIA v2),
+preferring SPHEREx Data Release 1 over the quick release. Results are cached
+in `.cache/`.
 
 ## Tests
 
@@ -84,14 +89,13 @@ for every push (`.github/workflows/tests.yml`).
 
 ## Pre-searched presets
 
-The first archive search for a new position takes up to a minute. To make
-the explorer's presets open instantly, `tools/build_spots.py` searches every
+To make the explorer's presets open with no archive request at all, `tools/build_spots.py` searches every
 preset and named object once and stores the results (gzipped, about 2 MB) in
 `backend/data/search/`. `spherex.search()` reads those before asking the
 archive. Re-run it after adding presets:
 
 ```bash
-python tools/build_spots.py
+python tools/build_spots.py --force
 ```
 
 ## Rebuild the showcase
@@ -109,12 +113,17 @@ Targets are listed in `tools/targets.json`. Other modes:
 rebuilds the list. Set `GEMINI_API_KEY` to have the text written by Gemini;
 without it the text is built from the measurements.
 
+The brightness-by-wavelength charts are measured from every exposure with
+`python tools/build_spectra.py` (run it after rebuilding targets), and the
+link-preview picture is `node tools/make_og.js`.
+
 ## How it works
 
 | Part | File | Job |
 |---|---|---|
 | Archive access | `backend/spherex.py` | Searches the archive, reads image headers and pixel rows with HTTP range requests (kilobytes instead of 65 MB files), and works out the wavelength each image samples at a position |
-| Image processing | `backend/imaging.py` | Resamples each image onto a shared sky grid; measures brightness at a point |
+| Image processing | `backend/imaging.py` | Resamples each image onto a shared sky grid, fills pixels the pipeline flags as defective (read from each file's compressed FLAGS layer), and measures brightness at a point |
+| Motion | `backend/motion.py` | One rate with uncertainty and one direction per moving star; comparison with catalogue proper motions |
 | Web server | `backend/app.py` | `/api/search`, `/api/cutout`, `/api/spectrum`, and the static page |
 | Change detection | `backend/detect.py` | Stacks sweeps, finds sources, reports motion and brightness changes, and confirms them |
 | Text | `backend/narrate.py` | Gemini or rule-based descriptions of the measurements, with number checking |
@@ -141,18 +150,20 @@ The cache lives in `/tmp` there, so it is lost whenever the function restarts.
 
 ## Known limits of this first version
 
-- Only the time machine follows a comet along its path (3I/ATLAS); the
+- Only the time machine follows comets and asteroids along their path; the
   Explorer stays on a fixed patch of sky.
 - "Find what changed" runs at most `CHANGES_SLOTS` (default 2) jobs at once;
   further visitors are asked to try again in a minute.
 - Motions below about 4 arcseconds (1.2 stacked pixels) are not detected,
   and very bright stars that saturate badly (such as 61 Cygni) cannot be
   measured.
-- The "what changed" view subtracts pixels. SPHEREx pixels are coarse (6
-  arcseconds), so ordinary stars leave small smudges; changes should be
-  confirmed by blinking.
-- Brightness measurements are quick-look values: no correction for light
-  outside the measuring circle, and flagged pixels are not masked.
+- Very bright stars overload the detector at their centre, so their
+  positions are less precise (larger uncertainties) and many of their
+  exposures cannot be measured for brightness.
+- Brightness measurements are quick-look values with no correction for light
+  outside the measuring circle; they are not calibrated science values.
+- Findings flagged by visitors are shared by opening a pre-filled GitHub
+  issue; there is no account system or database.
 
 ## Data credit
 

@@ -10,6 +10,30 @@
   "note": "Only the third object ever seen visiting our solar system from interstellar space. It was discovered in July 2025."
  },
  {
+  "slug": "psyche",
+  "name": "16 Psyche, a metal-rich asteroid",
+  "group": "Moving objects",
+  "type": "track",
+  "horizons": "16;",
+  "note": "An asteroid in the main belt that may be the exposed core of a shattered young planet. NASA's Psyche spacecraft is on its way and arrives in 2029."
+ },
+ {
+  "slug": "eros",
+  "name": "433 Eros, a near-Earth asteroid",
+  "group": "Moving objects",
+  "type": "track",
+  "horizons": "433;",
+  "note": "The first asteroid ever orbited and landed on, by NASA's NEAR Shoemaker spacecraft in 2000 and 2001."
+ },
+ {
+  "slug": "vesta",
+  "name": "4 Vesta, the brightest asteroid",
+  "group": "Moving objects",
+  "type": "track",
+  "horizons": "4;",
+  "note": "The brightest asteroid in our sky, orbited by NASA's Dawn spacecraft in 2011 and 2012."
+ },
+ {
   "slug": "barnard",
   "name": "Barnard's Star",
   "group": "Stars on the move",

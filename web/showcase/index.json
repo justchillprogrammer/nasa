@@ -10,7 +10,7 @@
     "tracked": 90
    },
    "candidates": 0,
-   "summary": "You are watching 90 real images of the interstellar comet 3I/ATLAS taken between 01 Aug 2025 and 15 Dec 2025. By stacking all the images on the object, the stars smear away while the comet adds up to become visible. This object is only the third one ever seen visiting our solar system from interstellar space and was about 2.47 au away when the images were taken.",
+   "summary": "These 90 images track 3I/ATLAS, the interstellar comet, between 01 Aug 2025 and 15 Dec 2025. Stacking all the images on the object makes the stars smear away while the comet adds up to become visible. It was about 2.47 au or 370 million km away, and it is only the third object ever seen visiting our solar system from interstellar space.",
    "writer": "AI (gemini-3.1-flash-lite)",
    "thumbs": [
     "3i-atlas/t0.png",
@@ -19,6 +19,69 @@
    "labels": [
     "01 Aug 2025",
     "15 Dec 2025"
+   ]
+  },
+  {
+   "slug": "psyche",
+   "name": "16 Psyche, a metal-rich asteroid",
+   "note": "An asteroid in the main belt that may be the exposed core of a shattered young planet. NASA's Psyche spacecraft is on its way and arrives in 2029.",
+   "group": "Moving objects",
+   "type": "track",
+   "kinds": {
+    "tracked": 90
+   },
+   "candidates": 0,
+   "summary": "These 90 images of the metal-rich asteroid 16 Psyche were captured during 5 visits between 29 Aug 2025 and 09 Mar 2026. Stacking all the images on the object makes the stars smear away while the asteroid adds up to become visible. At the time of these observations, the asteroid was about 1.98 au or 296 million km away, and NASA's Psyche spacecraft is on its way to arrive in 2029.",
+   "writer": "AI (gemini-3.1-flash-lite)",
+   "thumbs": [
+    "psyche/t0.png",
+    "psyche/t1.png"
+   ],
+   "labels": [
+    "29 Aug 2025",
+    "09 Mar 2026"
+   ]
+  },
+  {
+   "slug": "eros",
+   "name": "433 Eros, a near-Earth asteroid",
+   "note": "The first asteroid ever orbited and landed on, by NASA's NEAR Shoemaker spacecraft in 2000 and 2001.",
+   "group": "Moving objects",
+   "type": "track",
+   "kinds": {
+    "tracked": 90
+   },
+   "candidates": 0,
+   "summary": "These 90 images track the near-Earth asteroid 433 Eros across 19 visits between 25 Jun 2025 and 25 Jun 2026. Stacking all the images on the object makes the stars smear away while the asteroid adds up to reveal its position. The asteroid was about 0.6 au or 90 million km away, and it is notable as the first asteroid ever orbited and landed on, by NASA's NEAR Shoemaker spacecraft in 2000 and 2001.",
+   "writer": "AI (gemini-3.1-flash-lite)",
+   "thumbs": [
+    "eros/t0.png",
+    "eros/t1.png"
+   ],
+   "labels": [
+    "25 Jun 2025",
+    "25 Jun 2026"
+   ]
+  },
+  {
+   "slug": "vesta",
+   "name": "4 Vesta, the brightest asteroid",
+   "note": "The brightest asteroid in our sky, orbited by NASA's Dawn spacecraft in 2011 and 2012.",
+   "group": "Moving objects",
+   "type": "track",
+   "kinds": {
+    "tracked": 90
+   },
+   "candidates": 0,
+   "summary": "These 90 images of 4 Vesta, the brightest asteroid, were taken across 7 visits between 21 Jun 2025 and 20 Jul 2026. Stacking all the images on the object makes the stars smear away while the asteroid adds up to reveal its position. At the time of these observations, the object was about 2.76 au or 413 million km away.",
+   "writer": "AI (gemini-3.1-flash-lite)",
+   "thumbs": [
+    "vesta/t0.png",
+    "vesta/t1.png"
+   ],
+   "labels": [
+    "21 Jun 2025",
+    "20 Jul 2026"
    ]
   },
   {

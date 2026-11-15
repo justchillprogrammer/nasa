@@ -452,11 +452,13 @@ class Exposure:
         x, y = out[:, 0].reshape(ra_a.shape), out[:, 1].reshape(ra_a.shape)
         return (float(x), float(y)) if ra_a.ndim == 0 else (x, y)
 
-    # Detector defects, filled for display and left out of photometry:
-    # SUR_ERROR, NONFUNC, MISSING_DATA, HOT, COLD. TRANSIENT and OUTLIER are
-    # deliberately NOT used: they mark anything absent from other exposures,
-    # which includes the comets and asteroids Sky Blink follows.
-    BAD_FLAGS = (1 << 2) | (1 << 6) | (1 << 9) | (1 << 10) | (1 << 11)
+    # Permanent detector defects, filled for display and left out of
+    # photometry: NONFUNC, MISSING_DATA, HOT, COLD. Deliberately NOT used:
+    # TRANSIENT and OUTLIER (they mark anything absent from other exposures,
+    # including the comets and asteroids Sky Blink follows) and SUR_ERROR /
+    # OVERFLOW (set on most moderately bright stars, whose values the
+    # onboard processing recovered from the unsaturated reads).
+    BAD_FLAGS = (1 << 6) | (1 << 9) | (1 << 10) | (1 << 11)
 
     def _flags_layout(self) -> dict | None:
         """Where the compressed FLAGS extension sits (read once per file)."""

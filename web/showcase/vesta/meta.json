@@ -1,0 +1,1026 @@
+{
+ "type": "track",
+ "slug": "vesta",
+ "name": "4 Vesta, the brightest asteroid",
+ "note": "The brightest asteroid in our sky, orbited by NASA's Dawn spacecraft in 2011 and 2012.",
+ "size": 0.12,
+ "npix": 160,
+ "frames": [
+  {
+   "mjd": 60847.57249,
+   "lam": 4.726,
+   "frame": "f0.bin",
+   "id": "2025W25_2A_0419_1/D6",
+   "flux": 6420.0597,
+   "err": 1.5219
+  },
+  {
+   "mjd": 60847.573982,
+   "lam": 2.066,
+   "frame": "f1.bin",
+   "id": "2025W25_2A_0419_2/D3",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60847.576966,
+   "lam": 4.828,
+   "frame": "f2.bin",
+   "id": "2025W25_2A_0419_4/D6",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60849.204304,
+   "lam": 2.228,
+   "frame": "f3.bin",
+   "id": "2025W26_1A_0060_2/D3",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60849.205797,
+   "lam": 4.909,
+   "frame": "f4.bin",
+   "id": "2025W26_1A_0060_3/D6",
+   "flux": 7662.0041,
+   "err": 1.1768
+  },
+  {
+   "mjd": 60849.27405,
+   "lam": 1.644,
+   "frame": "f5.bin",
+   "id": "2025W26_1A_0080_4/D3",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60850.290665,
+   "lam": 4.478,
+   "frame": "f6.bin",
+   "id": "2025W26_1A_0288_2/D6",
+   "flux": 5834.1547,
+   "err": 0.6492
+  },
+  {
+   "mjd": 60850.292157,
+   "lam": 1.743,
+   "frame": "f7.bin",
+   "id": "2025W26_1A_0288_3/D3",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60850.357674,
+   "lam": 4.964,
+   "frame": "f8.bin",
+   "id": "2025W26_1A_0299_1/D6",
+   "flux": 9821.5151,
+   "err": 1.6245
+  },
+  {
+   "mjd": 60850.968379,
+   "lam": 4.566,
+   "frame": "f9.bin",
+   "id": "2025W26_1A_0403_1/D6",
+   "flux": 5838.9522,
+   "err": 0.7025
+  },
+  {
+   "mjd": 60850.969871,
+   "lam": 4.599,
+   "frame": "f10.bin",
+   "id": "2025W26_1A_0403_2/D6",
+   "flux": 6427.3362,
+   "err": 0.671
+  },
+  {
+   "mjd": 60850.972856,
+   "lam": 1.942,
+   "frame": "f11.bin",
+   "id": "2025W26_1A_0403_4/D3",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60852.327236,
+   "lam": 4.489,
+   "frame": "f12.bin",
+   "id": "2025W26_1A_0634_1/D6",
+   "flux": 5153.6862,
+   "err": 0.5564
+  },
+  {
+   "mjd": 60852.328728,
+   "lam": 1.757,
+   "frame": "f13.bin",
+   "id": "2025W26_1A_0634_2/D3",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60852.33173,
+   "lam": 1.839,
+   "frame": "f14.bin",
+   "id": "2025W26_1A_0634_4/D3",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60853.143623,
+   "lam": 4.788,
+   "frame": "f15.bin",
+   "id": "2025W26_2A_0158_1/D6",
+   "flux": 7255.5834,
+   "err": 1.0205
+  },
+  {
+   "mjd": 60853.146607,
+   "lam": 4.857,
+   "frame": "f16.bin",
+   "id": "2025W26_2A_0158_3/D6",
+   "flux": 7742.7908,
+   "err": 1.2404
+  },
+  {
+   "mjd": 60853.822634,
+   "lam": 1.237,
+   "frame": "f17.bin",
+   "id": "2025W26_2A_0296_1/D2",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60853.824126,
+   "lam": 1.266,
+   "frame": "f18.bin",
+   "id": "2025W26_2A_0296_2/D2",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60854.773359,
+   "lam": 1.282,
+   "frame": "f19.bin",
+   "id": "2025W26_2A_0460_1/D2",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60854.776344,
+   "lam": 1.344,
+   "frame": "f20.bin",
+   "id": "2025W26_2A_0460_3/D2",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60854.909332,
+   "lam": 2.262,
+   "frame": "f21.bin",
+   "id": "2025W26_2A_0483_1/D3",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60855.18062,
+   "lam": 2.359,
+   "frame": "f22.bin",
+   "id": "2025W26_2A_0535_1/D3",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60855.318796,
+   "lam": 4.175,
+   "frame": "f23.bin",
+   "id": "2025W26_2A_0558_2/D5",
+   "flux": 4013.011,
+   "err": 0.4788
+  },
+  {
+   "mjd": 60855.320288,
+   "lam": 4.211,
+   "frame": "f24.bin",
+   "id": "2025W26_2A_0558_3/D5",
+   "flux": 4115.5916,
+   "err": 0.5549
+  },
+  {
+   "mjd": 60856.403966,
+   "lam": 4.979,
+   "frame": "f25.bin",
+   "id": "2025W27_1A_0084_1/D6",
+   "flux": 10171.3386,
+   "err": 1.4621
+  },
+  {
+   "mjd": 60856.948941,
+   "lam": 4.291,
+   "frame": "f26.bin",
+   "id": "2025W27_1A_0191_2/D5",
+   "flux": 4256.2153,
+   "err": 0.5184
+  },
+  {
+   "mjd": 60857.151514,
+   "lam": 0.806,
+   "frame": "f27.bin",
+   "id": "2025W27_1A_0228_1/D1",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60857.153006,
+   "lam": 0.825,
+   "frame": "f28.bin",
+   "id": "2025W27_1A_0228_2/D1",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60857.155991,
+   "lam": 0.865,
+   "frame": "f29.bin",
+   "id": "2025W27_1A_0228_4/D1",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60857.631966,
+   "lam": 3.847,
+   "frame": "f30.bin",
+   "id": "2025W27_1A_0321_4/D5",
+   "flux": 3616.0051,
+   "err": 0.4116
+  },
+  {
+   "mjd": 60857.89773,
+   "lam": 1.145,
+   "frame": "f31.bin",
+   "id": "2025W27_1A_0365_1/D2",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60858.102115,
+   "lam": 4.345,
+   "frame": "f32.bin",
+   "id": "2025W27_1A_0404_1/D5",
+   "flux": 4433.2519,
+   "err": 0.5146
+  },
+  {
+   "mjd": 60858.1051,
+   "lam": 1.641,
+   "frame": "f33.bin",
+   "id": "2025W27_1A_0404_3/D2",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60864.148323,
+   "lam": 2.715,
+   "frame": "f34.bin",
+   "id": "2025W28_1B_0220_1/D4",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60864.151325,
+   "lam": 0.865,
+   "frame": "f35.bin",
+   "id": "2025W28_1B_0220_3/D1",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60864.352744,
+   "lam": 1.1,
+   "frame": "f36.bin",
+   "id": "2025W28_1B_0255_1/D1",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60865.235803,
+   "lam": 2.99,
+   "frame": "f37.bin",
+   "id": "2025W28_1B_0413_1/D4",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60865.238788,
+   "lam": 3.157,
+   "frame": "f38.bin",
+   "id": "2025W28_1B_0413_3/D4",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60865.24028,
+   "lam": 0.963,
+   "frame": "f39.bin",
+   "id": "2025W28_1B_0413_4/D1",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60866.459381,
+   "lam": 0.999,
+   "frame": "f40.bin",
+   "id": "2025W28_1B_0628_2/D1",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60866.462384,
+   "lam": 1.047,
+   "frame": "f41.bin",
+   "id": "2025W28_1B_0628_4/D1",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60868.292244,
+   "lam": 0.861,
+   "frame": "f42.bin",
+   "id": "2025W28_2A_0326_1/D1",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60868.295228,
+   "lam": 3.008,
+   "frame": "f43.bin",
+   "id": "2025W28_2A_0326_3/D4",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60870.060015,
+   "lam": 4.143,
+   "frame": "f44.bin",
+   "id": "2025W29_1A_0014_1/D5",
+   "flux": 3144.6878,
+   "err": 0.3236
+  },
+  {
+   "mjd": 60871.009977,
+   "lam": 0.913,
+   "frame": "f45.bin",
+   "id": "2025W29_1A_0191_1/D1",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60871.012962,
+   "lam": 0.957,
+   "frame": "f46.bin",
+   "id": "2025W29_1A_0191_3/D1",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60874.068016,
+   "lam": 0.969,
+   "frame": "f47.bin",
+   "id": "2025W29_2A_0145_1/D1",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60874.069508,
+   "lam": 3.357,
+   "frame": "f48.bin",
+   "id": "2025W29_2A_0145_2/D4",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60892.00554,
+   "lam": 1.955,
+   "frame": "f49.bin",
+   "id": "2025W32_1A_0225_1/D3",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 60904.167701,
+   "lam": 1.196,
+   "frame": "f50.bin",
+   "id": "2025W33_2C_0700_1/D2",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 61226.03958,
+   "lam": 2.682,
+   "frame": "f51.bin",
+   "id": "2026W27_2A_0473_1/D4",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 61226.042565,
+   "lam": 0.855,
+   "frame": "f52.bin",
+   "id": "2026W27_2A_0473_3/D1",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 61226.044057,
+   "lam": 0.875,
+   "frame": "f53.bin",
+   "id": "2026W27_2A_0473_4/D1",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 61226.316216,
+   "lam": 0.956,
+   "frame": "f54.bin",
+   "id": "2026W27_2A_0521_4/D1",
+   "flux": 2935.0116,
+   "err": 0.3168
+  },
+  {
+   "mjd": 61231.133943,
+   "lam": 2.438,
+   "frame": "f55.bin",
+   "id": "2026W28_2A_0142_3/D4",
+   "flux": 2595.3245,
+   "err": 0.2312
+  },
+  {
+   "mjd": 61231.809722,
+   "lam": 1.003,
+   "frame": "f56.bin",
+   "id": "2026W28_2A_0268_1/D1",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 61231.812706,
+   "lam": 3.587,
+   "frame": "f57.bin",
+   "id": "2026W28_2A_0268_3/D4",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 61231.814199,
+   "lam": 3.683,
+   "frame": "f58.bin",
+   "id": "2026W28_2A_0268_4/D4",
+   "flux": 1210.5175,
+   "err": 0.1969
+  },
+  {
+   "mjd": 61232.762029,
+   "lam": 1.266,
+   "frame": "f59.bin",
+   "id": "2026W28_2A_0433_2/D2",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 61232.765014,
+   "lam": 1.327,
+   "frame": "f60.bin",
+   "id": "2026W28_2A_0433_4/D2",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 61233.031683,
+   "lam": 2.599,
+   "frame": "f61.bin",
+   "id": "2026W28_2A_0484_1/D4",
+   "flux": 2080.2562,
+   "err": 0.2797
+  },
+  {
+   "mjd": 61233.034668,
+   "lam": 2.744,
+   "frame": "f62.bin",
+   "id": "2026W28_2A_0484_3/D4",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 61234.253503,
+   "lam": 1.375,
+   "frame": "f63.bin",
+   "id": "2026W29_1A_0055_1/D2",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 61234.256487,
+   "lam": 1.441,
+   "frame": "f64.bin",
+   "id": "2026W29_1A_0055_3/D2",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 61234.665187,
+   "lam": 3.831,
+   "frame": "f65.bin",
+   "id": "2026W29_1A_0138_4/D5",
+   "flux": 1331.9511,
+   "err": 0.1751
+  },
+  {
+   "mjd": 61234.79663,
+   "lam": 4.298,
+   "frame": "f66.bin",
+   "id": "2026W29_1A_0163_1/D5",
+   "flux": 1356.8879,
+   "err": 0.1987
+  },
+  {
+   "mjd": 61234.799615,
+   "lam": 1.594,
+   "frame": "f67.bin",
+   "id": "2026W29_1A_0163_3/D2",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 61235.676741,
+   "lam": 1.145,
+   "frame": "f68.bin",
+   "id": "2026W29_1A_0323_1/D2",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 61235.678233,
+   "lam": 1.172,
+   "frame": "f69.bin",
+   "id": "2026W29_1A_0323_2/D2",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 61235.681218,
+   "lam": 3.979,
+   "frame": "f70.bin",
+   "id": "2026W29_1A_0323_4/D5",
+   "flux": 1431.9882,
+   "err": 0.1653
+  },
+  {
+   "mjd": 61237.782579,
+   "lam": 1.416,
+   "frame": "f71.bin",
+   "id": "2026W29_2A_0062_1/D2",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 61237.784071,
+   "lam": 1.45,
+   "frame": "f72.bin",
+   "id": "2026W29_2A_0062_2/D2",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 61237.787056,
+   "lam": 1.521,
+   "frame": "f73.bin",
+   "id": "2026W29_2A_0062_4/D2",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 61237.920631,
+   "lam": 4.375,
+   "frame": "f74.bin",
+   "id": "2026W29_2A_0088_2/D5",
+   "flux": 1438.1486,
+   "err": 0.2276
+  },
+  {
+   "mjd": 61237.922123,
+   "lam": 1.634,
+   "frame": "f75.bin",
+   "id": "2026W29_2A_0088_3/D2",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 61238.192434,
+   "lam": 3.938,
+   "frame": "f76.bin",
+   "id": "2026W29_2A_0143_2/D5",
+   "flux": 1219.1837,
+   "err": 0.2053
+  },
+  {
+   "mjd": 61238.193926,
+   "lam": 3.972,
+   "frame": "f77.bin",
+   "id": "2026W29_2A_0143_3/D5",
+   "flux": 1161.2812,
+   "err": 0.1633
+  },
+  {
+   "mjd": 61238.733306,
+   "lam": 1.284,
+   "frame": "f78.bin",
+   "id": "2026W29_2A_0250_1/D2",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 61239.550031,
+   "lam": 1.996,
+   "frame": "f79.bin",
+   "id": "2026W29_2A_0418_2/D3",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 61239.551523,
+   "lam": 2.042,
+   "frame": "f80.bin",
+   "id": "2026W29_2A_0418_3/D3",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 61240.160008,
+   "lam": 4.815,
+   "frame": "f81.bin",
+   "id": "2026W29_2A_0535_2/D6",
+   "flux": 2180.4627,
+   "err": 0.273
+  },
+  {
+   "mjd": 61240.162992,
+   "lam": 4.886,
+   "frame": "f82.bin",
+   "id": "2026W29_2A_0535_4/D6",
+   "flux": 2459.2994,
+   "err": 0.3631
+  },
+  {
+   "mjd": 61240.293156,
+   "lam": 4.438,
+   "frame": "f83.bin",
+   "id": "2026W29_2A_0563_2/D6",
+   "flux": 1480.97,
+   "err": 0.2074
+  },
+  {
+   "mjd": 61240.296141,
+   "lam": 1.733,
+   "frame": "f84.bin",
+   "id": "2026W29_2A_0563_4/D3",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 61240.567216,
+   "lam": 4.96,
+   "frame": "f85.bin",
+   "id": "2026W29_2A_0615_2/D6",
+   "flux": 3195.6336,
+   "err": 0.4166
+  },
+  {
+   "mjd": 61240.568708,
+   "lam": 4.996,
+   "frame": "f86.bin",
+   "id": "2026W29_2A_0615_3/D6",
+   "flux": 3059.4585,
+   "err": 0.438
+  },
+  {
+   "mjd": 61241.039497,
+   "lam": 4.572,
+   "frame": "f87.bin",
+   "id": "2026W30_1B_0007_2/D6",
+   "flux": null,
+   "err": null
+  },
+  {
+   "mjd": 61241.311016,
+   "lam": 1.909,
+   "frame": "f88.bin",
+   "id": "2026W30_1B_0062_1/D3",
+   "flux": 2549.3116,
+   "err": 0.2583
+  },
+  {
+   "mjd": 61241.312508,
+   "lam": 1.953,
+   "frame": "f89.bin",
+   "id": "2026W30_1B_0062_2/D3",
+   "flux": 2480.7275,
+   "err": 0.3001
+  }
+ ],
+ "stack": "stack.bin",
+ "facts": {
+  "n_images": 90,
+  "visits": 7,
+  "first_date": "21 Jun 2025",
+  "last_date": "20 Jul 2026",
+  "distance_au": 2.76,
+  "distance_million_km": 413,
+  "sky_speed_arcsec_per_hour": 70.1,
+  "stacked_images_peak_vs_noise": 197983,
+  "visible_when_stacked": true
+ },
+ "text": {
+  "summary": "These 90 images of 4 Vesta, the brightest asteroid, were taken across 7 visits between 21 Jun 2025 and 20 Jul 2026. Stacking all the images on the object makes the stars smear away while the asteroid adds up to reveal its position. At the time of these observations, the object was about 2.76 au or 413 million km away.",
+  "items": [],
+  "writer": "AI (gemini-3.1-flash-lite)"
+ },
+ "horizons": "4;",
+ "built": "2026-11-15T06:35:08+00:00",
+ "thumbs": [
+  "t0.png",
+  "t1.png"
+ ],
+ "spectrum": [
+  {
+   "lam": 0.956,
+   "flux": 2935.0116,
+   "err": 0.3168,
+   "epoch": 0,
+   "det": 1,
+   "mjd": 61226.316216
+  },
+  {
+   "lam": 1.909,
+   "flux": 2549.3116,
+   "err": 0.2583,
+   "epoch": 0,
+   "det": 3,
+   "mjd": 61241.311016
+  },
+  {
+   "lam": 1.953,
+   "flux": 2480.7275,
+   "err": 0.3001,
+   "epoch": 0,
+   "det": 3,
+   "mjd": 61241.312508
+  },
+  {
+   "lam": 2.438,
+   "flux": 2595.3245,
+   "err": 0.2312,
+   "epoch": 0,
+   "det": 4,
+   "mjd": 61231.133943
+  },
+  {
+   "lam": 2.599,
+   "flux": 2080.2562,
+   "err": 0.2797,
+   "epoch": 0,
+   "det": 4,
+   "mjd": 61233.031683
+  },
+  {
+   "lam": 3.683,
+   "flux": 1210.5175,
+   "err": 0.1969,
+   "epoch": 0,
+   "det": 4,
+   "mjd": 61231.814199
+  },
+  {
+   "lam": 3.831,
+   "flux": 1331.9511,
+   "err": 0.1751,
+   "epoch": 0,
+   "det": 5,
+   "mjd": 61234.665187
+  },
+  {
+   "lam": 3.847,
+   "flux": 3616.0051,
+   "err": 0.4116,
+   "epoch": 0,
+   "det": 5,
+   "mjd": 60857.631966
+  },
+  {
+   "lam": 3.938,
+   "flux": 1219.1837,
+   "err": 0.2053,
+   "epoch": 0,
+   "det": 5,
+   "mjd": 61238.192434
+  },
+  {
+   "lam": 3.972,
+   "flux": 1161.2812,
+   "err": 0.1633,
+   "epoch": 0,
+   "det": 5,
+   "mjd": 61238.193926
+  },
+  {
+   "lam": 3.979,
+   "flux": 1431.9882,
+   "err": 0.1653,
+   "epoch": 0,
+   "det": 5,
+   "mjd": 61235.681218
+  },
+  {
+   "lam": 4.143,
+   "flux": 3144.6878,
+   "err": 0.3236,
+   "epoch": 0,
+   "det": 5,
+   "mjd": 60870.060015
+  },
+  {
+   "lam": 4.175,
+   "flux": 4013.011,
+   "err": 0.4788,
+   "epoch": 0,
+   "det": 5,
+   "mjd": 60855.318796
+  },
+  {
+   "lam": 4.211,
+   "flux": 4115.5916,
+   "err": 0.5549,
+   "epoch": 0,
+   "det": 5,
+   "mjd": 60855.320288
+  },
+  {
+   "lam": 4.291,
+   "flux": 4256.2153,
+   "err": 0.5184,
+   "epoch": 0,
+   "det": 5,
+   "mjd": 60856.948941
+  },
+  {
+   "lam": 4.298,
+   "flux": 1356.8879,
+   "err": 0.1987,
+   "epoch": 0,
+   "det": 5,
+   "mjd": 61234.79663
+  },
+  {
+   "lam": 4.345,
+   "flux": 4433.2519,
+   "err": 0.5146,
+   "epoch": 0,
+   "det": 5,
+   "mjd": 60858.102115
+  },
+  {
+   "lam": 4.375,
+   "flux": 1438.1486,
+   "err": 0.2276,
+   "epoch": 0,
+   "det": 5,
+   "mjd": 61237.920631
+  },
+  {
+   "lam": 4.438,
+   "flux": 1480.97,
+   "err": 0.2074,
+   "epoch": 0,
+   "det": 6,
+   "mjd": 61240.293156
+  },
+  {
+   "lam": 4.478,
+   "flux": 5834.1547,
+   "err": 0.6492,
+   "epoch": 0,
+   "det": 6,
+   "mjd": 60850.290665
+  },
+  {
+   "lam": 4.489,
+   "flux": 5153.6862,
+   "err": 0.5564,
+   "epoch": 0,
+   "det": 6,
+   "mjd": 60852.327236
+  },
+  {
+   "lam": 4.566,
+   "flux": 5838.9522,
+   "err": 0.7025,
+   "epoch": 0,
+   "det": 6,
+   "mjd": 60850.968379
+  },
+  {
+   "lam": 4.599,
+   "flux": 6427.3362,
+   "err": 0.671,
+   "epoch": 0,
+   "det": 6,
+   "mjd": 60850.969871
+  },
+  {
+   "lam": 4.726,
+   "flux": 6420.0597,
+   "err": 1.5219,
+   "epoch": 0,
+   "det": 6,
+   "mjd": 60847.57249
+  },
+  {
+   "lam": 4.788,
+   "flux": 7255.5834,
+   "err": 1.0205,
+   "epoch": 0,
+   "det": 6,
+   "mjd": 60853.143623
+  },
+  {
+   "lam": 4.815,
+   "flux": 2180.4627,
+   "err": 0.273,
+   "epoch": 0,
+   "det": 6,
+   "mjd": 61240.160008
+  },
+  {
+   "lam": 4.857,
+   "flux": 7742.7908,
+   "err": 1.2404,
+   "epoch": 0,
+   "det": 6,
+   "mjd": 60853.146607
+  },
+  {
+   "lam": 4.886,
+   "flux": 2459.2994,
+   "err": 0.3631,
+   "epoch": 0,
+   "det": 6,
+   "mjd": 61240.162992
+  },
+  {
+   "lam": 4.909,
+   "flux": 7662.0041,
+   "err": 1.1768,
+   "epoch": 0,
+   "det": 6,
+   "mjd": 60849.205797
+  },
+  {
+   "lam": 4.96,
+   "flux": 3195.6336,
+   "err": 0.4166,
+   "epoch": 0,
+   "det": 6,
+   "mjd": 61240.567216
+  },
+  {
+   "lam": 4.964,
+   "flux": 9821.5151,
+   "err": 1.6245,
+   "epoch": 0,
+   "det": 6,
+   "mjd": 60850.357674
+  },
+  {
+   "lam": 4.979,
+   "flux": 10171.3386,
+   "err": 1.4621,
+   "epoch": 0,
+   "det": 6,
+   "mjd": 60856.403966
+  },
+  {
+   "lam": 4.996,
+   "flux": 3059.4585,
+   "err": 0.438,
+   "epoch": 0,
+   "det": 6,
+   "mjd": 61240.568708
+  }
+ ],
+ "spectrum_source": {
+  "method": "Quick-look aperture photometry, measured on the object in each image while following it. Not calibrated science values.",
+  "measured": 33,
+  "exposures": 90,
+  "skipped": 57,
+  "skipped_reason": "saturated or flagged pixels inside the measuring circle, or off the detector"
+ }
+}

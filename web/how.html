@@ -20,8 +20,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=12">
-<link rel="stylesheet" href="showcase.css?v=12">
+<link rel="stylesheet" href="style.css?v=13">
+<link rel="stylesheet" href="showcase.css?v=13">
 <style>
   .how-page { max-width: 1040px; margin: 0 auto; }
   .how-page h1 { font-size: clamp(2rem, 4.4vw, 3rem); letter-spacing: -0.03em; margin: 26px 0 10px; }
@@ -163,6 +163,7 @@
       <dt>Real steps vs Blend</dt><dd>Toggle between jumping strictly across actual astronomical exposures (Real steps) or fading between sweeps (Blend). When blending, frames are explicitly labelled “not observed”.</dd>
       <dt>Spectra</dt><dd>One dot per real exposure, measured with quick-look photometry. Not calibrated science values. Exposures with bad pixels in the measuring circle are left out.</dd>
       <dt>Magnified</dt><dd>Zooming in enlarges real pixels; nothing is added.</dd>
+      <dt>Repaired pixels</dt><dd>Pixels the SPHEREx pipeline marks as permanently defective (dead, hot, cold or missing) are filled from their neighbours in the pictures, so they do not look like discoveries, and they are never used in a measurement. Saturated star centres hold no measurement and are drawn white.</dd>
       <dt>Candidate</dt><dd>A change the checks could not confirm. It is placed into the community review queue, never assumed as a discovery.</dd>
       <dt>Citizen findings</dt><dd>Saved in your browser. “Send to the review queue” opens a pre-filled public report on GitHub that the team and other visitors can check. Nothing is sent automatically to the Minor Planet Center, the official clearing house for asteroid and comet discoveries.</dd>
       <dt>From orbits</dt><dd>Where a comet or asteroid should be comes from NASA JPL Horizons. The picture around it is a real SPHEREx exposure.</dd>
