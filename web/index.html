@@ -8,8 +8,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=5">
-<link rel="stylesheet" href="showcase.css?v=5">
+<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="showcase.css?v=6">
+<link rel="stylesheet" href="story.css?v=6">
 </head>
 <body>
 
@@ -23,35 +24,83 @@
   </form>
   <button id="open-findings" type="button" class="findings-header-btn" aria-label="Open My Findings">📋 My Findings <span id="findings-count" class="count-badge">0</span></button>
   <a class="nav-how" href="how.html">How it works</a>
-  <a class="button-link nav-explorer" href="explore.html">Explorer &rarr;</a>
+  <a class="button-link nav-explorer" href="explore.html">Explorer</a>
 </header>
 
 <p id="status" class="status" role="status" aria-live="polite"></p>
 
-<!-- ======================= home: the changes feed ======================= -->
+<!-- ======================= home: the story, then the feed ======================= -->
 <main id="feed-view">
-  <section class="intro hero">
-    <div class="hero-text">
-      <h1>The sky is not as still as it looks.</h1>
-      <p>NASA's SPHEREx telescope photographs the whole sky every six months. Sky Blink lines those photographs up, finds what moved or changed, and tells you about it. Pick any card to travel through time.</p>
-      <div class="intro-actions">
-        <button id="tour-start" type="button" class="primary tour-start">Take the 2-minute tour</button>
-        <a class="button-link secondary-cta" href="explore.html">Open Explorer</a>
+  <!-- A scroll-driven story over real SPHEREx images of Barnard's Star.
+       Each [data-from] block is shown while the reader's scroll position
+       (in screen heights) is between data-from and data-to. -->
+  <section class="story" id="story" aria-label="What Sky Blink does">
+    <div class="story-stage">
+      <canvas id="story-canvas" aria-hidden="true"></canvas>
+      <div class="story-shade" aria-hidden="true"></div>
+
+      <div class="chapter chapter-title" data-from="-1" data-to="0.85">
+        <h1>The sky is not as still as it looks.</h1>
+        <p>Scroll, and watch a real star move.</p>
+        <span class="story-cue" aria-hidden="true"></span>
       </div>
+
+      <div class="chapter" data-from="1" data-to="2">
+        <h2>Every six months, NASA&rsquo;s SPHEREx telescope photographs the entire sky in infrared.</h2>
+        <p>This is one small patch of it: a quarter of a degree across, half the width of the full Moon. Every speck is a star.</p>
+      </div>
+
+      <div class="chapter chapter-plate" data-from="2" data-to="3.45">
+        <h2>In 1930, Clyde Tombaugh found Pluto by flipping between two photographs of the same stars.</h2>
+        <p>He used a blink comparator. Whatever jumped had moved. Keep scrolling to flip these two pictures, taken a year apart.</p>
+      </div>
+
+      <div class="chapter" data-from="3.45" data-to="4.35">
+        <h2>Sky Blink does the same with SPHEREx, for any patch of sky.</h2>
+        <p>It lines up every pass, finds every star, and works out which ones moved or changed brightness.</p>
+      </div>
+
+      <div class="chapter chapter-star" data-from="4.35" data-to="6.05">
+        <h2 id="story-star-name">This is Barnard&rsquo;s Star.</h2>
+        <p id="story-star-text">It crosses our sky faster than any other star. Your scroll is the calendar.</p>
+      </div>
+
+      <div class="chapter chapter-steps" data-from="6.05" data-to="7.85">
+        <h2>How Sky Blink finds a change</h2>
+        <ol class="story-steps">
+          <li><span><b>Stack</b> 30 to 40 exposures from each pass into one clean picture.</span></li>
+          <li><span><b>Match</b> every star between passes. Anything that moved in a straight line, or got brighter or fainter, stands out from the noise.</span></li>
+          <li><span><b>Check</b> for false alarms: reflections inside the telescope, glare from bright stars, glowing gas clouds.</span></li>
+          <li><span><b>Explain</b> each result in plain language. Every number in the text is checked against the measurements.</span></li>
+        </ol>
+      </div>
+
+      <div class="chapter chapter-end" data-from="7.85" data-to="99">
+        <h2>Stars on the move. Stars that fade. An interstellar comet.</h2>
+        <p>Eleven places are measured and ready to explore, or point Sky Blink anywhere in the sky.</p>
+        <div class="story-actions">
+          <button id="tour-start" type="button" class="primary tour-start">Take the 2-minute tour</button>
+          <a class="button-link secondary-cta" href="explore.html">Open the Explorer</a>
+        </div>
+      </div>
+
+      <div class="story-time" id="story-time" aria-hidden="true">
+        <span class="story-date" id="story-date"></span>
+        <div class="story-rail"><i id="story-fill"></i><div id="story-ticks"></div></div>
+      </div>
+      <p class="story-credit">Real images: NASA SPHEREx via IRSA</p>
     </div>
-    <figure class="hero-demo" id="hero" hidden>
-      <button type="button" class="hero-plate" id="hero-open" aria-label="Open this star in the time machine">
-        <canvas id="hero-canvas" width="440" height="440"></canvas>
-        <span class="hero-date" id="hero-date"></span>
-      </button>
-      <figcaption id="hero-caption"></figcaption>
-    </figure>
   </section>
-  <div id="feed"></div>
-  <section class="explore-cta">
-    <h2>Somewhere else in mind?</h2>
-    <p>Search above, or open the explorer to look at any position in the sky. Live searches take up to a minute the first time.</p>
-    <a class="button-link" href="explore.html">Open the explorer</a>
+
+  <section class="feed-wrap" aria-labelledby="feed-title">
+    <h2 id="feed-title" class="feed-title">Start with a real result</h2>
+    <p class="feed-lede">Each of these was measured from SPHEREx images. Open one to travel through time.</p>
+    <div id="feed"></div>
+    <section class="explore-cta">
+      <h2>Somewhere else in mind?</h2>
+      <p>Search for a star or nebula at the top of the page, or open the Explorer to look at any position in the sky. A new place takes up to a minute to load the first time.</p>
+      <a class="button-link" href="explore.html">Open the Explorer</a>
+    </section>
   </section>
 </main>
 
@@ -246,6 +295,7 @@
   <p>Images: NASA SPHEREx Level 2 spectral images from the NASA/IPAC Infrared Science Archive. Detections are automated measurements and can be wrong; candidates are labelled as such.</p>
 </footer>
 
-<script src="showcase.js?v=5"></script>
+<script src="showcase.js?v=6"></script>
+<script src="story.js?v=6"></script>
 </body>
 </html>

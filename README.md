@@ -28,7 +28,11 @@ brightness jumps out, the same way Pluto was found with a blink comparator.
   them; otherwise the site falls back to sentences built from the numbers.
 - **Name search** for well-known objects, any name SIMBAD/NED knows
   (`/api/resolve`), plus coordinates.
-- **Home hero**: Barnard's Star moving, from real images, as soon as the page opens.
+- **Scroll story (home page)**: a full-screen sky made of real SPHEREx pixels
+  that the reader's scroll drives, with passages appearing and vanishing over
+  it. It turns into a glass-plate negative for the blink comparator that
+  found Pluto, then scrubs through the dates as Barnard's Star moves 9.1″.
+  Nothing plays on its own (`web/story.js`, `web/story.css`).
 - **Swipe mode**: drag a divider between the first and last image.
 - **How it works** page (`how.html`) explaining what is measured and what is blended.
 - **Explorer** (`explore.html`) for any position: blink, spectrum, and a
@@ -109,7 +113,7 @@ without it the text is built from the measurements.
 | Change detection | `backend/detect.py` | Stacks sweeps, finds sources, reports motion and brightness changes, and confirms them |
 | Text | `backend/narrate.py` | Gemini or rule-based descriptions of the measurements, with number checking |
 | Showcase build | `tools/build_showcase.py` | Pre-computes targets into `web/showcase/` |
-| Pages | `web/` | `index.html` + `showcase.js` (feed and time machine), `explore.html` + `app.js` (any position) |
+| Pages | `web/` | `index.html` + `story.js` (scroll story) + `showcase.js` (feed and time machine), `explore.html` + `app.js` (any position) |
 
 `backend/data/wave_tables.json` holds the mission's per-detector wavelength
 lookup grids, copied from the image files.

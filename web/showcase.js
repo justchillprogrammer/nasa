@@ -1138,72 +1138,6 @@ async function route() {
   }
 }
 
-/* ---------------------------------------------------------- home hero */
-
-// A real result playing on the home page: the top mover, zoomed in.
-async function heroInit() {
-  const box = document.getElementById("hero");
-  const t = S.index.find((x) => x.slug === "barnard") || S.index.find((x) => (x.kinds || {}).moved);
-  if (!t) return;
-  let meta;
-  try { meta = await fetch(`showcase/${t.slug}/meta.json`).then((r) => r.json()); } catch (_) { return; }
-  const c = meta.changes.find((x) => x.kind === "moved");
-  if (!c || !c.track) return;
-  const n = meta.npix;
-  const bufs = await Promise.all(meta.sweeps.map((s) => fetch(`showcase/${t.slug}/${s.frame}`).then((r) => r.arrayBuffer())));
-  const frames = bufs.map(decodeF16);
-  const med = quantile(frames[0], 0.5), sig = Math.max(med - quantile(frames[0], 0.16), 1e-4);
-  const white = Math.max(quantile(frames[0], 0.997) - med, 10 * sig), floor = med - 1.5 * sig;
-  const soft = 8, normv = Math.asinh(soft);
-  const canv = frames.map((d) => {
-    const cv = document.createElement("canvas"); cv.width = cv.height = n;
-    const cx = cv.getContext("2d"), img = cx.createImageData(n, n), px = img.data;
-    for (let i = 0, j = 0; i < d.length; i++, j += 4) {
-      const v = d[i];
-      let s = v !== v ? 1 : Math.asinh(soft * (v - floor) / white) / normv;
-      s = s < 0 ? 0 : s > 1 ? 1 : s;
-      px[j] = 255 * s; px[j + 1] = 255 * Math.pow(s, 1.08); px[j + 2] = 255 * Math.pow(s, 1.22); px[j + 3] = 255;
-    }
-    cx.putImageData(img, 0, 0);
-    return cv;
-  });
-  const mid = c.track[Math.floor(c.track.length / 2)], span = 64;
-  const sx = Math.max(0, Math.min(n - span, mid.x - span / 2)), sy = Math.max(0, Math.min(n - span, mid.y - span / 2));
-  const cvs = document.getElementById("hero-canvas"), ctx = cvs.getContext("2d"), W = cvs.width;
-  const dateEl = document.getElementById("hero-date");
-  const toX = (x) => (x - sx + 0.5) * W / span, toY = (y) => (y - sy + 0.5) * W / span;
-  const years = c.rate_arcsec_per_year ? (c.shift_arcsec / c.rate_arcsec_per_year).toFixed(1) : null;
-  document.getElementById("hero-caption").innerHTML =
-    `<strong>${meta.name}</strong> moved ${c.shift_arcsec}″ to the ${c.direction} between ${meta.sweeps[0].label} and ${meta.sweeps[meta.sweeps.length - 1].label}` +
-    `${years ? `, in ${years} year${years === "1.0" ? "" : "s"}` : ""}. Real SPHEREx images, magnified. Tap to open the time machine.`;
-  document.getElementById("hero-open").addEventListener("click", () => { location.hash = `#/${t.slug}`; });
-  box.hidden = false;
-  const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const HOLD = 1100, MOVE = 1600, seg = HOLD + MOVE, total = seg * (canv.length - 1) + HOLD;
-  function frame(now) {
-    if (!document.getElementById("feed-view").hidden) {
-      const tt = still ? total - 1 : now % (total + 800);
-      let k = Math.min(canv.length - 1, Math.floor(tt / seg)), w = 0;
-      const into = tt - k * seg;
-      if (k < canv.length - 1 && into > HOLD) w = (into - HOLD) / MOVE;
-      if (k >= canv.length - 1) { k = canv.length - 1; w = 0; }
-      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
-      ctx.globalAlpha = 1; ctx.drawImage(canv[k], sx, sy, span, span, 0, 0, W, W);
-      if (w > 0) { ctx.globalAlpha = w; ctx.drawImage(canv[k + 1], sx, sy, span, span, 0, 0, W, W); ctx.globalAlpha = 1; }
-      // measured track and the star's position now
-      ctx.strokeStyle = "#ffb347"; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.8; ctx.beginPath();
-      c.track.forEach((p, i) => (i ? ctx.lineTo(toX(p.x), toY(p.y)) : ctx.moveTo(toX(p.x), toY(p.y))));
-      ctx.stroke(); ctx.globalAlpha = 1;
-      const a = c.track[k], b = c.track[Math.min(k + 1, c.track.length - 1)];
-      const px = a.x + w * (b.x - a.x), py = a.y + w * (b.y - a.y);
-      ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(toX(px), toY(py), 34, 0, 7); ctx.stroke();
-      dateEl.textContent = w > 0.02 && w < 0.98 ? "…" : meta.sweeps[w > 0.5 ? k + 1 : k].label;
-    }
-    if (!still) requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
-}
-
 /* ---------------------------------------------------------- spectral bands */
 
 function setBand(bandId) {
@@ -1573,4 +1507,4 @@ if (el.clearFindings) el.clearFindings.addEventListener("click", clearAllFinding
 window.addEventListener("hashchange", route);
 setMode("fade");
 loadFindings();
-loadIndex().then(() => { renderFeed(); route(); heroInit(); });
+loadIndex().then(() => { renderFeed(); route(); });

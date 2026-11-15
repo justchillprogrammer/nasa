@@ -127,5 +127,28 @@ class TestExplorerHomeTargets(unittest.TestCase):
         self.assertNotIn("animation-delay", js)
 
 
+class TestHomeStory(unittest.TestCase):
+    """The home page opens with a scroll-driven story over real images."""
+
+    def test_story_markup_and_scripts(self):
+        html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
+        self.assertIn('id="story"', html)
+        self.assertIn('id="story-canvas"', html)
+        self.assertIn('story.js', html)
+        self.assertIn('id="tour-start"', html)   # showcase.js needs it
+        self.assertGreaterEqual(html.count('class="chapter'), 6)
+
+    def test_story_uses_real_frames_and_no_autoplay(self):
+        js = (ROOT / "web" / "story.js").read_text(encoding="utf-8")
+        self.assertIn('const SLUG = "barnard"', js)
+        self.assertIn("decodeF16", js)
+        self.assertNotIn("setInterval", js)      # nothing blinks on its own
+        self.assertTrue((ROOT / "web" / "showcase" / "barnard" / "meta.json").exists())
+
+    def test_old_hero_removed(self):
+        js = (ROOT / "web" / "showcase.js").read_text(encoding="utf-8")
+        self.assertNotIn("heroInit", js)
+
+
 if __name__ == "__main__":
     unittest.main()
