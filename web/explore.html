@@ -12,9 +12,21 @@
 </head>
 <body>
 
+<header class="bar top-nav-bar" id="site-nav">
+  <div class="nav-left">
+    <a href="/#story" class="btn-intro" id="nav-intro" title="View interactive introduction">✦ Introduction</a>
+    <a href="/" class="wordmark" id="home">Sky Blink</a>
+  </div>
+  <nav class="nav-links" aria-label="Main Navigation">
+    <a class="nav-btn" href="/">Homepage</a>
+    <a class="nav-btn active" href="explore.html" aria-current="page">Explorer</a>
+    <a class="nav-btn" href="about.html">About Us</a>
+  </nav>
+</header>
+
 <header class="masthead">
   <div class="brand">
-    <h1><a href="/" class="home-link">Sky Blink</a></h1>
+    <h1 style="font-size: clamp(1.8rem, 4vw, 2.8rem);"><a href="/" class="home-link">Explorer</a></h1>
     <p>Flip between SPHEREx images of one patch of sky, taken months apart. Whatever moved or changed jumps out.</p>
   </div>
 
@@ -34,14 +46,14 @@
       </select>
       <button type="submit" class="primary">Look here</button>
     </div>
-    <p id="coords-help" class="help">Type the name of a star, nebula or galaxy (suggestions appear as you type), or pick one below.</p>
+    <p id="coords-help" class="help">Start typing any object name (A &rarr; An &rarr; Andromeda) or filter by category below:</p>
     <div class="filters-container">
-      <div class="filter-row" hidden>
+      <div class="filter-row">
         <span class="filter-label">Homepage Categories:</span>
         <div id="filter-home" class="filter-tabs" role="tablist" aria-label="Homepage Categories"></div>
       </div>
       <div class="filter-row">
-        <span class="filter-label">Show:</span>
+        <span class="filter-label">Object Types:</span>
         <div id="filter-astro" class="filter-tabs" role="tablist" aria-label="Astronomical Categories"></div>
       </div>
     </div>
@@ -66,7 +78,6 @@
 <main class="bench">
 
   <section class="viewer" aria-label="Image viewer">
-    <p class="guide">Every picture here is a real SPHEREx image of this spot, taken months apart. Press Play or Blink: anything that jumps has changed. Or press “Find what changed” and Sky Blink looks for you.</p>
     <div class="plate" id="plate">
       <canvas id="view" width="384" height="384" aria-label="SPHEREx image of the selected patch of sky"></canvas>
       <svg id="overlay" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>

@@ -10,48 +10,103 @@
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css?v=4">
 <link rel="stylesheet" href="showcase.css?v=4">
+<link rel="stylesheet" href="story.css?v=4">
 </head>
 <body>
 
-<header class="bar">
-  <a href="/" class="wordmark" id="home">Sky Blink</a>
+<header class="bar top-nav-bar" id="site-nav">
+  <div class="nav-left">
+    <a href="#story" class="btn-intro" id="nav-intro" title="View interactive introduction">✦ Introduction</a>
+    <a href="/" class="wordmark" id="home">Sky Blink</a>
+  </div>
   <form id="search" class="search" role="search" autocomplete="off">
     <label for="q" class="visually-hidden">Search the sky</label>
     <input id="q" type="search" placeholder="Search a star, nebula or coordinates" spellcheck="false">
     <button type="submit">Search</button>
     <ul id="suggest" class="suggest" role="listbox" hidden></ul>
   </form>
-  <button id="open-findings" type="button" class="findings-header-btn" aria-label="Open My Findings">📋 My Findings <span id="findings-count" class="count-badge">0</span></button>
-  <a class="nav-how" href="how.html">How it works</a>
-  <a class="button-link nav-explorer" href="explore.html">Explorer &rarr;</a>
+  <nav class="nav-links" aria-label="Main Navigation">
+    <a class="nav-btn active" href="/" aria-current="page">Homepage</a>
+    <a class="nav-btn" href="explore.html">Explorer</a>
+    <a class="nav-btn" href="about.html">About Us</a>
+  </nav>
 </header>
 
 <p id="status" class="status" role="status" aria-live="polite"></p>
 
-<!-- ======================= home: the changes feed ======================= -->
+<!-- ======================= home: the story, then the feed ======================= -->
 <main id="feed-view">
-  <section class="intro hero">
-    <div class="hero-text">
-      <h1>The sky is not as still as it looks.</h1>
-      <p>NASA's SPHEREx telescope photographs the whole sky every six months. Sky Blink lines those photographs up, finds what moved or changed, and tells you about it. Pick any card to travel through time.</p>
-      <div class="intro-actions">
-        <button id="tour-start" type="button" class="primary tour-start">Take the 2-minute tour</button>
-        <a class="button-link secondary-cta" href="explore.html">Open Explorer</a>
+  <!-- A scroll-driven story over real SPHEREx images of Barnard's Star.
+       Each [data-from] block is shown while the reader's scroll position
+       (in screen heights) is between data-from and data-to. -->
+  <section class="story" id="story" aria-label="What Sky Blink does">
+    <div class="story-stage">
+      <canvas id="story-canvas" aria-hidden="true"></canvas>
+      <div class="story-shade" aria-hidden="true"></div>
+
+      <div class="chapter chapter-title" data-from="-1" data-to="0.85">
+        <h1>The sky is not as still as it looks.</h1>
+        <p>Scroll, and watch a real star move.</p>
+        <span class="story-cue" aria-hidden="true"></span>
       </div>
+
+      <div class="chapter" data-from="1" data-to="2">
+        <h2>Every six months, NASA&rsquo;s SPHEREx telescope photographs the entire sky in infrared.</h2>
+        <p>This is one small patch of it: a quarter of a degree across, half the width of the full Moon. Every speck is a star.</p>
+      </div>
+
+      <div class="chapter chapter-plate" data-from="2" data-to="3.45">
+        <h2>In 1930, Clyde Tombaugh found Pluto by flipping between two photographs of the same stars.</h2>
+        <p>He used a blink comparator. Whatever jumped had moved. Keep scrolling to flip these two pictures, taken a year apart.</p>
+      </div>
+
+      <div class="chapter" data-from="3.45" data-to="4.35">
+        <h2>Sky Blink does the same with SPHEREx, for any patch of sky.</h2>
+        <p>It lines up every pass, finds every star, and works out which ones moved or changed brightness.</p>
+      </div>
+
+      <div class="chapter chapter-star" data-from="4.35" data-to="6.05">
+        <h2 id="story-star-name">This is Barnard&rsquo;s Star.</h2>
+        <p id="story-star-text">It crosses our sky faster than any other star. Your scroll is the calendar.</p>
+      </div>
+
+      <div class="chapter chapter-steps" data-from="6.05" data-to="7.85">
+        <h2>How Sky Blink finds a change</h2>
+        <ol class="story-steps">
+          <li><span><b>Stack</b> 30 to 40 exposures from each pass into one clean picture.</span></li>
+          <li><span><b>Match</b> every star between passes. Anything that moved in a straight line, or got brighter or fainter, stands out from the noise.</span></li>
+          <li><span><b>Check</b> for false alarms: reflections inside the telescope, glare from bright stars, glowing gas clouds.</span></li>
+          <li><span><b>Explain</b> each result in plain language. Every number in the text is checked against the measurements.</span></li>
+        </ol>
+      </div>
+
+      <div class="chapter chapter-end" data-from="7.85" data-to="99">
+        <h2>Stars on the move. Stars that fade. An interstellar comet.</h2>
+        <p>Eleven places are measured and ready to explore, or point Sky Blink anywhere in the sky.</p>
+        <div class="story-actions">
+          <button id="tour-start" type="button" class="primary tour-start">Take the 2-minute tour</button>
+          <a class="button-link secondary-cta" href="explore.html">Open the Explorer</a>
+        </div>
+      </div>
+
+      <div class="story-time" id="story-time" aria-hidden="true">
+        <span class="story-date" id="story-date"></span>
+        <div class="story-rail"><i id="story-fill"></i><div id="story-ticks"></div></div>
+      </div>
+      <div class="story-progress" aria-hidden="true"><i id="story-progress"></i></div>
+      <p class="story-credit">Real images: NASA SPHEREx via IRSA</p>
     </div>
-    <figure class="hero-demo" id="hero" hidden>
-      <button type="button" class="hero-plate" id="hero-open" aria-label="Open this star in the time machine">
-        <canvas id="hero-canvas" width="440" height="440"></canvas>
-        <span class="hero-date" id="hero-date"></span>
-      </button>
-      <figcaption id="hero-caption"></figcaption>
-    </figure>
   </section>
-  <div id="feed"></div>
-  <section class="explore-cta">
-    <h2>Somewhere else in mind?</h2>
-    <p>Search above, or open the explorer to look at any position in the sky. Live searches take up to a minute the first time.</p>
-    <a class="button-link" href="explore.html">Open the explorer</a>
+
+  <section class="feed-wrap" aria-labelledby="feed-title">
+    <h2 id="feed-title" class="feed-title">Start with a real result</h2>
+    <p class="feed-lede">Each of these was measured from SPHEREx images. Open one to travel through time.</p>
+    <div id="feed"></div>
+    <section class="explore-cta">
+      <h2>Somewhere else in mind?</h2>
+      <p>Search above, or open the explorer to look at any position in the sky. Live searches take up to a minute the first time.</p>
+      <a class="button-link" href="explore.html">Open the explorer</a>
+    </section>
   </section>
 </main>
 
@@ -74,28 +129,11 @@
 
   <div class="machine">
     <section class="stage" aria-label="Time machine">
-      <p class="guide" id="guide"></p>
       <div class="plate" id="plate">
         <canvas id="view" width="720" height="720" aria-label="SPHEREx image of this part of the sky"></canvas>
         <div class="plate-tag" id="tag"></div>
         <div class="plate-zoom" id="zoom-tag" hidden></div>
-        <div class="swipe-label left" id="swipe-left" hidden></div>
-        <div class="swipe-label right" id="swipe-right" hidden></div>
         <div class="plate-empty" id="t-empty">Loading images…</div>
-      </div>
-
-      <!-- SPHEREx 6 Detector Bands Selector -->
-      <div class="band-bar" id="band-bar" role="radiogroup" aria-label="SPHEREx Spectral Bands">
-        <span class="band-bar-label">Detector Band:</span>
-        <div class="band-pills" id="band-pills">
-          <button type="button" class="band-pill on" data-band="0" title="Stacked 1.0 – 2.0 µm (Broadband)">All <small>1–2µm</small></button>
-          <button type="button" class="band-pill" data-band="1" title="Detector 1: 0.75 – 1.11 µm (Deep Blue)">1 <small>0.75-1.1µm</small></button>
-          <button type="button" class="band-pill" data-band="2" title="Detector 2: 1.11 – 1.64 µm (Cyan)">2 <small>1.1-1.6µm</small></button>
-          <button type="button" class="band-pill" data-band="3" title="Detector 3: 1.64 – 2.42 µm (Green)">3 <small>1.6-2.4µm</small></button>
-          <button type="button" class="band-pill" data-band="4" title="Detector 4: 2.42 – 3.82 µm (Amber)">4 <small>2.4-3.8µm</small></button>
-          <button type="button" class="band-pill" data-band="5" title="Detector 5: 3.82 – 4.42 µm (Red)">5 <small>3.8-4.4µm</small></button>
-          <button type="button" class="band-pill" data-band="6" title="Detector 6: 4.42 – 5.00 µm (Deep Red)">6 <small>4.4-5.0µm</small></button>
-        </div>
       </div>
 
       <div class="timebar">
@@ -104,18 +142,12 @@
           <input id="time" type="range" min="0" max="1000" value="0" step="1" aria-label="Date">
           <div class="ticks" id="ticks"></div>
         </div>
-        <!-- Real steps / Blend toggle -->
-        <div class="blend-toggle" id="blend-toggle" role="radiogroup" aria-label="Time machine playback mode">
-          <label class="blend-opt"><input type="radio" name="blend-mode" value="blend" checked> Blend <span class="blend-sub">(smooth)</span></label>
-          <label class="blend-opt"><input type="radio" name="blend-mode" value="steps"> Real steps <span class="blend-sub">(exact)</span></label>
-        </div>
       </div>
       <p class="when" id="when"></p>
 
       <div class="modes" role="radiogroup" aria-label="View">
         <label><input type="radio" name="mode" value="fade" checked> Time machine</label>
         <label><input type="radio" name="mode" value="blink"> Blink first and last</label>
-        <label><input type="radio" name="mode" value="swipe"> Swipe first and last</label>
         <label id="mode-diff"><input type="radio" name="mode" value="diff"> Show only what changed</label>
         <label id="mode-stack" hidden><input type="radio" name="mode" value="stack"> Stack all images on it</label>
         <label class="check"><input id="marks" type="checkbox" checked> Mark changes</label>
@@ -123,7 +155,6 @@
       </div>
       <p class="help" id="mode-help"></p>
       <div class="share">
-        <button id="flag-btn" type="button" class="flag-trigger-btn">🚩 Flag finding (click image)</button>
         <button id="share-link" type="button">Copy link to this view</button>
         <button id="save-picture" type="button">Save picture</button>
         <button id="save-video" type="button">Save video</button>
@@ -136,19 +167,7 @@
       <p id="summary" class="summary"></p>
       <p id="writer" class="writer"></p>
       <ol id="changes" class="changes"></ol>
-      <button id="review-candidates-btn" type="button" class="review-candidates-btn" hidden>🔍 Review candidate changes (<span id="review-count">0</span>)</button>
       <button id="zoom-out" type="button" hidden>Show the whole view</button>
-
-      <!-- Pre-computed Offline Spectrum Chart Card -->
-      <section class="spectrum-card" id="spectrum-card">
-        <div class="spectrum-card-header">
-          <h3>Infrared Spectrum</h3>
-          <span class="spectrum-range">0.75 – 5.0 µm</span>
-        </div>
-        <div id="target-spectrum-view" class="target-spectrum-view"></div>
-        <p class="spectrum-caption" id="spectrum-caption">Pre-computed from real per-exposure measurements. Tap any band to inspect.</p>
-      </section>
-
       <details class="how">
         <summary>How Sky Blink finds changes</summary>
         <p>For each six-monthly sweep, Sky Blink stacks the 30 to 40 SPHEREx exposures taken between 1 and 2 micrometres into one clean image. It finds every star, matches them between sweeps, and keeps only changes far larger than the measurement noise.</p>
@@ -160,92 +179,11 @@
   </div>
 </main>
 
-<!-- Citizen Science Flag Modal -->
-<div id="flag-modal" class="modal-backdrop" hidden>
-  <div class="modal-card" role="dialog" aria-labelledby="flag-title">
-    <h3 id="flag-title">Flag an Astronomical Finding</h3>
-    <p class="flag-coords-info">Target: <strong id="flag-target"></strong> | Sky position: <span id="flag-ra-dec"></span></p>
-    <p class="flag-date-info">Sweep date: <span id="flag-obs-date"></span></p>
-    <div id="flag-match-alert" class="match-alert" hidden></div>
-    
-    <label class="modal-label">
-      <span>Observation Category</span>
-      <select id="flag-type" class="modal-input">
-        <option value="Moving">Moving object (asteroid, comet, or fast star)</option>
-        <option value="Brightness change">Brightness change (variable star, flare)</option>
-        <option value="Artifact">Artifact / Instrument reflection</option>
-        <option value="Not sure">Not sure / Candidate for inspection</option>
-      </select>
-    </label>
-    
-    <label class="modal-label">
-      <span>Notes</span>
-      <textarea id="flag-notes" class="modal-input" placeholder="What caught your eye? (e.g. shifts north between sweeps, faded in sweep 2)" rows="3"></textarea>
-    </label>
-    
-    <div class="modal-actions">
-      <button type="button" id="flag-save" class="primary">Save Finding</button>
-      <button type="button" id="flag-cancel">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- Candidate Review Queue Modal ("Is this real?") -->
-<div id="review-modal" class="modal-backdrop" hidden>
-  <div class="modal-card modal-medium" role="dialog" aria-labelledby="review-title">
-    <h3 id="review-title">Review Unconfirmed Candidate</h3>
-    <p id="review-task-desc" class="review-task-desc">The detector flagged this candidate. Is it real? Compare before and after:</p>
-    <div class="review-compare" id="review-compare">
-      <div class="review-pane">
-        <span class="review-pane-label" id="review-lbl-before">First Observation</span>
-        <canvas id="review-cvs-before" width="160" height="160"></canvas>
-      </div>
-      <div class="review-pane">
-        <span class="review-pane-label" id="review-lbl-after">Later Observation</span>
-        <canvas id="review-cvs-after" width="160" height="160"></canvas>
-      </div>
-    </div>
-    <p id="review-meta" class="review-meta"></p>
-    
-    <div class="modal-actions review-actions">
-      <button type="button" id="review-vote-real" class="primary">✓ Real change</button>
-      <button type="button" id="review-vote-artifact">✗ Artifact / Reflection</button>
-      <button type="button" id="review-vote-unsure">? Not sure</button>
-      <button type="button" id="review-close" style="margin-left:auto">Close</button>
-    </div>
-  </div>
-</div>
-
-<!-- My Findings Modal (A Report Ready to Share) -->
-<div id="findings-modal" class="modal-backdrop" hidden>
-  <div class="modal-card modal-wide" role="dialog" aria-labelledby="findings-title">
-    <div class="findings-header">
-      <div>
-        <h2 id="findings-title">My Findings</h2>
-        <p class="findings-subtitle">A report ready to share</p>
-      </div>
-      <button type="button" id="findings-close-x" class="close-x-btn" aria-label="Close findings">✕</button>
-    </div>
-    <p class="findings-intro">Observational findings logged by citizen-science inspection across SPHEREx sweeps. Prepared as an observational summary ready to share with collaborators or citizen-science projects (not formatted as a submission-ready MPC report).</p>
-    
-    <div id="findings-list" class="findings-list"></div>
-    
-    <div class="findings-footer">
-      <div class="export-buttons">
-        <button type="button" id="export-csv" class="primary">Export CSV</button>
-        <button type="button" id="export-json">Export JSON</button>
-        <button type="button" id="clear-findings" class="btn-subtle">Clear findings</button>
-      </div>
-      <button type="button" id="findings-done">Close</button>
-    </div>
-  </div>
-</div>
-</main>
-
 <footer class="foot">
   <p>Images: NASA SPHEREx Level 2 spectral images from the NASA/IPAC Infrared Science Archive. Detections are automated measurements and can be wrong; candidates are labelled as such.</p>
 </footer>
 
 <script src="showcase.js?v=4"></script>
+<script src="story.js?v=4"></script>
 </body>
 </html>

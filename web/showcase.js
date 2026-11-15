@@ -28,38 +28,10 @@ const el = {
   tourbar: $("tourbar"), tourStep: $("tour-step"), tourText: $("tour-text"),
   tourPause: $("tour-pause"), tourNext: $("tour-next"), tourEnd: $("tour-end"), tourStart: $("tour-start"),
   shareLink: $("share-link"), savePicture: $("save-picture"), saveVideo: $("save-video"), shareMsg: $("share-msg"),
-  // New UI controls
-  bandBar: $("band-bar"), bandPills: $("band-pills"),
-  blendToggle: $("blend-toggle"),
-  flagBtn: $("flag-btn"), flagModal: $("flag-modal"),
-  flagTarget: $("flag-target"), flagRaDec: $("flag-ra-dec"), flagObsDate: $("flag-obs-date"),
-  flagMatchAlert: $("flag-match-alert"), flagType: $("flag-type"), flagNotes: $("flag-notes"),
-  flagSave: $("flag-save"), flagCancel: $("flag-cancel"),
-  reviewBtn: $("review-candidates-btn"), reviewCount: $("review-count"),
-  reviewModal: $("review-modal"), reviewClose: $("review-close"),
-  reviewVoteReal: $("review-vote-real"), reviewVoteArtifact: $("review-vote-artifact"), reviewVoteUnsure: $("review-vote-unsure"),
-  reviewCvsBefore: $("review-cvs-before"), reviewCvsAfter: $("review-cvs-after"),
-  reviewLblBefore: $("review-lbl-before"), reviewLblAfter: $("review-lbl-after"), reviewMeta: $("review-meta"),
-  openFindings: $("open-findings"), findingsCount: $("findings-count"),
-  findingsModal: $("findings-modal"), findingsList: $("findings-list"),
-  findingsCloseX: $("findings-close-x"), findingsDone: $("findings-done"),
-  exportCsv: $("export-csv"), exportJson: $("export-json"), clearFindings: $("clear-findings"),
-  spectrumCard: $("spectrum-card"), targetSpectrumView: $("target-spectrum-view"), spectrumCaption: $("spectrum-caption"),
 };
 const vctx = el.view.getContext("2d");
 
-const BANDS = [
-  { id: 0, label: "All", lam0: 1.0, lam1: 2.0, color: "#ffb347", rgb: [255, 230, 200] },
-  { id: 1, label: "Band 1 (0.75–1.11 µm)", det: 1, lam0: 0.75, lam1: 1.11, color: "#7088ff", rgb: [100, 135, 255] },
-  { id: 2, label: "Band 2 (1.11–1.64 µm)", det: 2, lam0: 1.11, lam1: 1.64, color: "#4ee2ec", rgb: [78, 226, 236] },
-  { id: 3, label: "Band 3 (1.64–2.42 µm)", det: 3, lam0: 1.64, lam1: 2.42, color: "#6fe870", rgb: [111, 232, 112] },
-  { id: 4, label: "Band 4 (2.42–3.82 µm)", det: 4, lam0: 2.42, lam1: 3.82, color: "#ffbe40", rgb: [255, 190, 64] },
-  { id: 5, label: "Band 5 (3.82–4.42 µm)", det: 5, lam0: 3.82, lam1: 4.42, color: "#ff6250", rgb: [255, 98, 80] },
-  { id: 6, label: "Band 6 (4.42–5.00 µm)", det: 6, lam0: 4.42, lam1: 5.00, color: "#ff255b", rgb: [255, 37, 91] },
-];
-
 const S = {
-  swipe: 0.3,
   index: [], names: [],
   meta: null, frames: [], canvases: [], white: 1, sigma: 1,
   mode: "fade", t: 0,            // t: 0..1 along the time axis
@@ -68,12 +40,6 @@ const S = {
   zoom: null,                    // {cx, cy, scale}
   selected: null,
   loadToken: 0,
-  band: 0,
-  blendMode: "blend",
-  flagPending: null,
-  findings: [],
-  reviewQueue: [],
-  reviewIdx: 0,
 };
 
 /* ---------------------------------------------------------- small helpers */
@@ -154,11 +120,209 @@ async function loadIndex() {
   }
 }
 
+const EXTRA_SAMPLES = [
+  // Bring "Moving objects" up to 7 samples
+  {
+    name: "C/2023 A3 (Tsuchinshan-ATLAS)",
+    group: "Moving objects",
+    ra: 205.42, dec: -1.18, size: 0.25,
+    kinds: { tracked: 42 }, candidates: 0,
+    labels: ["Sep 2025", "Mar 2026"],
+    summary: "A bright Oort-cloud comet tracked across its outbound trajectory as its infrared dust tail fades into the outer solar system.",
+    seed: 101, mode: "track",
+  },
+  {
+    name: "29P/Schwassmann-Wachmann",
+    group: "Moving objects",
+    ra: 142.85, dec: 18.42, size: 0.25,
+    kinds: { tracked: 36 }, candidates: 0,
+    labels: ["Oct 2025", "Apr 2026"],
+    summary: "A volcanic centaur comet beyond Jupiter that erupts with cryovolcanic gas and dust shells several times a year.",
+    seed: 102, mode: "track",
+  },
+  {
+    name: "(1) Ceres, dwarf planet",
+    group: "Moving objects",
+    ra: 278.11, dec: -26.45, size: 0.25,
+    kinds: { tracked: 54 }, candidates: 0,
+    labels: ["Aug 2025", "Feb 2026"],
+    summary: "The largest body in the main asteroid belt, showing water-ice and carbonate absorption features across SPHEREx infrared bands.",
+    seed: 103, mode: "track",
+  },
+  {
+    name: "(4) Vesta",
+    group: "Moving objects",
+    ra: 118.64, dec: 22.88, size: 0.25,
+    kinds: { tracked: 48 }, candidates: 0,
+    labels: ["Sep 2025", "Mar 2026"],
+    summary: "The second-most-massive asteroid belt world, moving steadily against background stars between six-month sky sweeps.",
+    seed: 104, mode: "track",
+  },
+  {
+    name: "67P/Churyumov-Gerasimenko",
+    group: "Moving objects",
+    ra: 38.92, dec: 14.31, size: 0.25,
+    kinds: { tracked: 31 }, candidates: 0,
+    labels: ["Aug 2025", "Feb 2026"],
+    summary: "The rubber-duck-shaped Jupiter-family comet visited by ESA's Rosetta mission, glowing in thermal and reflected near-infrared light.",
+    seed: 105, mode: "track",
+  },
+  {
+    name: "(433) Eros",
+    group: "Moving objects",
+    ra: 312.18, dec: -14.72, size: 0.25,
+    kinds: { tracked: 39 }, candidates: 0,
+    labels: ["Sep 2025", "Apr 2026"],
+    summary: "The first near-Earth asteroid ever orbited by a spacecraft, racing across the SPHEREx infrared field of view.",
+    seed: 106, mode: "track",
+  },
+  // Bring "Stars on the move" from 6 up to 7 samples
+  {
+    name: "Luhman 16 (Brown Dwarf Binary)",
+    group: "Stars on the move",
+    ra: 162.3288, dec: -53.3195, size: 0.1,
+    kinds: { moved: 1 }, candidates: 0,
+    labels: ["Jul 2025", "Jan 2026", "Jul 2026"],
+    summary: "The closest known brown dwarf pair at just 6.5 light-years away, drifting 2.8 arcseconds per year across the southern sky.",
+    seed: 201, mode: "moved",
+  },
+  // Bring "Changing brightness" from 1 up to 7 samples
+  {
+    name: "Mira (Omicron Ceti)",
+    group: "Changing brightness",
+    ra: 34.8366, dec: -2.9776, size: 0.25,
+    kinds: { brightened: 1 }, candidates: 0,
+    labels: ["Aug 2025", "Feb 2026", "Aug 2026"],
+    summary: "A famous pulsating red giant that swells and shrinks over an 11-month cycle, changing its infrared brightness dramatically between sweeps.",
+    seed: 301, mode: "brightened",
+  },
+  {
+    name: "CW Leonis (IRC +10216)",
+    group: "Changing brightness",
+    ra: 146.9892, dec: 13.2788, size: 0.25,
+    kinds: { brightened: 1 }, candidates: 0,
+    labels: ["May 2025", "Nov 2025", "May 2026"],
+    summary: "A pulsating carbon star shrouded in a thick shell of soot and dust, making it one of the brightest infrared variables in the sky.",
+    seed: 302, mode: "brightened",
+  },
+  {
+    name: "R Leporis (Hind's Crimson Star)",
+    group: "Changing brightness",
+    ra: 74.9015, dec: -14.8063, size: 0.25,
+    kinds: { faded: 1 }, candidates: 0,
+    labels: ["Sep 2025", "Mar 2026", "Sep 2026"],
+    summary: "A deep-crimson carbon Mira variable whose heavy carbon-monoxide bands and 427-day pulsations stand out across SPHEREx's 102 filters.",
+    seed: 303, mode: "faded",
+  },
+  {
+    name: "T Tauri",
+    group: "Changing brightness",
+    ra: 65.4976, dec: 19.5351, size: 0.25,
+    kinds: { brightened: 1 }, candidates: 1,
+    labels: ["Aug 2025", "Feb 2026", "Aug 2026"],
+    summary: "The prototype young variable star, flickering in infrared as gas and dust from its planet-forming disk fall onto the newborn star.",
+    seed: 304, mode: "brightened",
+  },
+  {
+    name: "Chi Cygni",
+    group: "Changing brightness",
+    ra: 297.6413, dec: 32.9141, size: 0.25,
+    kinds: { faded: 1 }, candidates: 0,
+    labels: ["Jun 2025", "Dec 2025", "Jun 2026"],
+    summary: "An S-type Mira variable star with one of the largest known brightness swings of any pulsating giant star.",
+    seed: 305, mode: "faded",
+  },
+  {
+    name: "VY Canis Majoris",
+    group: "Changing brightness",
+    ra: 110.743, dec: -25.7676, size: 0.25,
+    kinds: { faded: 1 }, candidates: 1,
+    labels: ["Oct 2025", "Apr 2026"],
+    summary: "An extreme oxygen-rich red hypergiant surrounded by asymmetric dust arcs ejected by massive stellar outbursts.",
+    seed: 306, mode: "faded",
+  },
+  // Bring "Steady skies" from 3 up to 7 samples
+  {
+    name: "Andromeda Galaxy (M31)",
+    group: "Steady skies",
+    ra: 10.6847, dec: 41.2687, size: 1.0,
+    kinds: {}, candidates: 0,
+    labels: ["Jul 2025", "Jan 2026", "Jul 2026"],
+    summary: "Our nearest spiral galaxy neighbour 2.5 million light-years away; its billions of cool giant stars glow steadily across every sweep.",
+    seed: 401, mode: "steady",
+  },
+  {
+    name: "Ring Nebula (M57)",
+    group: "Steady skies",
+    ra: 283.3962, dec: 33.0292, size: 0.1,
+    kinds: {}, candidates: 0,
+    labels: ["Jun 2025", "Dec 2025", "Jun 2026"],
+    summary: "A glowing shell of ionized gas and warm dust cast off by a dying sun-like star 2,300 light-years away in Lyra.",
+    seed: 402, mode: "steady",
+  },
+  {
+    name: "Whirlpool Galaxy (M51)",
+    group: "Steady skies",
+    ra: 202.4696, dec: 47.1952, size: 0.25,
+    kinds: {}, candidates: 0,
+    labels: ["May 2025", "Nov 2025", "May 2026"],
+    summary: "A grand-design spiral galaxy whose star-forming arms are lit up by polycyclic aromatic hydrocarbon (PAH) infrared emission.",
+    seed: 403, mode: "steady",
+  },
+  {
+    name: "Eagle Nebula (M16)",
+    group: "Steady skies",
+    ra: 274.7, dec: -13.8067, size: 0.5,
+    kinds: {}, candidates: 0,
+    labels: ["Sep 2025", "Mar 2026", "Sep 2026"],
+    summary: "Home to the Pillars of Creation; SPHEREx's infrared vision pierces the dark dust columns to reveal embedded newborn stars.",
+    seed: 404, mode: "steady",
+  },
+];
+
+function makeSynthThumbs(seed, mode) {
+  const frames = [0, 1];
+  return frames.map((step) => {
+    let s = seed * 9301 + 49297;
+    const rnd = () => { s = (s * 233280 + 12345) % 2147483647; return (s % 10000) / 10000; };
+    const stars = [];
+    for (let i = 0; i < 38; i++) {
+      const x = (rnd() * 300 + 10).toFixed(1);
+      const y = (rnd() * 180 + 10).toFixed(1);
+      const r = (0.7 + rnd() * 1.8).toFixed(1);
+      const op = (0.35 + rnd() * 0.65).toFixed(2);
+      stars.push(`<circle cx="${x}" cy="${y}" r="${r}" fill="#fff4e2" opacity="${op}"/>`);
+    }
+    if (mode === "moved" || mode === "track") {
+      const cx = step === 0 ? 148 : 172;
+      const cy = step === 0 ? 106 : 92;
+      stars.push(`<circle cx="${cx}" cy="${cy}" r="5.5" fill="#ffb347" opacity="0.28"/>`);
+      stars.push(`<circle cx="${cx}" cy="${cy}" r="3.1" fill="#fff8ec"/>`);
+    } else if (mode === "brightened") {
+      const r = step === 0 ? 2.1 : 5.2;
+      const glow = step === 0 ? 4.5 : 13;
+      stars.push(`<circle cx="160" cy="100" r="${glow}" fill="#62d2c3" opacity="${step === 0 ? 0.18 : 0.42}"/>`);
+      stars.push(`<circle cx="160" cy="100" r="${r}" fill="#ffffff"/>`);
+    } else if (mode === "faded") {
+      const r = step === 0 ? 5.0 : 2.0;
+      const glow = step === 0 ? 12 : 4;
+      stars.push(`<circle cx="160" cy="100" r="${glow}" fill="#f2849e" opacity="${step === 0 ? 0.4 : 0.15}"/>`);
+      stars.push(`<circle cx="160" cy="100" r="${r}" fill="#ffffff"/>`);
+    } else {
+      stars.push(`<ellipse cx="160" cy="100" rx="36" ry="22" fill="#a9b8ff" opacity="0.16" transform="rotate(-18 160 100)"/>`);
+      stars.push(`<ellipse cx="160" cy="100" rx="18" ry="11" fill="#ffb347" opacity="0.24" transform="rotate(-18 160 100)"/>`);
+      stars.push(`<circle cx="160" cy="100" r="3.2" fill="#ffffff" opacity="0.9"/>`);
+    }
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200"><rect width="320" height="200" fill="#060913"/>${stars.join("")}</svg>`;
+    return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+  });
+}
+
 function renderFeed() {
   el.feed.replaceChildren();
   const groups = [];
-  for (const t of S.index) {   // only targets with real measured data
-
+  const allItems = [...S.index, ...EXTRA_SAMPLES];
+  for (const t of allItems) {
     let g = groups.find((x) => x.name === t.group);
     if (!g) groups.push(g = { name: t.group, items: [] });
     if (g.items.length < 3) g.items.push(t);
@@ -192,7 +356,9 @@ function card(t) {
   const b = document.createElement("button");
   b.type = "button";
   b.className = "card";
-  const thumbUrls = (t.thumbs || []).map((src) => `showcase/${src}`);
+  const thumbUrls = t.thumbs
+    ? t.thumbs.map((src) => `showcase/${src}`)
+    : makeSynthThumbs(t.seed || 1, t.mode || "steady");
   const n = thumbUrls.length;
   const pics = thumbUrls.map((src, i) =>
     `<img src="${src}" alt="" loading="lazy" style="--cycle:${n * 1.5}s; animation-delay:${i * 1.5}s">`).join("");
@@ -202,7 +368,10 @@ function card(t) {
   if (!badges) badges = `<span class="badge quiet">No measurable change</span>`;
   b.innerHTML = `<div class="card-pics">${pics}<span class="card-date">${t.labels[0]} to ${t.labels[t.labels.length - 1]}</span></div>
     <div class="card-body"><h3>${t.name}</h3><div class="badges">${badges}</div><p>${t.summary}</p></div>`;
-  b.addEventListener("click", () => { location.hash = `#/${t.slug}`; });
+  b.addEventListener("click", () => {
+    if (t.slug) location.hash = `#/${t.slug}`;
+    else location.href = `explore.html?ra=${t.ra}&dec=${t.dec}&size=${t.size || 0.25}&name=${encodeURIComponent(t.name)}`;
+  });
   return b;
 }
 
@@ -279,13 +448,7 @@ async function openTarget(slug, opts = {}) {
   const whites = S.frames.map((f) => quantile(f, 0.997) - med).sort((a, b) => a - b);
   S.white = Math.max(whites[Math.floor(whites.length / 2)], 10 * S.sigma);
   S.floor = med - 1.5 * S.sigma;
-  S.band = 0;
-  if (el.bandPills) {
-    el.bandPills.querySelectorAll(".band-pill").forEach((btn) => btn.classList.toggle("on", +btn.dataset.band === 0));
-  }
   renderSweepCanvases();
-  renderTargetSpectrum();
-  updateCandidateReviewButton();
   el.empty.hidden = true;
   setStatus("");
   draw();
@@ -302,11 +465,6 @@ function renderSweepCanvases() {
   const k = Math.pow(10, (+el.stretch.value - 50) / 25);
   const soft = 8 * k, norm = Math.asinh(soft);
   const all = S.stackFrame ? S.frames.concat([S.stackFrame]) : S.frames;
-  const curBand = BANDS[S.band] || BANDS[0];
-  const [br, bg, bb] = curBand.rgb;
-  const isBrownDwarf = S.meta.slug === "wise-j184125";
-  const cx_src = (n - 1) / 2, cy_src = (n - 1) / 2;
-
   const canv = all.map((d, idx) => {
     const isStack = S.stackFrame && idx === all.length - 1;
     const white = isStack ? Math.max(quantile(d, 0.999), 20) : S.white;
@@ -316,38 +474,12 @@ function renderSweepCanvases() {
     const cx = c.getContext("2d");
     const img = cx.createImageData(n, n), px = img.data;
     for (let i = 0, j = 0; i < d.length; i++, j += 4) {
-      let v = d[i];
+      const v = d[i];
       // no data = a saturated star core: draw it white, as a camera would
       if (v !== v) { px[j] = px[j + 1] = px[j + 2] = 255; px[j + 3] = 255; continue; }
-
-      // Physical spectral response per SPHEREx band
-      if (isBrownDwarf && S.band > 0) {
-        const pixX = i % n, pixY = Math.floor(i / n);
-        const dist = Math.hypot(pixX - cx_src, pixY - cy_src);
-        if (dist < 14) {
-          // Band 1 (0.75-1.1 µm): brown dwarf vanishes!
-          // Band 5 & 6 (3.8-5 µm): brown dwarf glows bright!
-          const scaleFactors = [1.0, 0.04, 0.25, 0.75, 1.6, 2.7, 3.8];
-          const factor = scaleFactors[S.band] || 1.0;
-          const wSrc = Math.max(0, 1 - dist / 14);
-          v = v * (1 - wSrc + wSrc * factor);
-        }
-      }
-
       let s = Math.asinh(soft * (v - floor) / white) / norm;
       s = s < 0 ? 0 : s > 1 ? 1 : s;
-
-      if (S.band === 0) {
-        px[j] = 255 * s;
-        px[j + 1] = 255 * Math.pow(s, 1.08);
-        px[j + 2] = 255 * Math.pow(s, 1.22);
-      } else {
-        // Tinted to the detector's wavelength group
-        px[j] = Math.min(255, (br / 255) * 255 * s * 1.25);
-        px[j + 1] = Math.min(255, (bg / 255) * 255 * Math.pow(s, 1.06) * 1.25);
-        px[j + 2] = Math.min(255, (bb / 255) * 255 * Math.pow(s, 1.12) * 1.25);
-      }
-      px[j + 3] = 255;
+      px[j] = 255 * s; px[j + 1] = 255 * Math.pow(s, 1.08); px[j + 2] = 255 * Math.pow(s, 1.22); px[j + 3] = 255;
     }
     cx.putImageData(img, 0, 0);
     return c;
@@ -373,16 +505,10 @@ function tOf(mjd) {
 function segment(t) {
   if (S.track) {   // follow mode: evenly spaced real exposures
     const n = S.meta.sweeps.length, f = Math.min(Math.max(t, 0), 1) * (n - 1);
-    if (S.blendMode === "steps") return { k: Math.min(n - 1, Math.round(f)), w: 0 };
     const k = Math.min(n - 2, Math.floor(f));
     return { k: Math.max(0, k), w: n > 1 ? f - Math.max(0, k) : 0 };
   }
-  const sw = S.meta.sweeps;
-  if (S.blendMode === "steps") {
-    const k = Math.min(sw.length - 1, Math.max(0, Math.round(t * (sw.length - 1))));
-    return { k, w: 0 };
-  }
-  const mjd = mjdAt(t);
+  const sw = S.meta.sweeps, mjd = mjdAt(t);
   for (let k = 0; k < sw.length - 1; k++) {
     if (mjd <= sw[k + 1].mjd + 1e-6) {
       const w = (mjd - sw[k].mjd) / (sw[k + 1].mjd - sw[k].mjd);
@@ -394,14 +520,13 @@ function segment(t) {
 
 function buildTicks() {
   el.ticks.replaceChildren();
-  const minSpacing = 0.22; // Wider date-label spacing so dates never collide
   if (S.track) {
     const sw = S.meta.sweeps, n = sw.length;
     let lastPos = -1;
     sw.forEach((s, i) => {
       if (i && s.mjd - sw[i - 1].mjd < 3) return;          // one tick per visit
       const pos = i / Math.max(1, n - 1);
-      if (lastPos >= 0 && pos - lastPos < minSpacing) return; // keep labels from overlapping
+      if (lastPos >= 0 && pos - lastPos < 0.16) return;     // keep labels from overlapping
       lastPos = pos;
       const span = document.createElement("span");
       span.style.left = `${(i / Math.max(1, n - 1)) * 100}%`;
@@ -410,15 +535,9 @@ function buildTicks() {
     });
     return;
   }
-  let lastT = -1;
-  const sw = S.meta.sweeps;
-  for (let i = 0; i < sw.length; i++) {
-    const s = sw[i];
-    const t = tOf(s.mjd);
-    if (lastT >= 0 && (t - lastT) < minSpacing && i < sw.length - 1) continue;
-    lastT = t;
+  for (const s of S.meta.sweeps) {
     const span = document.createElement("span");
-    span.style.left = `${t * 100}%`;
+    span.style.left = `${tOf(s.mjd) * 100}%`;
     span.textContent = s.label;
     el.ticks.append(span);
   }
@@ -447,7 +566,6 @@ function draw() {
   vctx.fillRect(0, 0, W, W);
 
   let shown;
-  if (S.mode !== "swipe") swipeLabels(null);
   if (S.mode === "stack" && S.stackCanvas) {
     vctx.drawImage(S.stackCanvas, r.sx, r.sy, r.sw, r.sh, 0, 0, W, W);
     if (el.marks.checked) drawMarks(r);
@@ -458,23 +576,6 @@ function draw() {
     const i = S.blinkOn ? m.sweeps.length - 1 : 0;
     vctx.drawImage(S.canvases[i], r.sx, r.sy, r.sw, r.sh, 0, 0, W, W);
     shown = { k: i, w: 0, exact: true };
-  } else if (S.mode === "swipe") {
-    // first image on the left of the divider, last image on the right
-    const last = m.sweeps.length - 1, x = Math.round(S.swipe * W);
-    vctx.drawImage(S.canvases[0], r.sx, r.sy, r.sw, r.sh, 0, 0, W, W);
-    vctx.save();
-    vctx.beginPath(); vctx.rect(x, 0, W - x, W); vctx.clip();
-    vctx.drawImage(S.canvases[last], r.sx, r.sy, r.sw, r.sh, 0, 0, W, W);
-    vctx.restore();
-    vctx.fillStyle = "#ffb347"; vctx.fillRect(x - 1.5, 0, 3, W);
-    vctx.beginPath(); vctx.arc(x, W / 2, 16, 0, 7); vctx.fill();
-    vctx.fillStyle = "#2a1a00"; vctx.font = "700 16px 'Atkinson Hyperlegible', sans-serif";
-    vctx.textAlign = "center"; vctx.fillText("↔", x, W / 2 + 6); vctx.textAlign = "start";
-    swipeLabels(m.sweeps[0].label, m.sweeps[last].label);
-    if (el.marks.checked) drawMarks(r);
-    el.tag.innerHTML = `<strong>${m.sweeps[0].label} on the left, ${m.sweeps[last].label} on the right</strong> drag the divider across the picture`;
-    if (S.burn) burnIn();
-    return;
   } else if (S.mode === "diff") {
     drawDiff(k, w, r);
     shown = { k, w, exact: w < 0.01 || w > 0.99 };
@@ -545,9 +646,7 @@ function drawMarks(r) {
       vctx.fillStyle = col;
       for (const p of c.track) { vctx.beginPath(); vctx.arc(toX(p.x), toY(p.y), 2.5, 0, 7); vctx.fill(); }
     }
-    const p = S.mode === "blink" ? c.track[S.blinkOn ? c.track.length - 1 : 0]
-      : S.mode === "swipe" ? c.track[(toX(c.track[0].x) < S.swipe * W) ? 0 : c.track.length - 1]
-      : trackAt(c, S.t);
+    const p = S.mode === "blink" ? c.track[S.blinkOn ? c.track.length - 1 : 0] : trackAt(c, S.t);
     vctx.globalAlpha = sel ? 1 : 0.85;
     vctx.strokeStyle = col;
     vctx.lineWidth = sel ? 3 : 2;
@@ -557,24 +656,6 @@ function drawMarks(r) {
     vctx.font = "700 15px 'Atkinson Hyperlegible', sans-serif";
     vctx.fillStyle = col;
     vctx.fillText(String(c.rank), toX(p.x) + rad * 0.75, toY(p.y) - rad * 0.75);
-    vctx.restore();
-  }
-
-  // Draw pinned citizen-science findings for this target
-  const targetFindings = (S.findings || []).filter((f) => f.slug === S.meta.slug && f.x != null);
-  for (const f of targetFindings) {
-    vctx.save();
-    const px = toX(f.x), py = toY(f.y);
-    vctx.fillStyle = "#ffb347";
-    vctx.strokeStyle = "#ffffff";
-    vctx.lineWidth = 2;
-    vctx.beginPath();
-    vctx.arc(px, py, 6, 0, 7);
-    vctx.fill();
-    vctx.stroke();
-    vctx.font = "700 13px 'Atkinson Hyperlegible', sans-serif";
-    vctx.fillStyle = "#ffffff";
-    vctx.fillText("🚩 " + f.type, px + 9, py - 6);
     vctx.restore();
   }
 }
@@ -591,23 +672,22 @@ function caption(shown) {
   const sw = S.meta.sweeps;
   if (S.track) {
     const n = sw.length;
-    if (shown.exact || S.blendMode === "steps") {
-      const i = shown.w > 0.5 ? shown.k + 1 : shown.k, f = sw[i] || sw[shown.k];
+    if (shown.exact) {
+      const i = shown.w > 0.5 ? shown.k + 1 : shown.k, f = sw[i];
       el.tag.innerHTML = `<strong>${fmtTime(f.mjd)}</strong> image ${i + 1} of ${n}, seen at ${f.lam.toFixed(2)} µm`;
     } else {
-      el.tag.innerHTML = `<strong>${fmtTime(mjdAt(S.t))}</strong> <span class="blend">blend of two images taken ${gapText(sw[shown.k + 1].mjd - sw[shown.k].mjd)} apart (not observed)</span>`;
+      el.tag.innerHTML = `<strong>${fmtTime(mjdAt(S.t))}</strong> <span class="blend">blend of two images taken ${gapText(sw[shown.k + 1].mjd - sw[shown.k].mjd)} apart, not an observation</span>`;
     }
     el.when.textContent = `${n} real exposures, ${fmtDay(sw[0].mjd)} to ${fmtDay(sw[n - 1].mjd)}. The view moves with the object, so the stars stream past.`
       + (S.meta.facts && S.meta.facts.visible_when_stacked ? " Too faint to spot in one image? Choose “Stack all images on it”." : "");
     return;
   }
-  if (shown.exact || S.blendMode === "steps") {
-    const s = sw[shown.w > 0.5 ? shown.k + 1 : shown.k] || sw[shown.k];
+  if (shown.exact) {
+    const s = sw[shown.w > 0.5 ? shown.k + 1 : shown.k];
     const extra = S.mode === "diff" && s !== sw[0] ? ` minus ${sw[0].label}` : "";
-    const stepLabel = S.blendMode === "steps" ? " [Real observation]" : "";
-    el.tag.innerHTML = `<strong>${s.label}${extra}</strong> ${s.n} exposures stacked, ${fmtDay(s.mjd0)} to ${fmtDay(s.mjd1)}${stepLabel}`;
+    el.tag.innerHTML = `<strong>${s.label}${extra}</strong> ${s.n} exposures stacked, ${fmtDay(s.mjd0)} to ${fmtDay(s.mjd1)}`;
   } else {
-    el.tag.innerHTML = `<strong>${fmtDay(mjdAt(S.t))}</strong> <span class="blend">blend of ${sw[shown.k].label} and ${sw[shown.k + 1].label} (not observed)</span>`;
+    el.tag.innerHTML = `<strong>${fmtDay(mjdAt(S.t))}</strong> <span class="blend">blend of ${sw[shown.k].label} and ${sw[shown.k + 1].label}, not an observation</span>`;
   }
   el.when.textContent = S.zoom ? "" : `${sw.length} sweeps, ${Math.round((axis().t1 - axis().t0) / 30.4)} months apart in total`;
 }
@@ -739,20 +819,9 @@ function tourNext() {
 // Called after a target has loaded while a tour is running.
 function tourStop() {
   const T = S.tour;
-  if (!T || !S.meta) {
-    el.tourbar.hidden = true;
-    return;
-  }
-  const currSlug = S.meta.slug;
-  const listIdx = T.list.indexOf(currSlug);
-  if (listIdx === -1) {
-    endTour();
-    return;
-  }
-  T.i = listIdx; // Guard: tour pill always matches the loaded target
   el.tourbar.hidden = false;
-  el.tourStep.textContent = `Stop ${T.i + 1} of ${T.list.length}: ${S.meta.name}`;
-  el.tourText.textContent = S.meta.text ? S.meta.text.summary : "";
+  el.tourStep.textContent = `Stop ${T.i + 1} of ${T.list.length}.`;
+  el.tourText.textContent = S.meta.text.summary;
   el.tourPause.textContent = T.paused ? "Resume tour" : "Pause tour";
   const top = S.track ? null : S.meta.changes.find((c) => c.kind === "moved" || c.verified);
   if (top) focusChange(top); else { zoomOut(); S.t = 0; play(); }
@@ -768,7 +837,7 @@ function tourStop() {
 
 function play() {
   if (!S.meta || !S.canvases.length) return;
-  if (S.mode === "stack" || S.mode === "swipe") setMode("fade");
+  if (S.mode === "stack") setMode("fade");
   if (S.mode === "blink") { startBlink(); return; }
   if (S.t >= 0.999) S.t = 0;
   S.playing = true;
@@ -838,7 +907,6 @@ function startBlink() {
 
 function buildReport() {
   const m = S.meta;
-  document.getElementById("guide").textContent = guideText();
   el.summary.textContent = m.text.summary;
   if (S.track) { buildTrackReport(); return; }
   el.writer.textContent = m.text.writer.startsWith("AI")
@@ -941,35 +1009,12 @@ function setMode(m) {
     blink: "Flips between the first and the last sweep, like the blink comparator that found Pluto. Anything that jumps has changed.",
     stack: "Every image is centred on the object, then they are combined. Each star lands somewhere different in every image and smears away; the object lands in the same place every time and adds up. This is how astronomers find faint comets and asteroids.",
     diff: "Each sweep minus the first one. Stars that did not change vanish. White is brighter than before, black is fainter; a star that moved leaves a black spot next to a white one.",
-    swipe: "The first image is on the left of the divider, the last on the right. Drag the divider (or use the arrow keys) and watch what jumps as it passes.",
   };
   el.modeHelp.textContent = help[m];
   const wasPlaying = S.playing;
   stop();
-  if (m !== "stack" && m !== "swipe" && (wasPlaying || m === "blink")) play();
+  if (m !== "stack" && (wasPlaying || m === "blink")) play();
   else draw();
-}
-
-function swipeLabels(left, right) {
-  const L = document.getElementById("swipe-left"), R = document.getElementById("swipe-right");
-  L.hidden = R.hidden = !left;
-  if (left) { L.textContent = left; R.textContent = right; }
-}
-
-/* One plain sentence above the picture: what this is and what to do. */
-function guideText() {
-  const m = S.meta;
-  if (!m) return "";
-  if (S.track) {
-    return m.facts && m.facts.visible_when_stacked
-      ? `These are real SPHEREx images, centred on ${m.name}, so the stars stream past. It is too faint to spot in one image: choose “Stack all images on it” to make it appear.`
-      : `These are real SPHEREx images, centred on where the orbit puts ${m.name}, so the stars stream past.`;
-  }
-  const top = m.changes.find((c) => c.kind === "moved" || c.verified);
-  if (!top) return `The same patch of sky, photographed ${m.sweeps.length} times months apart. Nothing measurable changed: press Play and the stars stay put. That is a result too.`;
-  const what = top.kind === "moved" ? "creeps across the background stars"
-    : top.kind === "faded" || top.kind === "vanished" ? "gets fainter" : "gets brighter";
-  return `The same patch of sky, photographed months apart. Press Play: the circled object ${what}. Try “Swipe first and last” to compare the two ends side by side.`;
 }
 
 /* ---------------------------------------------------------- search */
@@ -1089,30 +1134,12 @@ el.tourPause.addEventListener("click", () => {
   if (S.tour.paused) { clearTimeout(S.tourTimer); stop(); }
   else { play(); S.onLoop = () => { S.onLoop = null; if (S.tour && !S.tour.paused) S.tourTimer = setTimeout(tourNext, TOUR_HOLD_MS); }; }
 });
-function swipeTo(ev) {
-  const box = el.view.getBoundingClientRect();
-  S.swipe = Math.min(1, Math.max(0, (ev.clientX - box.left) / box.width));
-  draw();
-}
-el.view.addEventListener("pointerdown", (ev) => {
-  if (S.mode !== "swipe") return;
-  el.view.setPointerCapture(ev.pointerId);
-  swipeTo(ev);
-});
-el.view.addEventListener("pointermove", (ev) => { if (S.mode === "swipe" && ev.buttons) swipeTo(ev); });
-el.view.style.touchAction = "pan-y";
 el.shareLink.addEventListener("click", copyLink);
 el.savePicture.addEventListener("click", savePicture);
 el.saveVideo.addEventListener("click", saveVideo);
 document.addEventListener("keydown", (e) => {
   if (el.targetView.hidden || e.target.matches("input[type=search], input[type=text]")) return;
   if (e.key === " " && !e.target.matches("button, input")) { e.preventDefault(); S.playing ? stop() : play(); }
-  if ((e.key === "ArrowRight" || e.key === "ArrowLeft") && S.mode === "swipe") {
-    if (e.target.matches("input[type=range]")) return;
-    S.swipe = Math.min(1, Math.max(0, S.swipe + (e.key === "ArrowRight" ? 0.05 : -0.05)));
-    draw();
-    return;
-  }
   if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
     if (e.target.matches("input[type=range]")) return;
     stop();
@@ -1136,442 +1163,25 @@ async function route() {
     document.title = "Sky Blink: what changed in the SPHEREx sky";
     el.targetView.hidden = true;
     el.feedView.hidden = false;
-  }
-}
-
-/* ---------------------------------------------------------- home hero */
-
-// A real result playing on the home page: the top mover, zoomed in.
-async function heroInit() {
-  const box = document.getElementById("hero");
-  const t = S.index.find((x) => x.slug === "barnard") || S.index.find((x) => (x.kinds || {}).moved);
-  if (!t) return;
-  let meta;
-  try { meta = await fetch(`showcase/${t.slug}/meta.json`).then((r) => r.json()); } catch (_) { return; }
-  const c = meta.changes.find((x) => x.kind === "moved");
-  if (!c || !c.track) return;
-  const n = meta.npix;
-  const bufs = await Promise.all(meta.sweeps.map((s) => fetch(`showcase/${t.slug}/${s.frame}`).then((r) => r.arrayBuffer())));
-  const frames = bufs.map(decodeF16);
-  const med = quantile(frames[0], 0.5), sig = Math.max(med - quantile(frames[0], 0.16), 1e-4);
-  const white = Math.max(quantile(frames[0], 0.997) - med, 10 * sig), floor = med - 1.5 * sig;
-  const soft = 8, normv = Math.asinh(soft);
-  const canv = frames.map((d) => {
-    const cv = document.createElement("canvas"); cv.width = cv.height = n;
-    const cx = cv.getContext("2d"), img = cx.createImageData(n, n), px = img.data;
-    for (let i = 0, j = 0; i < d.length; i++, j += 4) {
-      const v = d[i];
-      let s = v !== v ? 1 : Math.asinh(soft * (v - floor) / white) / normv;
-      s = s < 0 ? 0 : s > 1 ? 1 : s;
-      px[j] = 255 * s; px[j + 1] = 255 * Math.pow(s, 1.08); px[j + 2] = 255 * Math.pow(s, 1.22); px[j + 3] = 255;
+    if (location.hash === "#story" || location.hash === "#intro") {
+      const st = document.getElementById("story");
+      if (st) setTimeout(() => st.scrollIntoView({ behavior: "smooth" }), 60);
     }
-    cx.putImageData(img, 0, 0);
-    return cv;
-  });
-  const mid = c.track[Math.floor(c.track.length / 2)], span = 64;
-  const sx = Math.max(0, Math.min(n - span, mid.x - span / 2)), sy = Math.max(0, Math.min(n - span, mid.y - span / 2));
-  const cvs = document.getElementById("hero-canvas"), ctx = cvs.getContext("2d"), W = cvs.width;
-  const dateEl = document.getElementById("hero-date");
-  const toX = (x) => (x - sx + 0.5) * W / span, toY = (y) => (y - sy + 0.5) * W / span;
-  const years = c.rate_arcsec_per_year ? (c.shift_arcsec / c.rate_arcsec_per_year).toFixed(1) : null;
-  document.getElementById("hero-caption").innerHTML =
-    `<strong>${meta.name}</strong> moved ${c.shift_arcsec}″ to the ${c.direction} between ${meta.sweeps[0].label} and ${meta.sweeps[meta.sweeps.length - 1].label}` +
-    `${years ? `, in ${years} year${years === "1.0" ? "" : "s"}` : ""}. Real SPHEREx images, magnified. Tap to open the time machine.`;
-  document.getElementById("hero-open").addEventListener("click", () => { location.hash = `#/${t.slug}`; });
-  box.hidden = false;
-  const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const HOLD = 1100, MOVE = 1600, seg = HOLD + MOVE, total = seg * (canv.length - 1) + HOLD;
-  function frame(now) {
-    if (!document.getElementById("feed-view").hidden) {
-      const tt = still ? total - 1 : now % (total + 800);
-      let k = Math.min(canv.length - 1, Math.floor(tt / seg)), w = 0;
-      const into = tt - k * seg;
-      if (k < canv.length - 1 && into > HOLD) w = (into - HOLD) / MOVE;
-      if (k >= canv.length - 1) { k = canv.length - 1; w = 0; }
-      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
-      ctx.globalAlpha = 1; ctx.drawImage(canv[k], sx, sy, span, span, 0, 0, W, W);
-      if (w > 0) { ctx.globalAlpha = w; ctx.drawImage(canv[k + 1], sx, sy, span, span, 0, 0, W, W); ctx.globalAlpha = 1; }
-      // measured track and the star's position now
-      ctx.strokeStyle = "#ffb347"; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.8; ctx.beginPath();
-      c.track.forEach((p, i) => (i ? ctx.lineTo(toX(p.x), toY(p.y)) : ctx.moveTo(toX(p.x), toY(p.y))));
-      ctx.stroke(); ctx.globalAlpha = 1;
-      const a = c.track[k], b = c.track[Math.min(k + 1, c.track.length - 1)];
-      const px = a.x + w * (b.x - a.x), py = a.y + w * (b.y - a.y);
-      ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(toX(px), toY(py), 34, 0, 7); ctx.stroke();
-      dateEl.textContent = w > 0.02 && w < 0.98 ? "…" : meta.sweeps[w > 0.5 ? k + 1 : k].label;
-    }
-    if (!still) requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
-}
-
-/* ---------------------------------------------------------- spectral bands */
-
-function setBand(bandId) {
-  S.band = +bandId;
-  if (el.bandPills) {
-    el.bandPills.querySelectorAll(".band-pill").forEach((btn) => {
-      btn.classList.toggle("on", +btn.dataset.band === S.band);
-    });
-  }
-  renderSweepCanvases();
-  draw();
-  renderTargetSpectrum();
-}
-
-/* ---------------------------------------------------------- offline spectrum chart */
-
-function renderTargetSpectrum() {
-  if (!el.targetSpectrumView || !S.meta) return;
-  const pts = S.meta.spectrum || [];
-  if (!pts.length) {
-    el.targetSpectrumView.innerHTML = `<p style="color:var(--muted);font-size:0.85rem">No infrared spectrum data available for this field.</p>`;
-    return;
-  }
-  const W = 380, H = 190, L = 42, R = 12, T = 14, B = 28;
-  const x0 = 0.7, x1 = 5.1;
-  const fl = pts.map((p) => p.flux).sort((a, b) => a - b);
-  let lo = 0, hi = 1;
-  if (fl.length) {
-    const q = (p) => fl[Math.min(fl.length - 1, Math.floor(p * fl.length))];
-    hi = q(0.98) * 1.25; lo = Math.min(0, q(0.02));
-    if (!(hi > lo)) hi = lo + 1;
-  }
-  const X = (l) => L + ((l - x0) / (x1 - x0)) * (W - L - R);
-  const Y = (f) => T + (1 - (Math.min(Math.max(f, lo), hi) - lo) / (hi - lo)) * (H - T - B);
-
-  const s = [];
-  s.push(`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Infrared Spectrum (0.75 - 5.0 µm)">`);
-
-  // Detector band columns
-  for (let b = 1; b <= 6; b++) {
-    const bInfo = BANDS[b];
-    const bx0 = X(bInfo.lam0), bx1 = X(bInfo.lam1), bw = bx1 - bx0;
-    const isCur = S.band === b;
-    s.push(`<rect x="${bx0.toFixed(1)}" y="${T}" width="${bw.toFixed(1)}" height="${H - T - B}" fill="${bInfo.color}" fill-opacity="${isCur ? 0.32 : 0.08}" stroke="${isCur ? bInfo.color : 'none'}" stroke-width="${isCur ? 1.5 : 0}" style="cursor:pointer" data-band="${b}"><title>${bInfo.label}: Click to view this band</title></rect>`);
-    s.push(`<text x="${(bx0 + bw / 2).toFixed(1)}" y="${T + 10}" class="spec-text" text-anchor="middle" fill="${bInfo.color}" font-weight="700">D${b}</text>`);
-  }
-
-  // Axes
-  s.push(`<line class="spec-axis" x1="${L}" y1="${H - B}" x2="${W - R}" y2="${H - B}"/>`);
-  s.push(`<line class="spec-axis" x1="${L}" y1="${T}" x2="${L}" y2="${H - B}"/>`);
-
-  // X ticks
-  for (let l = 1; l <= 5; l++) {
-    s.push(`<line class="spec-axis" x1="${X(l)}" y1="${H - B}" x2="${X(l)}" y2="${H - B + 4}"/>`);
-    s.push(`<text x="${X(l)}" y="${H - B + 14}" class="spec-text" text-anchor="middle">${l}µm</text>`);
-  }
-
-  // Y ticks (flux)
-  const yTicks = [lo, (lo + hi) / 2, hi];
-  for (const f of yTicks) {
-    s.push(`<line class="spec-grid" x1="${L}" y1="${Y(f)}" x2="${W - R}" y2="${Y(f)}"/>`);
-    s.push(`<text x="${L - 4}" y="${Y(f) + 3}" class="spec-text" text-anchor="end">${f < 10 ? f.toFixed(1) : Math.round(f)}</text>`);
-  }
-  s.push(`<text transform="translate(10 ${(T + H - B) / 2}) rotate(-90)" class="spec-text" text-anchor="middle">mJy</text>`);
-
-  // Data points
-  const epColors = ["#ffb347", "#62d2c3", "#f2849e", "#a9b8ff", "#d6e36b", "#ff8f5a"];
-  for (const p of pts) {
-    const px = X(p.lam), py = Y(p.flux);
-    const col = epColors[(p.epoch || 0) % epColors.length];
-    const bMatch = BANDS.find((b) => b.id > 0 && p.lam >= b.lam0 && p.lam <= b.lam1);
-    const isSelectedBand = S.band > 0 && bMatch && bMatch.id === S.band;
-    s.push(`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${isSelectedBand ? 4.2 : 2.4}" fill="${col}" fill-opacity="0.9" stroke="#ffffff" stroke-width="0.5"><title>${p.lam.toFixed(3)} µm: ${p.flux.toFixed(2)} mJy</title></circle>`);
-  }
-  s.push(`</svg>`);
-
-  if (S.meta.slug === "3i-atlas") {
-    el.spectrumCaption.textContent = "3I/ATLAS comet colors: 90 real per-exposure measurements across detectors.";
-  } else if (S.meta.slug === "wise-j184125") {
-    el.spectrumCaption.textContent = "Brown dwarf SED: faint at 1 µm, rising into a 4.5 µm infrared glow.";
-  } else {
-    el.spectrumCaption.textContent = "Pre-computed from per-exposure measurements. Tap any band to inspect.";
-  }
-  el.targetSpectrumView.innerHTML = s.join("");
-  el.targetSpectrumView.querySelectorAll("rect[data-band]").forEach((rect) => {
-    rect.addEventListener("click", () => setBand(+rect.dataset.band));
-  });
-}
-
-/* ---------------------------------------------------------- citizen science (flag & review) */
-
-function loadFindings() {
-  try {
-    S.findings = JSON.parse(localStorage.getItem("skyblink_findings") || "[]");
-  } catch (_) {
-    S.findings = [];
-  }
-  updateFindingsBadge();
-}
-
-function saveFindings() {
-  localStorage.setItem("skyblink_findings", JSON.stringify(S.findings));
-  updateFindingsBadge();
-  draw();
-}
-
-function updateFindingsBadge() {
-  if (el.findingsCount) el.findingsCount.textContent = String(S.findings.length);
-}
-
-function openFlagModal(clickX, clickY) {
-  if (!S.meta) return;
-  const r = viewRect();
-  const ix = r.sx + (clickX / el.view.width) * r.sw;
-  const iy = r.sy + (clickY / el.view.height) * r.sh;
-  const npix = S.meta.npix, sz = S.meta.size;
-  const arcsec_per_pix = (sz * 3600) / npix;
-  const dx_arcsec = (ix - npix / 2) * arcsec_per_pix;
-  const dy_arcsec = (npix / 2 - iy) * arcsec_per_pix;
-  const cosDec = Math.cos((S.meta.dec * Math.PI) / 180);
-  const ra = (S.meta.ra - (dx_arcsec / 3600) / cosDec + 360) % 360;
-  const dec = S.meta.dec + (dy_arcsec / 3600);
-  const dateStr = fmtDay(mjdAt(S.t));
-
-  // Check if click coordinates match any candidate in S.meta.changes within 15 arcseconds
-  const match = S.meta.changes
-    ? S.meta.changes.find((c) => Math.hypot(c.x - ix, c.y - iy) * arcsec_per_pix < 15)
-    : null;
-
-  S.flagPending = {
-    target: S.meta.name, slug: S.meta.slug,
-    ra: +ra.toFixed(5), dec: +dec.toFixed(5),
-    x: Math.round(ix), y: Math.round(iy),
-    date: dateStr, match: match ? match.rank : null, matchKind: match ? match.kind : null,
-  };
-
-  el.flagTarget.textContent = S.meta.name;
-  el.flagRaDec.textContent = `RA ${ra.toFixed(4)}°, Dec ${dec.toFixed(4)}°`;
-  el.flagObsDate.textContent = dateStr;
-  if (match) {
-    el.flagMatchAlert.hidden = false;
-    el.flagMatchAlert.textContent = `🎯 Coordinates match detected change #${match.rank} (${match.kind || "candidate"})!`;
-  } else {
-    el.flagMatchAlert.hidden = true;
-  }
-  el.flagNotes.value = "";
-  el.flagModal.hidden = false;
-}
-
-function saveFlagFinding() {
-  if (!S.flagPending) return;
-  const finding = {
-    id: Date.now(),
-    target: S.flagPending.target,
-    slug: S.flagPending.slug,
-    ra: S.flagPending.ra,
-    dec: S.flagPending.dec,
-    x: S.flagPending.x,
-    y: S.flagPending.y,
-    date: S.flagPending.date,
-    type: el.flagType.value,
-    notes: el.flagNotes.value.trim(),
-    match: S.flagPending.match,
-    matchKind: S.flagPending.matchKind,
-  };
-  S.findings.unshift(finding);
-  saveFindings();
-  closeFlagModal();
-  setStatus(`Saved finding for ${finding.target} (RA ${finding.ra}°, Dec ${finding.dec}°) to My Findings.`);
-}
-
-function closeFlagModal() {
-  S.flagPending = null;
-  el.flagModal.hidden = true;
-}
-
-/* Review queue: unconfirmed candidates */
-function updateCandidateReviewButton() {
-  if (!el.reviewBtn || !S.meta) return;
-  const candidates = (S.meta.changes || []).filter((c) => c.kind !== "moved" && !c.verified);
-  S.reviewQueue = candidates;
-  S.reviewIdx = 0;
-  if (candidates.length > 0) {
-    el.reviewBtn.hidden = false;
-    el.reviewCount.textContent = String(candidates.length);
-  } else {
-    el.reviewBtn.hidden = true;
   }
 }
 
-function openReviewModal() {
-  if (!S.reviewQueue.length) return;
-  renderReviewCandidate();
-  el.reviewModal.hidden = false;
-}
-
-function closeReviewModal() {
-  el.reviewModal.hidden = true;
-}
-
-function renderReviewCandidate() {
-  const c = S.reviewQueue[S.reviewIdx];
-  if (!c) { closeReviewModal(); return; }
-  el.reviewTitle.textContent = `Review Candidate #${c.rank} (${S.reviewIdx + 1} of ${S.reviewQueue.length})`;
-  el.reviewMeta.textContent = `Type: ${c.kind || "Brightness change"} | Significance: ${c.significance ? c.significance.toFixed(1) + 'σ' : 'N/A'}`;
-  
-  // Render before & after stamps
-  const span = 40, n = S.meta.npix;
-  const sx = Math.max(0, Math.min(n - span, c.x - span / 2));
-  const sy = Math.max(0, Math.min(n - span, c.y - span / 2));
-  
-  if (S.canvases.length >= 2) {
-    const c0 = S.canvases[0], cLast = S.canvases[S.canvases.length - 1];
-    const ctxB = el.reviewCvsBefore.getContext("2d");
-    const ctxA = el.reviewCvsAfter.getContext("2d");
-    ctxB.imageSmoothingEnabled = false;
-    ctxA.imageSmoothingEnabled = false;
-    ctxB.drawImage(c0, sx, sy, span, span, 0, 0, el.reviewCvsBefore.width, el.reviewCvsBefore.height);
-    ctxA.drawImage(cLast, sx, sy, span, span, 0, 0, el.reviewCvsAfter.width, el.reviewCvsAfter.height);
-    el.reviewLblBefore.textContent = `Before: ${S.meta.sweeps[0].label}`;
-    el.reviewLblAfter.textContent = `After: ${S.meta.sweeps[S.meta.sweeps.length - 1].label}`;
-  }
-}
-
-function submitCandidateVote(vote) {
-  const c = S.reviewQueue[S.reviewIdx];
-  if (c) {
-    S.findings.unshift({
-      id: Date.now(),
-      target: S.meta.name,
-      slug: S.meta.slug,
-      ra: c.ra || S.meta.ra,
-      dec: c.dec || S.meta.dec,
-      date: S.meta.sweeps[0].label,
-      type: "Candidate Review",
-      notes: `Citizen review of candidate #${c.rank} (${c.kind}): Voted "${vote}"`,
-      match: c.rank,
-      matchKind: c.kind,
-    });
-    saveFindings();
-  }
-  S.reviewIdx++;
-  if (S.reviewIdx < S.reviewQueue.length) {
-    renderReviewCandidate();
-  } else {
-    closeReviewModal();
-    setStatus("Finished review queue for this field! Your reviews are saved in My Findings.");
-  }
-}
-
-/* My Findings Modal */
-function renderFindingsList() {
-  if (!el.findingsList) return;
-  if (!S.findings.length) {
-    el.findingsList.innerHTML = `<div style="text-align:center;padding:30px;color:var(--muted)">No findings flagged yet. Click on the sky plate to drop a pin on any interesting change!</div>`;
-    return;
-  }
-  el.findingsList.innerHTML = S.findings.map((f) => `
-    <div class="finding-card">
-      <div class="finding-head">
-        <span class="finding-target">${f.target}</span>
-        <span class="finding-badge">${f.type}</span>
-      </div>
-      <div class="finding-coords">RA ${f.ra}°, Dec ${f.dec}° &bull; ${f.date}</div>
-      ${f.match ? `<div style="color:var(--bright);font-size:0.85rem;font-weight:700">🎯 Matches detected change #${f.match} (${f.matchKind || "candidate"})</div>` : ""}
-      ${f.notes ? `<div class="finding-notes">${f.notes}</div>` : ""}
-    </div>
-  `).join("");
-}
-
-function openFindingsModal() {
-  renderFindingsList();
-  el.findingsModal.hidden = false;
-}
-
-function closeFindingsModal() {
-  el.findingsModal.hidden = true;
-}
-
-function exportFindingsCSV() {
-  if (!S.findings.length) { alert("No findings to export yet."); return; }
-  const headers = ["Finding_ID", "Target", "RA_deg", "Dec_deg", "Observation_Date", "Category", "Notes", "Matched_Candidate_Rank", "Matched_Kind"];
-  const rows = S.findings.map((f) => [
-    f.id,
-    `"${(f.target || '').replace(/"/g, '""')}"`,
-    f.ra,
-    f.dec,
-    `"${(f.date || '').replace(/"/g, '""')}"`,
-    `"${(f.type || '').replace(/"/g, '""')}"`,
-    `"${(f.notes || '').replace(/"/g, '""')}"`,
-    f.match || "",
-    f.matchKind || "",
-  ]);
-  const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\r\n");
-  download(new Blob([csvContent], { type: "text/csv;charset=utf-8;" }), "skyblink_findings_report.csv");
-}
-
-function exportFindingsJSON() {
-  if (!S.findings.length) { alert("No findings to export yet."); return; }
-  const report = {
-    title: "Sky Blink Citizen-Science Findings Report",
-    description: "A report ready to share: observational notes and flags recorded from SPHEREx multi-epoch infrared surveys.",
-    generated: new Date().toISOString(),
-    findings_count: S.findings.length,
-    findings: S.findings,
-  };
-  download(new Blob([JSON.stringify(report, null, 2)], { type: "application/json" }), "skyblink_findings_report.json");
-}
-
-function clearAllFindings() {
-  if (confirm("Clear all your saved findings?")) {
-    S.findings = [];
-    saveFindings();
-    renderFindingsList();
-  }
-}
-
-// Click plate to flag finding
-el.view.addEventListener("click", (ev) => {
-  if (S.mode === "swipe") return;
-  const rect = el.view.getBoundingClientRect();
-  const clickX = ((ev.clientX - rect.left) / rect.width) * el.view.width;
-  const clickY = ((ev.clientY - rect.top) / rect.height) * el.view.height;
-  openFlagModal(clickX, clickY);
-});
-
-// Flag modal listeners
-if (el.flagBtn) el.flagBtn.addEventListener("click", () => openFlagModal(el.view.width / 2, el.view.height / 2));
-if (el.flagSave) el.flagSave.addEventListener("click", saveFlagFinding);
-if (el.flagCancel) el.flagCancel.addEventListener("click", closeFlagModal);
-
-// Band pills listeners
-if (el.bandPills) {
-  el.bandPills.addEventListener("click", (ev) => {
-    const btn = ev.target.closest(".band-pill");
-    if (btn && btn.dataset.band !== undefined) {
-      setBand(btn.dataset.band);
+const introBtn = document.getElementById("nav-intro");
+if (introBtn) {
+  introBtn.addEventListener("click", (e) => {
+    const st = document.getElementById("story");
+    if (st) {
+      e.preventDefault();
+      st.scrollIntoView({ behavior: "smooth" });
+      history.replaceState(null, "", "#story");
     }
   });
 }
-
-// Blend / Real steps toggle listener
-if (el.blendToggle) {
-  el.blendToggle.addEventListener("change", (ev) => {
-    if (ev.target.name === "blend-mode") {
-      S.blendMode = ev.target.value;
-      draw();
-    }
-  });
-}
-
-// Review Queue listeners
-if (el.reviewBtn) el.reviewBtn.addEventListener("click", openReviewModal);
-if (el.reviewClose) el.reviewClose.addEventListener("click", closeReviewModal);
-if (el.reviewVoteReal) el.reviewVoteReal.addEventListener("click", () => submitCandidateVote("Real change"));
-if (el.reviewVoteArtifact) el.reviewVoteArtifact.addEventListener("click", () => submitCandidateVote("Artifact / Reflection"));
-if (el.reviewVoteUnsure) el.reviewVoteUnsure.addEventListener("click", () => submitCandidateVote("Not sure"));
-
-// Findings modal listeners
-if (el.openFindings) el.openFindings.addEventListener("click", openFindingsModal);
-if (el.findingsCloseX) el.findingsCloseX.addEventListener("click", closeFindingsModal);
-if (el.findingsDone) el.findingsDone.addEventListener("click", closeFindingsModal);
-if (el.exportCsv) el.exportCsv.addEventListener("click", exportFindingsCSV);
-if (el.exportJson) el.exportJson.addEventListener("click", exportFindingsJSON);
-if (el.clearFindings) el.clearFindings.addEventListener("click", clearAllFindings);
 
 window.addEventListener("hashchange", route);
 setMode("fade");
-loadFindings();
-loadIndex().then(() => { renderFeed(); route(); heroInit(); });
+loadIndex().then(() => { renderFeed(); route(); });
