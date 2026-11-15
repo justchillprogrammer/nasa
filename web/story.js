@@ -29,7 +29,7 @@
   const B = {
     plateIn: 2.05, plateFull: 2.35, plateOut: 3.25, plateGone: 3.55,
     zoomStart: 3.45, zoomEnd: 4.35,
-    timeStart: 4.5, timeEnd: 5.85,
+    timeStart: 4.7, timeEnd: 5.7,
     stepsStart: 6.05, stepsEach: 0.38,
     dimStart: 6.0, dimEnd: 6.3,
   };
@@ -39,9 +39,17 @@
   const ease = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
   const ramp = (s, a, b) => ease((s - a) / (b - a));
 
+  // Resting points, in screen heights. A small scroll glides to the next one:
+  // each passage, each flip of the glass plate, each SPHEREx pass of
+  // Barnard's Star, each detection step. The Apr 2026 stop is set from the
+  // real dates once they load.
+  let stops = [0, 1.5, 2.47, 2.68, 2.9, 3.12, 3.9, 4.7, 5.2, 5.7, 6.4, 6.78, 7.16, 7.5, 8.3];
+  const LAST = () => stops[stops.length - 1];
+
   let data = null;        // images and the measured motion
   let target = 0;         // where the scroll is
   let shown = 0;          // where the picture is (eases toward target)
+  let tween = null;       // a glide from one stop to the next
   let raf = 0;
 
   /* ------------------------------------------------------------ images */
@@ -107,6 +115,12 @@
     };
     writeStarText();
     buildTicks();
+    // the middle Barnard stop sits exactly on the middle SPHEREx pass
+    const mjd = data.mjd;
+    if (mjd.length === 3) {
+      const f = (mjd[1] - mjd[0]) / (mjd[2] - mjd[0]);
+      stops = stops.map((v) => (v === 5.2 ? +(B.timeStart + f * (B.timeEnd - B.timeStart)).toFixed(3) : v));
+    }
     cvs.classList.add("ready");
     schedule();
   }
@@ -299,31 +313,136 @@
 
   /* ------------------------------------------------------------ scroll */
 
+  const progressEl = document.getElementById("story-progress");
+  const unitPx = () => stage.clientHeight || window.innerHeight;
+  const storyTop = () => root.getBoundingClientRect().top + window.scrollY;
+  const onHome = () => !document.getElementById("feed-view").hidden;
+  const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
   function measure() {
-    const unit = stage.clientHeight || window.innerHeight;
-    const top = root.getBoundingClientRect().top;
-    target = clamp(-top / unit, 0, SCREENS);
+    target = clamp((window.scrollY - storyTop()) / unitPx(), 0, SCREENS);
   }
 
-  function frame() {
+  // Inside the story (above its last stop) scrolling moves between stops.
+  function inStory() {
+    return onHome() && target <= LAST() + 0.01;
+  }
+
+  function nearestStop(s) {
+    return stops.reduce((b, v) => (Math.abs(v - s) < Math.abs(b - s) ? v : b), stops[0]);
+  }
+
+  function nextStop(dir) {
+    const from = tween ? tween.to : target;
+    if (dir > 0) return stops.find((v) => v > from + 0.01) ?? LAST();
+    for (let i = stops.length - 1; i >= 0; i--) if (stops[i] < from - 0.01) return stops[i];
+    return stops[0];
+  }
+
+  // Jump the page to the stop at once, and let the picture glide there.
+  function goTo(s) {
+    const dist = Math.abs(s - shown);
+    tween = reduce.matches || dist < 0.002 ? null
+      : { from: shown, to: s, t0: performance.now(), dur: clamp(520 + 420 * dist, 600, 1300) };
+    if (!tween) shown = s;
+    window.scrollTo({ top: storyTop() + s * unitPx(), behavior: "instant" });
+    measure();
+    schedule();
+  }
+
+  function frame(now) {
     raf = 0;
-    if (document.getElementById("feed-view").hidden) return;
-    // ease the picture toward the scroll position, for a smooth glide
-    const k = reduce.matches ? 1 : 0.16;
-    shown += (target - shown) * k;
-    if (Math.abs(target - shown) < 0.0015) shown = target;
+    if (!onHome()) return;
+    if (tween) {
+      const p = clamp((now - tween.t0) / tween.dur, 0, 1);
+      shown = lerp(tween.from, tween.to, easeInOut(p));
+      if (p >= 1) { shown = tween.to; tween = null; }
+    } else {
+      // dragged or keyed scrolling: ease the picture toward the page
+      shown += (target - shown) * (reduce.matches ? 1 : 0.16);
+      if (Math.abs(target - shown) < 0.0015) shown = target;
+    }
     draw(shown);
     updateText(shown);
-    if (shown !== target) schedule();
+    if (progressEl) progressEl.style.height = `${(shown / LAST()) * 100}%`;
+    if (tween || shown !== target) schedule();
   }
 
   function schedule() { if (!raf) raf = requestAnimationFrame(frame); }
 
-  function onScroll() { measure(); schedule(); }
+  /* wheel and trackpad: one gesture moves one stop. A trackpad sends a
+     stream of small events (with momentum), so a new gesture starts only
+     after a short quiet gap. */
+  let lastWheel = 0, gesture = false, acc = 0;
+  function onWheel(e) {
+    if (!inStory() || e.ctrlKey) return;           // ctrl+wheel is zoom
+    const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+    if (!dy) return;
+    if (dy > 0 && target >= LAST() - 0.01 && !tween) return;   // let the page carry on to the feed
+    e.preventDefault();
+    const now = performance.now();
+    if (now - lastWheel > 180) { gesture = false; acc = 0; }
+    lastWheel = now;
+    if (gesture) return;
+    acc += dy;
+    if (Math.abs(acc) < 24) return;
+    gesture = true;
+    goTo(nextStop(Math.sign(acc)));
+  }
+
+  /* touch: a short swipe moves one stop */
+  let touchY = null, touchUsed = false;
+  function onTouchStart(e) { touchY = e.touches[0].clientY; touchUsed = false; }
+  function onTouchMove(e) {
+    if (touchY === null || !inStory()) return;
+    const dy = touchY - e.touches[0].clientY;
+    if (dy > 0 && target >= LAST() - 0.01 && !tween) return;
+    e.preventDefault();
+    if (touchUsed || Math.abs(dy) < 36) return;
+    touchUsed = true;
+    goTo(nextStop(Math.sign(dy)));
+  }
+  function onTouchEnd() { touchY = null; }
+
+  /* keyboard */
+  function onKey(e) {
+    if (!inStory() || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.target.closest("input, textarea, select, button, a, [contenteditable]") && e.key === " ") return;
+    const down = ["ArrowDown", "PageDown", " "].includes(e.key) && !e.shiftKey;
+    const up = ["ArrowUp", "PageUp"].includes(e.key) || (e.key === " " && e.shiftKey);
+    if (!down && !up) return;
+    if (down && target >= LAST() - 0.01) return;
+    e.preventDefault();
+    goTo(nextStop(down ? 1 : -1));
+  }
+
+  // If the page comes to rest between stops (scrollbar, find-in-page,
+  // an overshoot coming back up from the feed), settle on the nearest one.
+  let idle = 0;
+  function onScroll() {
+    measure();
+    schedule();
+    clearTimeout(idle);
+    idle = setTimeout(() => {
+      if (tween || !inStory()) return;
+      const s = nearestStop(target);
+      if (Math.abs(s - target) > 0.01) goTo(s);
+    }, 200);
+  }
 
   window.addEventListener("scroll", onScroll, { passive: true });
-  window.addEventListener("resize", () => { measure(); shown = target; schedule(); });
-  window.addEventListener("hashchange", () => setTimeout(() => { measure(); shown = target; schedule(); }, 0));
+  window.addEventListener("wheel", onWheel, { passive: false });
+  window.addEventListener("touchstart", onTouchStart, { passive: true });
+  window.addEventListener("touchmove", onTouchMove, { passive: false });
+  window.addEventListener("touchend", onTouchEnd, { passive: true });
+  window.addEventListener("keydown", onKey);
+  window.addEventListener("resize", () => {
+    // keep the same stop under a new window size
+    const s = tween ? tween.to : nearestStop(target);
+    tween = null;
+    if (inStory()) { shown = s; goTo(s); } else { measure(); shown = target; schedule(); }
+  });
+  window.addEventListener("hashchange", () => setTimeout(() => { measure(); shown = target; tween = null; schedule(); }, 0));
 
   measure();
   shown = target;

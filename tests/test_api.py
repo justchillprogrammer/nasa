@@ -145,6 +145,14 @@ class TestHomeStory(unittest.TestCase):
         self.assertNotIn("setInterval", js)      # nothing blinks on its own
         self.assertTrue((ROOT / "web" / "showcase" / "barnard" / "meta.json").exists())
 
+    def test_story_steps_between_scenes(self):
+        js = (ROOT / "web" / "story.js").read_text(encoding="utf-8")
+        self.assertIn("let stops = [", js)
+        self.assertIn('addEventListener("wheel", onWheel, { passive: false })', js)
+        self.assertIn('addEventListener("touchmove", onTouchMove, { passive: false })', js)
+        css = (ROOT / "web" / "story.css").read_text(encoding="utf-8")
+        self.assertIn("scrollbar-width: none", css)
+
     def test_old_hero_removed(self):
         js = (ROOT / "web" / "showcase.js").read_text(encoding="utf-8")
         self.assertNotIn("heroInit", js)

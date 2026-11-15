@@ -32,7 +32,10 @@ brightness jumps out, the same way Pluto was found with a blink comparator.
   that the reader's scroll drives, with passages appearing and vanishing over
   it. It turns into a glass-plate negative for the blink comparator that
   found Pluto, then scrubs through the dates as Barnard's Star moves 9.1″.
-  Nothing plays on its own (`web/story.js`, `web/story.css`).
+  A small scroll, swipe or arrow key glides to the next scene (each flip of
+  the plate, each SPHEREx pass of the star); the scrollbar is hidden and a
+  thin line on the right shows progress. Nothing plays on its own
+  (`web/story.js`, `web/story.css`).
 - **Swipe mode**: drag a divider between the first and last image.
 - **How it works** page (`how.html`) explaining what is measured and what is blended.
 - **Explorer** (`explore.html`) for any position: blink, spectrum, and a

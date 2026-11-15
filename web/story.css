@@ -12,6 +12,11 @@
 
 html { overflow-x: clip; }
 
+/* The home page hides the scrollbar: the story steps from scene to scene,
+   and a thin line on the right shows how far along it is. */
+html:has(#feed-view:not([hidden])) { scrollbar-width: none; }
+html:has(#feed-view:not([hidden]))::-webkit-scrollbar { display: none; }
+
 /* ---------- the home page owns the top of the window ---------- */
 body:has(#feed-view:not([hidden])) { padding-top: 0; }
 body:has(#feed-view:not([hidden])) .status:empty { display: none; }
@@ -140,6 +145,12 @@ body:has(#feed-view:not([hidden])) .bar .nav-how { margin-left: auto; }
   position: absolute; top: 14px; left: 50%; translate: -50% 0; white-space: nowrap;
   font-style: normal; font-size: 0.78rem; color: var(--dim);
 }
+
+.story-progress {
+  position: absolute; z-index: 3; top: 0; right: 0; width: 2px; height: 100%;
+  background: rgba(238, 240, 246, 0.08);
+}
+.story-progress i { display: block; width: 100%; height: 0; background: var(--amber); }
 
 .story-credit {
   position: absolute; z-index: 2; right: max(20px, calc(50vw - 640px)); bottom: 18px; margin: 0;
