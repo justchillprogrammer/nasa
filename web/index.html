@@ -5,12 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sky Blink: what changed in the SPHEREx sky</title>
 <meta name="description" content="Watch the sky change between NASA SPHEREx sweeps. Sky Blink finds stars that moved or changed brightness and explains each change in plain language.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sky Blink">
+<meta property="og:title" content="Sky Blink: see how the sky changes">
+<meta property="og:description" content="Real NASA SPHEREx images, lined up months apart, show which stars moved and which changed brightness, with every number checked.">
+<meta property="og:url" content="https://nasa-theta-henna.vercel.app/">
+<meta property="og:image" content="https://nasa-theta-henna.vercel.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Sky Blink: the sky is not as still as it looks.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#04070f">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=11">
-<link rel="stylesheet" href="showcase.css?v=11">
-<link rel="stylesheet" href="story.css?v=11">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=12">
+<link rel="stylesheet" href="showcase.css?v=12">
+<link rel="stylesheet" href="story.css?v=12">
 </head>
 <body>
 
@@ -22,9 +34,11 @@
     <button type="submit">Search</button>
     <ul id="suggest" class="suggest" role="listbox" hidden></ul>
   </form>
-  <button id="open-findings" type="button" class="findings-header-btn" aria-label="Open My Findings">📋 My Findings <span id="findings-count" class="count-badge">0</span></button>
-  <a class="nav-how" href="how.html">How it works</a>
-  <a class="button-link nav-explorer" href="explore.html">Explorer</a>
+  <button id="open-findings" type="button" class="findings-header-btn" aria-label="Open My Findings">My Findings <span id="findings-count" class="count-badge">0</span></button>
+  <nav class="site-nav" aria-label="Main">
+    <a class="nav-how" href="how.html">How it works</a>
+    <a class="button-link nav-explorer" href="explore.html">Explorer</a>
+  </nav>
 </header>
 
 <p id="status" class="status" role="status" aria-live="polite"></p>
@@ -79,7 +93,7 @@
         <h2>Stars on the move. Stars that fade. An interstellar comet.</h2>
         <p><span id="story-count">These places are</span> measured and ready to explore, or point Sky Blink anywhere in the sky.</p>
         <div class="story-actions">
-          <button id="tour-start" type="button" class="primary tour-start">Take the 2-minute tour</button>
+          <button id="tour-start" type="button" class="primary tour-start">Take the tour (5 stops)</button>
           <a class="button-link secondary-cta" href="explore.html">Open the Explorer</a>
         </div>
       </div>
@@ -99,8 +113,12 @@
     <div id="feed"></div>
     <section class="explore-cta">
       <h2>Somewhere else in mind?</h2>
-      <p>Search for a star or nebula at the top of the page, or open the Explorer to look at any position in the sky. A new place takes up to a minute to load the first time.</p>
-      <a class="button-link" href="explore.html">Open the Explorer</a>
+      <p>Type any star, nebula, galaxy or coordinates, and the Explorer lines up SPHEREx images of that spot.</p>
+      <form class="cta-search" action="explore.html" method="get" role="search">
+        <label for="cta-q" class="visually-hidden">Star, nebula, galaxy or coordinates</label>
+        <input id="cta-q" name="q" type="search" placeholder="For example: Vega, M51, 83.82 -5.39" spellcheck="false" required>
+        <button type="submit" class="primary">Look in the Explorer</button>
+      </form>
     </section>
   </section>
 </main>
@@ -113,19 +131,10 @@
     <p id="t-note"></p>
   </header>
 
-  <div class="tourbar" id="tourbar" hidden>
-    <p><span id="tour-step"></span> <span id="tour-text"></span></p>
-    <div class="tour-buttons">
-      <button id="tour-pause" type="button">Pause tour</button>
-      <button id="tour-next" type="button" class="primary">Next stop</button>
-      <button id="tour-end" type="button">End tour</button>
-    </div>
-  </div>
-
   <div class="machine">
     <section class="stage" aria-label="Time machine">
       <div class="plate" id="plate">
-        <canvas id="view" width="720" height="720" aria-label="SPHEREx image of this part of the sky"></canvas>
+        <canvas id="view" width="720" height="720" role="img" aria-label="SPHEREx image of this part of the sky"></canvas>
         <div class="plate-tag" id="tag"></div>
         <div class="plate-zoom" id="zoom-tag" hidden></div>
         <div class="zoom-controls" role="group" aria-label="Zoom">
@@ -173,11 +182,20 @@
     </section>
 
     <aside class="report" aria-label="What changed">
+      <div class="tourbar" id="tourbar" hidden>
+        <p><span id="tour-step"></span> <span id="tour-text"></span></p>
+        <div class="tour-buttons">
+          <button id="tour-pause" type="button">Pause tour</button>
+          <button id="tour-next" type="button" class="primary">Next stop</button>
+          <button id="tour-end" type="button">End tour</button>
+        </div>
+      </div>
+
       <h2>What changed here</h2>
       <p id="summary" class="summary"></p>
       <p id="writer" class="writer"></p>
       <ol id="changes" class="changes"></ol>
-      <button id="review-candidates-btn" type="button" class="review-candidates-btn" hidden>🔍 Review candidate changes (<span id="review-count">0</span>)</button>
+      <button id="review-candidates-btn" type="button" class="review-candidates-btn" hidden>Review candidate changes (<span id="review-count">0</span>)</button>
       <button id="zoom-out" type="button" hidden>Show the whole view</button>
 
       <!-- Pre-computed Offline Spectrum Chart Card -->
@@ -250,8 +268,8 @@
     <p id="review-meta" class="review-meta"></p>
     
     <div class="modal-actions review-actions">
-      <button type="button" id="review-vote-real" class="primary">✓ Real change</button>
-      <button type="button" id="review-vote-artifact">✗ Artifact / Reflection</button>
+      <button type="button" id="review-vote-real" class="primary">Looks real</button>
+      <button type="button" id="review-vote-artifact">Looks like an artefact or reflection</button>
       <button type="button" id="review-vote-unsure">? Not sure</button>
       <button type="button" id="review-close" style="margin-left:auto">Close</button>
     </div>
@@ -268,7 +286,7 @@
       </div>
       <button type="button" id="findings-close-x" class="close-x-btn" aria-label="Close findings">✕</button>
     </div>
-    <p class="findings-intro">Observational findings logged by citizen-science inspection across SPHEREx sweeps. Prepared as an observational summary ready to share with collaborators or citizen-science projects (not formatted as a submission-ready MPC report).</p>
+    <p class="findings-intro">Findings you flagged, saved in this browser. “Send to the review queue” opens a pre-filled public report on GitHub (a free GitHub account is needed) where the team and other visitors can check it. You can also download everything as a file.</p>
     
     <div id="findings-list" class="findings-list"></div>
     
@@ -284,11 +302,21 @@
 </div>
 </main>
 
-<footer class="foot">
-  <p>Images: NASA SPHEREx Level 2 spectral images from the NASA/IPAC Infrared Science Archive. Detections are automated measurements and can be wrong; candidates are labelled as such.</p>
+<footer class="site-foot">
+  <div class="foot-main">
+    <p><strong>Sky Blink</strong> is made by Team Volunteers: Mamatkarimov Mironshoh and Doshniyazov Sardar, for the NASA Space Apps Challenge.</p>
+    <p>Images: NASA SPHEREx, from the NASA/IPAC Infrared Science Archive (IRSA). Orbits: NASA JPL Horizons. Star motions for checking: Gaia DR3, through SIMBAD. Brightness values are quick-look measurements, not calibrated science products, and automated detections can be wrong.</p>
+    <p>Sky Blink is an independent project. It is not affiliated with or endorsed by NASA.</p>
+  </div>
+  <nav class="foot-nav" aria-label="Footer">
+    <a href="/">Home</a>
+    <a href="explore.html">Explorer</a>
+    <a href="how.html">How it works</a>
+    <a href="how.html#about">About</a>
+  </nav>
 </footer>
 
-<script src="showcase.js?v=11"></script>
-<script src="story.js?v=11"></script>
+<script src="showcase.js?v=12"></script>
+<script src="story.js?v=12"></script>
 </body>
 </html>

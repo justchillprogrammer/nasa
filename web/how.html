@@ -5,13 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>How Sky Blink works</title>
 <meta name="description" content="How Sky Blink turns NASA SPHEREx images into a time machine for the sky: stacking, comparing, checking, and explaining.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sky Blink">
+<meta property="og:title" content="How Sky Blink works">
+<meta property="og:description" content="Real NASA SPHEREx images, lined up months apart, show which stars moved and which changed brightness, with every number checked.">
+<meta property="og:url" content="https://nasa-theta-henna.vercel.app/how.html">
+<meta property="og:image" content="https://nasa-theta-henna.vercel.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Sky Blink: the sky is not as still as it looks.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#04070f">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=11">
-<link rel="stylesheet" href="showcase.css?v=11">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=12">
+<link rel="stylesheet" href="showcase.css?v=12">
 <style>
-  .how-page { max-width: 980px; }
+  .how-page { max-width: 1040px; margin: 0 auto; }
   .how-page h1 { font-size: clamp(2rem, 4.4vw, 3rem); letter-spacing: -0.03em; margin: 26px 0 10px; }
   .how-page > p.lead { color: var(--muted); font-size: 1.08rem; max-width: 64ch; margin: 0 0 8px; }
   .steps { list-style: none; padding: 0; margin: 30px 0 0; display: grid; gap: 30px; }
@@ -32,6 +44,9 @@
   .truth dd { margin: 0; color: var(--muted); }
   .back-row { margin-top: 30px; display: flex; gap: 10px; flex-wrap: wrap; }
   .checks { margin-top: 40px; }
+  .about { margin-top: 40px; }
+  .about h2 { font-size: 1.3rem; margin: 0 0 8px; }
+  .about p { color: var(--muted); max-width: 70ch; }
   .checks h2 { font-size: 1.3rem; margin: 0 0 8px; }
   .checks > p { color: var(--muted); max-width: 70ch; }
   .table-wrap { overflow-x: auto; margin: 14px 0 6px; }
@@ -46,8 +61,10 @@
 <body>
 <header class="bar">
   <a href="/" class="wordmark">Sky Blink</a>
-  <a class="nav-how" href="how.html" aria-current="page" style="margin-left:auto">How it works</a>
-  <a class="button-link nav-explorer" href="explore.html">Explorer &rarr;</a>
+  <nav class="site-nav" aria-label="Main">
+    <a class="nav-how" href="how.html" aria-current="page">How it works</a>
+    <a class="button-link nav-explorer" href="explore.html">Explorer</a>
+  </nav>
 </header>
 
 <main class="how-page">
@@ -117,12 +134,12 @@
     <li class="step">
       <div>
         <h2><span>6</span>Citizen science: Flag findings &amp; review queue</h2>
-        <p>Anyone can inspect the time machine, click anywhere to drop a pin, and flag an unexplained anomaly: Moving, Brightness change, Artifact, or Not sure. Celestial RA/Dec coordinates and observation timestamps are computed automatically.</p>
-        <p>Unconfirmed candidates enter an interactive “Is this real?” review queue with before/after comparisons. Your flagged findings can be exported anytime as a CSV or JSON report ready to share with astronomers.</p>
+        <p>No one person can look through all of SPHEREx's images, so anyone can help. Press “Flag a finding”, then click the exact spot in the picture and choose what you saw; nothing is chosen for you. Sky Blink records the sky position of that spot and the date of the image.</p>
+        <p>Unconfirmed candidates also have an “Is this real?” review with before and after pictures. Findings stay in your browser until you press “Send to the review queue”, which opens a pre-filled public report on GitHub where the team and other visitors can check it. You can also download them as a report ready to share (CSV or JSON).</p>
       </div>
       <div class="quote">
-        “Finding flagged at RA 269.452&deg;, Dec +4.738&deg; [Moving] &mdash; Matches confirmed detection.”
-        <small>Exportable as a research report ready to share.</small>
+        Example: a finding flagged at RA 269.4463°, Dec +4.7677° on 16 Aug 2026, marked “Moving object”, matches the change Sky Blink found there.
+        <small>Each report includes the position, the image date and your note.</small>
       </div>
     </li>
   </ol>
@@ -147,9 +164,15 @@
       <dt>Spectra</dt><dd>One dot per real exposure, measured with quick-look photometry. Not calibrated science values. Exposures with bad pixels in the measuring circle are left out.</dd>
       <dt>Magnified</dt><dd>Zooming in enlarges real pixels; nothing is added.</dd>
       <dt>Candidate</dt><dd>A change the checks could not confirm. It is placed into the community review queue, never assumed as a discovery.</dd>
-      <dt>Citizen findings</dt><dd>Saved locally and exportable as a structured report ready to share, not as automated submission to the Minor Planet Center.</dd>
+      <dt>Citizen findings</dt><dd>Saved in your browser. “Send to the review queue” opens a pre-filled public report on GitHub that the team and other visitors can check. Nothing is sent automatically to the Minor Planet Center, the official clearing house for asteroid and comet discoveries.</dd>
       <dt>From orbits</dt><dd>Where a comet or asteroid should be comes from NASA JPL Horizons. The picture around it is a real SPHEREx exposure.</dd>
     </dl>
+  </section>
+
+  <section class="about" id="about" aria-labelledby="about-title">
+    <h2 id="about-title">About Sky Blink</h2>
+    <p>Sky Blink was made by Team Volunteers, Mamatkarimov Mironshoh and Doshniyazov Sardar, for the NASA Space Apps Challenge. The challenge asked for a public tool that lets anyone see how the sky changes in NASA's SPHEREx images, and that turns SPHEREx's huge, repeated sky survey into something people can explore.</p>
+    <p>Every image comes from the public SPHEREx archive at the NASA/IPAC Infrared Science Archive; nothing needs an account or a key. Sky Blink is an independent project and is not affiliated with or endorsed by NASA.</p>
   </section>
 
   <div class="back-row">
@@ -158,8 +181,18 @@
   </div>
 </main>
 
-<footer class="foot">
-  <p>Images: NASA SPHEREx Level 2 spectral images from the NASA/IPAC Infrared Science Archive. Orbits: NASA JPL Horizons.</p>
+<footer class="site-foot">
+  <div class="foot-main">
+    <p><strong>Sky Blink</strong> is made by Team Volunteers: Mamatkarimov Mironshoh and Doshniyazov Sardar, for the NASA Space Apps Challenge.</p>
+    <p>Images: NASA SPHEREx, from the NASA/IPAC Infrared Science Archive (IRSA). Orbits: NASA JPL Horizons. Star motions for checking: Gaia DR3, through SIMBAD. Brightness values are quick-look measurements, not calibrated science products, and automated detections can be wrong.</p>
+    <p>Sky Blink is an independent project. It is not affiliated with or endorsed by NASA.</p>
+  </div>
+  <nav class="foot-nav" aria-label="Footer">
+    <a href="/">Home</a>
+    <a href="explore.html">Explorer</a>
+    <a href="how.html">How it works</a>
+    <a href="how.html#about">About</a>
+  </nav>
 </footer>
 <script>
 /* Fill the numbers on this page from the same files the site uses, so they

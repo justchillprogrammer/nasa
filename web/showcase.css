@@ -13,17 +13,6 @@
 
 /* ---------- top bar ---------- */
 
-.bar {
-  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
-  padding-bottom: 14px; border-bottom: 1px solid var(--line);
-}
-.wordmark {
-  font-family: var(--display); font-weight: 700; font-size: 1.9rem;
-  letter-spacing: -0.03em; color: var(--amber); text-decoration: none;
-}
-.search { position: relative; display: flex; gap: 8px; flex: 1 1 320px; max-width: 560px; margin-left: auto; }
-.search input { flex: 1; min-width: 0; font: inherit; color: var(--text); background: var(--panel-2);
-  border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; min-height: 40px; }
 .suggest {
   position: absolute; top: 100%; left: 0; right: 0; z-index: 5; margin: 4px 0 0; padding: 4px;
   list-style: none; background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
@@ -75,19 +64,8 @@
 .explore-cta { margin-top: 40px; padding: 20px; border: 1px dashed var(--line); border-radius: 10px; }
 .explore-cta h2 { font-size: 1.25rem; }
 .explore-cta p { color: var(--muted); margin: 6px 0 12px; }
-.button-link {
-  display: inline-block; padding: 9px 14px; border-radius: 6px; font-weight: 700; text-decoration: none;
-  background: var(--amber); color: var(--amber-ink);
-}
-.button-link:hover { background: #ffc671; }
-.nav-explorer { white-space: nowrap; }
 .intro-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 18px; }
 .intro-actions .tour-start { margin-top: 0; }
-.secondary-cta {
-  background: var(--panel-2); color: var(--text); border: 1px solid var(--amber);
-  padding: 10px 18px; font-size: 1.05rem;
-}
-.secondary-cta:hover { background: var(--amber); color: var(--amber-ink); }
 
 /* Rectangular "More" card at the end of every 7-sample category */
 .card.more-card {
@@ -303,8 +281,6 @@
 .mini-spec { width: 100%; height: auto; display: block; }
 .mini-spec text { fill: var(--muted); font-size: 11px; font-family: var(--body); }
 
-.nav-how { color: var(--muted); text-decoration: none; margin-left: 4px; white-space: nowrap; }
-.nav-how:hover { color: var(--text); }
 
 /* ---------- one-line guide above every time machine ---------- */
 .guide {
@@ -320,17 +296,6 @@
 .swipe-label.right { right: 10px; }
 
 /* ---------- findings button & count badge ---------- */
-.findings-header-btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: var(--panel-2); color: var(--text); border: 1px solid var(--line);
-  padding: 8px 12px; border-radius: 6px; font-weight: 700; cursor: pointer;
-  white-space: nowrap; font-size: 0.95rem;
-}
-.findings-header-btn:hover { border-color: var(--amber); }
-.count-badge {
-  background: var(--amber); color: var(--amber-ink); font-size: 0.75rem;
-  padding: 1px 7px; border-radius: 10px; font-weight: 700;
-}
 
 /* ---------- Real steps / Blend Toggle ---------- */
 .blend-toggle {
@@ -455,3 +420,5 @@
 .c-check { margin: 4px 0 0; font-size: 0.88rem; color: var(--muted); }
 .c-check.ok::before { content: "✓ "; color: var(--bright); font-weight: 700; }
 .c-check.bad::before { content: "✕ "; color: var(--faint); font-weight: 700; }
+
+.review-link { display: inline-block; margin-top: 8px; color: var(--amber); font-weight: 600; }

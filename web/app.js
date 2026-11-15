@@ -752,7 +752,7 @@ function changeMarks(light) {
     if (fx < 0 || fx > 100 || fy < 0 || fy > 100) continue;
     const col = CHANGE_COLORS[c.kind];
     out.push(`<circle cx="${fx}" cy="${fy}" r="3" fill="none" stroke="${col}" stroke-width="0.5"${c.kind === "moved" ? "" : ' stroke-dasharray="1 0.8"'}/>`);
-    out.push(`<text x="${fx + 2.4}" y="${fy - 2.4}" font-size="3" fill="${col}" font-family="Atkinson Hyperlegible, sans-serif">${c.rank}</text>`);
+    out.push(`<text x="${fx + 2.4}" y="${fy - 2.4}" font-size="3" fill="${col}" font-family="Public Sans, sans-serif">${c.rank}</text>`);
   }
   return out;
 }
@@ -771,11 +771,11 @@ function drawOverlay() {
     const nice = [0.5, 1, 2, 5, 10, 15, 30].reduce((p, v) => (Math.abs(v - arcmin / 5) < Math.abs(p - arcmin / 5) ? v : p));
     const w = (nice / arcmin) * 100;
     parts.push(`<line x1="4" y1="6" x2="${4 + w}" y2="6" stroke="${light}" stroke-width="0.5"/>`);
-    parts.push(`<text x="4" y="4.6" font-size="2.6" fill="${light}" font-family="Atkinson Hyperlegible, sans-serif">${nice} arcmin</text>`);
+    parts.push(`<text x="4" y="4.6" font-size="2.6" fill="${light}" font-family="Public Sans, sans-serif">${nice} arcmin</text>`);
     // compass: north up, east left
     parts.push(`<path d="M93 12 L93 5 M93 12 L86 12" stroke="${light}" stroke-width="0.35" fill="none"/>`);
-    parts.push(`<text x="92.1" y="4.2" font-size="2.6" fill="${light}" font-family="Atkinson Hyperlegible, sans-serif">N</text>`);
-    parts.push(`<text x="83.2" y="12.9" font-size="2.6" fill="${light}" font-family="Atkinson Hyperlegible, sans-serif">E</text>`);
+    parts.push(`<text x="92.1" y="4.2" font-size="2.6" fill="${light}" font-family="Public Sans, sans-serif">N</text>`);
+    parts.push(`<text x="83.2" y="12.9" font-size="2.6" fill="${light}" font-family="Public Sans, sans-serif">E</text>`);
   }
   parts.push(...changeMarks(light));
   els.overlay.innerHTML = parts.join("");
@@ -1480,7 +1480,11 @@ updateButtons();
 
   const ra = parseFloat(q.get("ra")), dec = parseFloat(q.get("dec"));
   const name = q.get("name") || null;
-  if (Number.isFinite(ra) && Number.isFinite(dec)) {
+  const typed = (q.get("q") || "").trim();       // from the home page's search box
+  if (typed) {
+    els.coords.value = typed;
+    els.form.requestSubmit();
+  } else if (Number.isFinite(ra) && Number.isFinite(dec)) {
     lookAt(ra, dec, parseFloat(q.get("size")) || 0.25, parseFloat(q.get("lam")) || null, name);
   } else {
     // start on the first listed object that has a fixed position (never

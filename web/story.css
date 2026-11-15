@@ -27,7 +27,7 @@ body:has(#feed-view:not([hidden])) .bar {
 }
 body:has(#feed-view:not([hidden])) .bar .search,
 body:has(#feed-view:not([hidden])) .bar .findings-header-btn { display: none; }
-body:has(#feed-view:not([hidden])) .bar .nav-how { margin-left: auto; }
+body:has(#feed-view:not([hidden])) .bar .site-nav { margin-left: auto; }
 
 /* ---------- story ---------- */
 .story {
@@ -206,4 +206,32 @@ body:has(#feed-view:not([hidden])) .bar .nav-how { margin-left: auto; }
 .feed-wrap .more-card-tag {
   text-transform: none; letter-spacing: -0.02em;
   font-family: var(--display); font-weight: 500; font-size: 1.35rem; color: var(--text);
+}
+
+.cta-search { display: flex; flex-wrap: wrap; gap: 8px; max-width: 560px; }
+.cta-search input {
+  flex: 1 1 240px; min-width: 0; font: inherit; color: var(--text); background: var(--panel-2);
+  border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; min-height: 42px;
+}
+
+/* ---------- result cards ---------- */
+.group-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 18px; }
+.group-more { color: var(--amber); font-weight: 600; white-space: nowrap; }
+.feed-wrap .cards { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+/* a group with one result: one wide card, picture beside the words */
+.feed-wrap .cards.single { grid-template-columns: minmax(0, 1fr); }
+.feed-wrap .cards.single .card { grid-template-columns: minmax(220px, 2fr) minmax(0, 3fr); grid-template-rows: auto; gap: 18px; max-width: 900px; }
+.feed-wrap .cards.single .card-body { padding-top: 4px; }
+@media (max-width: 640px) {
+  .feed-wrap .cards.single .card { grid-template-columns: minmax(0, 1fr); gap: 0; }
+}
+/* A soft blink, only while the pointer (or keyboard focus) is on a card:
+   the first and last images fade slowly into each other, never flashing. */
+.card-pics img.later { opacity: 0; }
+.card:hover .card-pics img.later, .card:focus-visible .card-pics img.later {
+  animation: soft-blink 1.6s ease-in-out infinite alternate;
+}
+@keyframes soft-blink { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .card:hover .card-pics img.later, .card:focus-visible .card-pics img.later { animation: none; opacity: 1; }
 }

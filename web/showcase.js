@@ -185,69 +185,64 @@ async function loadIndex() {
 function renderFeed() {
   el.feed.replaceChildren();
   const groups = [];
-  for (const t of S.index) {   // only targets with real measured data
-
+  for (const t of S.index) {   // every target, all measured from real images
     let g = groups.find((x) => x.name === t.group);
     if (!g) groups.push(g = { name: t.group, items: [] });
-    if (g.items.length < 3) g.items.push(t);
+    g.items.push(t);
   }
   const blurbs = {
-    "Moving objects": "Comets and asteroids move across the sky in hours. Sky Blink asks NASA's orbit service where each one was, finds every SPHEREx image that caught it, and follows it.",
+    "Moving objects": "Comets and asteroids cross the sky in hours. Sky Blink asks NASA's orbit service where each one was, finds every SPHEREx image that caught it, and follows it.",
     "Stars on the move": "Nearby stars drift across the sky year by year. SPHEREx images taken a year apart are enough to catch them moving.",
     "Changing brightness": "Some stars swell and shrink, or flicker. Sky Blink compares each star with its neighbours to catch real changes.",
     "Steady skies": "Places where Sky Blink found nothing measurable. Knowing what did not change matters as much as what did.",
   };
-  const catQuery = {
-    "Moving objects": "Moving objects",
-    "Stars on the move": "Stars on the move",
-    "Changing brightness": "Changing brightness",
-    "Steady skies": "Steady skies",
-  };
   for (const g of groups) {
     const sec = document.createElement("section");
     sec.className = "group";
-    sec.innerHTML = `<h2>${g.name}</h2>${blurbs[g.name] ? `<p>${blurbs[g.name]}</p>` : ""}`;
+    sec.innerHTML = `<div class="group-head"><h2>${g.name}</h2>`
+      + `<a class="group-more" href="explore.html?homecat=${encodeURIComponent(g.name)}">Find more in the Explorer</a></div>`
+      + (blurbs[g.name] ? `<p>${blurbs[g.name]}</p>` : "");
     const grid = document.createElement("div");
-    grid.className = "cards";
+    grid.className = "cards" + (g.items.length === 1 ? " single" : "");
     for (const t of g.items) grid.append(card(t));
-    grid.append(moreCard(g.name, catQuery[g.name] || g.name));
     sec.append(grid);
     el.feed.append(sec);
   }
+}
+
+// Badge wording: whole phrases, not "1 moved".
+function badgeText(kind, n) {
+  const one = n === 1;
+  return {
+    moved: one ? "1 star moved" : `${n} stars moved`,
+    brightened: one ? "1 star got brighter" : `${n} stars got brighter`,
+    faded: one ? "1 star got fainter" : `${n} stars got fainter`,
+    appeared: one ? "1 new source" : `${n} new sources`,
+    vanished: one ? "1 source disappeared" : `${n} sources disappeared`,
+    tracked: `Followed in ${n} images`,
+  }[kind] || `${n} ${KIND[kind].label}`;
 }
 
 function card(t) {
   const b = document.createElement("button");
   b.type = "button";
   b.className = "card";
-  // One still picture per card: no flipping between sweeps on the home page.
-  const first = (t.thumbs || [])[0];
-  const pics = first ? `<img src="showcase/${first}" alt="" loading="lazy">` : "";
+  // A still picture; on hover or focus it fades slowly to the last image, so
+  // the change shows without anything flashing on the page.
+  const thumbs = t.thumbs || [];
+  const first = thumbs[0], last = thumbs.length > 1 ? thumbs[thumbs.length - 1] : null;
+  const alt = (lbl) => `${t.name}: SPHEREx image, ${lbl}`;
+  const pics = (first ? `<img src="showcase/${first}" alt="${alt(t.labels[0])}" loading="lazy">` : "")
+    + (last ? `<img class="later" src="showcase/${last}" alt="${alt(t.labels[t.labels.length - 1])}" loading="lazy">` : "");
   let badges = Object.entries(t.kinds || {}).map(([k, v]) =>
-    `<span class="badge"><i style="background:${KIND[k].color}"></i>${v} ${KIND[k].label}</span>`).join("");
+    `<span class="badge"><i style="background:${KIND[k].color}"></i>${badgeText(k, v)}</span>`).join("");
   if (t.candidates) badges += `<span class="badge quiet">${t.candidates} unconfirmed candidate${t.candidates > 1 ? "s" : ""}</span>`;
-  if (!badges) badges = `<span class="badge quiet">No measurable change</span>`;
-  b.innerHTML = `<div class="card-pics">${pics}<span class="card-date">${t.labels[0]} to ${t.labels[t.labels.length - 1]}</span></div>
+  if (!badges) badges = `<span class="badge quiet">Nothing changed</span>`;
+  b.innerHTML = `<div class="card-pics${last ? " has-later" : ""}">${pics}<span class="card-date">${t.labels[0]} to ${t.labels[t.labels.length - 1]}</span></div>
     <div class="card-body"><h3>${t.name}</h3><div class="badges">${badges}</div><p>${t.summary}</p></div>`;
+  b.setAttribute("aria-label", `${t.name}. ${t.summary} Open the time machine.`);
   b.addEventListener("click", () => { location.hash = `#/${t.slug}`; });
   return b;
-}
-
-function moreCard(groupName, homeCat) {
-  const a = document.createElement("a");
-  a.className = "card more-card";
-  a.href = `explore.html?homecat=${encodeURIComponent(homeCat || groupName)}`;
-  a.innerHTML = `
-    <div class="more-card-visual">
-      <span class="more-card-arrow">&rarr;</span>
-      <span class="more-card-tag">${groupName}</span>
-    </div>
-    <div class="card-body">
-      <h3>More</h3>
-      <div class="badges"><span class="badge"><i style="background:var(--amber)"></i>Open Explorer</span></div>
-      <p>Browse all objects in "${groupName}" or search any coordinates and star name in the NASA SPHEREx archive.</p>
-    </div>`;
-  return a;
 }
 
 /* ---------------------------------------------------------- target */
@@ -312,7 +307,7 @@ async function openTarget(slug, opts = {}) {
   el.empty.hidden = true;
   setStatus("");
   draw();
-  if (S.tour) { if (S.mode === "stack") setMode("fade"); tourStop(); return; }
+  if (S.tour) { tourStop(); return; }
   el.tourbar.hidden = true;
   if (opts.mode && opts.mode !== S.mode) setMode(opts.mode);
   const pick = opts.change && S.meta.changes.find((c) => c.rank === +opts.change);
@@ -495,7 +490,7 @@ function draw() {
     vctx.restore();
     vctx.fillStyle = "#ffb347"; vctx.fillRect(x - 1.5, 0, 3, W);
     vctx.beginPath(); vctx.arc(x, W / 2, 16, 0, 7); vctx.fill();
-    vctx.fillStyle = "#2a1a00"; vctx.font = "700 16px 'Atkinson Hyperlegible', sans-serif";
+    vctx.fillStyle = "#2a1a00"; vctx.font = "700 16px 'Public Sans', sans-serif";
     vctx.textAlign = "center"; vctx.fillText("↔", x, W / 2 + 6); vctx.textAlign = "start";
     swipeLabels(m.sweeps[0].label, m.sweeps[last].label);
     if (el.marks.checked) drawMarks(r);
@@ -516,6 +511,8 @@ function draw() {
   }
   if (el.marks.checked) drawMarks(r);
   caption(shown);
+  // describe the picture for screen readers
+  el.view.setAttribute("aria-label", `${m.name}, SPHEREx image. ${el.tag.textContent.replace(/\s+/g, " ").trim()}`);
   if (S.burn) burnIn();
   if (S.mode !== "blink") el.time.value = Math.round(S.t * 1000);
 }
@@ -585,7 +582,7 @@ function drawMarks(r) {
     vctx.save();
     vctx.strokeStyle = KIND.tracked.color; vctx.lineWidth = 2;
     vctx.beginPath(); vctx.arc(toX(c), toY(c), rad, 0, 7); vctx.stroke();
-    vctx.font = "700 15px 'Atkinson Hyperlegible', sans-serif"; vctx.fillStyle = KIND.tracked.color;
+    vctx.font = "700 15px 'Public Sans', sans-serif"; vctx.fillStyle = KIND.tracked.color;
     vctx.fillText(S.meta.name, toX(c) + rad + 6, toY(c) - rad * 0.4);
     vctx.restore();
     return;
@@ -612,7 +609,7 @@ function drawMarks(r) {
     vctx.setLineDash(c.verified === false || (c.kind !== "moved" && c.verified == null) ? [5, 4] : []);
     vctx.beginPath(); vctx.arc(toX(p.x), toY(p.y), rad, 0, 7); vctx.stroke();
     vctx.setLineDash([]);
-    vctx.font = "700 15px 'Atkinson Hyperlegible', sans-serif";
+    vctx.font = "700 15px 'Public Sans', sans-serif";
     vctx.fillStyle = col;
     vctx.fillText(String(c.rank), toX(p.x) + rad * 0.75, toY(p.y) - rad * 0.75);
     vctx.restore();
@@ -630,9 +627,9 @@ function drawMarks(r) {
     vctx.arc(px, py, 6, 0, 7);
     vctx.fill();
     vctx.stroke();
-    vctx.font = "700 13px 'Atkinson Hyperlegible', sans-serif";
+    vctx.font = "700 13px 'Public Sans', sans-serif";
     vctx.fillStyle = "#ffffff";
-    vctx.fillText("🚩 " + f.type, px + 9, py - 6);
+    vctx.fillText(f.type, px + 9, py - 6);
     vctx.restore();
   }
 }
@@ -681,10 +678,10 @@ function burnIn() {
   vctx.fillRect(0, W - 62, W, 62);
   vctx.fillRect(0, 0, W, 36);
   vctx.fillStyle = "#ffb347";
-  vctx.font = "700 22px 'Bricolage Grotesque', 'Atkinson Hyperlegible', sans-serif";
+  vctx.font = "700 22px 'Bricolage Grotesque', 'Public Sans', sans-serif";
   vctx.fillText(S.meta.name, 14, W - 34);
   vctx.fillStyle = "#ece7da";
-  vctx.font = "15px 'Atkinson Hyperlegible', sans-serif";
+  vctx.font = "15px 'Public Sans', sans-serif";
   vctx.fillText(tag.slice(0, 90), 14, W - 12);
   vctx.fillStyle = "#a0a9c2";
   vctx.fillText("NASA SPHEREx images, via Sky Blink", 14, 23);
@@ -764,11 +761,22 @@ function saveVideo() {
 
 const TOUR_HOLD_MS = 2500;   // extra time on each stop after one full trip
 
+// Five stops, one of each kind of result, each with a short line of its own
+// (the side panel already carries the full text).
+const TOUR = [
+  ["3i-atlas", "A visitor from another star. Every image is centred on the comet, then all are stacked: the stars smear away and the comet appears."],
+  ["barnard", "The fastest star in our sky. Watch it step north between SPHEREx passes a year apart."],
+  ["psyche", "A metal-rich asteroid that a NASA spacecraft is on its way to. Sky Blink follows it from image to image across the sky."],
+  ["wise-j184125", "A star that faded. Sky Blink measured it getting fainter and checked it against its neighbours."],
+  ["orion", "And sometimes nothing changes. In a busy star-forming cloud, Sky Blink raised no false alarms."],
+];
 function tourList() {
-  const changed = S.index.filter((t) => Object.keys(t.kinds || {}).length);
-  const steady = S.index.find((t) => !Object.keys(t.kinds).length && !t.candidates);
-  return [...changed.map((t) => t.slug), ...(steady ? [steady.slug] : [])];
+  const have = new Set(S.index.map((t) => t.slug));
+  const list = TOUR.filter(([slug]) => have.has(slug)).map(([slug]) => slug);
+  for (const t of S.index) if (list.length < 5 && !list.includes(t.slug)) list.push(t.slug);
+  return list.slice(0, 5);
 }
+const tourLine = (slug, meta) => (TOUR.find(([s]) => s === slug) || [])[1] || meta.note || "";
 
 function startTour() {
   S.tour = { list: tourList(), i: 0, paused: false };
@@ -809,16 +817,28 @@ function tourStop() {
   }
   T.i = listIdx; // Guard: tour pill always matches the loaded target
   el.tourbar.hidden = false;
-  el.tourStep.textContent = `Stop ${T.i + 1} of ${T.list.length}: ${S.meta.name}`;
-  el.tourText.textContent = S.meta.text ? S.meta.text.summary : "";
+  el.tourStep.textContent = `Stop ${T.i + 1} of ${T.list.length}: ${S.meta.name}.`;
+  el.tourText.textContent = tourLine(S.meta.slug, S.meta);
   el.tourPause.textContent = T.paused ? "Resume tour" : "Pause tour";
-  const top = S.track ? null : S.meta.changes.find((c) => c.kind === "moved" || c.verified);
-  if (top) focusChange(top); else { zoomOut(); S.t = 0; play(); }
+  if (S.track && S.stackCanvas) {
+    // Faint comets and asteroids: show the stacked picture first, where the
+    // object is actually visible, then follow it.
+    stop(); setMode("stack");
+    S.tourTimer = setTimeout(() => {
+      if (!S.tour || S.tour.paused) return;
+      setMode("fade"); S.t = 0; play();
+      S.tourTimer = setTimeout(() => { if (S.tour && !S.tour.paused) tourNext(); }, 9000);
+    }, TOUR_HOLD_MS + 3000);
+    S.onLoop = null;
+    return;
+  } else {
+    const top = S.meta.changes.find((c) => c.kind === "moved" || c.verified);
+    if (top) focusChange(top); else { zoomOut(); S.t = 0; play(); }
+  }
   S.onLoop = () => {
     S.onLoop = null;
     if (!S.tour || S.tour.paused) return;
-    if (S.track && S.stackCanvas) { setMode("stack"); S.tourTimer = setTimeout(tourNext, TOUR_HOLD_MS + 2500); }
-    else S.tourTimer = setTimeout(tourNext, TOUR_HOLD_MS);
+    S.tourTimer = setTimeout(tourNext, TOUR_HOLD_MS);
   };
 }
 
@@ -1374,7 +1394,7 @@ function saveFlagFinding() {
   S.findings.unshift(finding);
   saveFindings();
   closeFlagModal();
-  setStatus(`Saved finding for ${finding.target} (RA ${finding.ra}°, Dec ${finding.dec}°) to My Findings.`);
+  setStatus(`Saved to My Findings: ${finding.type}, RA ${finding.ra}°, Dec ${finding.dec}°. Open My Findings to send it to the shared review queue.`);
 }
 
 function closeFlagModal() {
@@ -1457,21 +1477,42 @@ function submitCandidateVote(vote) {
 }
 
 /* My Findings Modal */
+const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+/* Shared review queue: a pre-filled public GitHub issue, so findings can be
+   checked by the team and other visitors instead of staying in one browser. */
+const REVIEW_REPO = "https://github.com/justchillprogrammer/nasa/issues/new";
+function reviewLink(f) {
+  const view = `${location.origin}/#/${f.slug}`;
+  const body = [
+    `**Target:** ${f.target}`,
+    `**What I saw:** ${f.type}`,
+    `**Sky position:** RA ${f.ra}°, Dec ${f.dec}°`,
+    `**Image date:** ${f.date}`,
+    f.match ? `**Matches Sky Blink's change:** ${f.match} (${f.matchKind || "candidate"})` : "**Matches Sky Blink's changes:** no",
+    "", "**Note:**", f.notes || "(none)", "",
+    `**View it:** ${view}`, "", "_Sent from Sky Blink's \"Flag a finding\" tool._",
+  ].join("\n");
+  const q = new URLSearchParams({ title: `Finding: ${f.type} near ${f.target} (RA ${f.ra}, Dec ${f.dec})`, body });
+  return `${REVIEW_REPO}?${q}`;
+}
+
 function renderFindingsList() {
   if (!el.findingsList) return;
   if (!S.findings.length) {
-    el.findingsList.innerHTML = `<div style="text-align:center;padding:30px;color:var(--muted)">No findings flagged yet. Click on the sky plate to drop a pin on any interesting change!</div>`;
+    el.findingsList.innerHTML = `<div style="text-align:center;padding:30px;color:var(--muted)">No findings yet. In the time machine, press “Flag a finding”, then click the spot that caught your eye.</div>`;
     return;
   }
   el.findingsList.innerHTML = S.findings.map((f) => `
     <div class="finding-card">
       <div class="finding-head">
-        <span class="finding-target">${f.target}</span>
-        <span class="finding-badge">${f.type}</span>
+        <span class="finding-target">${esc(f.target)}</span>
+        <span class="finding-badge">${esc(f.type)}</span>
       </div>
-      <div class="finding-coords">RA ${f.ra}°, Dec ${f.dec}° &bull; ${f.date}</div>
-      ${f.match ? `<div style="color:var(--bright);font-size:0.85rem;font-weight:700">🎯 Matches detected change #${f.match} (${f.matchKind || "candidate"})</div>` : ""}
-      ${f.notes ? `<div class="finding-notes">${f.notes}</div>` : ""}
+      <div class="finding-coords">RA ${esc(f.ra)}°, Dec ${esc(f.dec)}°, image of ${esc(f.date)}</div>
+      ${f.match ? `<div style="color:var(--bright);font-size:0.85rem;font-weight:700">Matches detected change ${esc(f.match)} (${esc(f.matchKind || "candidate")})</div>` : ""}
+      ${f.notes ? `<div class="finding-notes">${esc(f.notes)}</div>` : ""}
+      <a class="review-link" href="${esc(reviewLink(f))}" target="_blank" rel="noopener">Send to the review queue</a>
     </div>
   `).join("");
 }

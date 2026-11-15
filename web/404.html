@@ -5,11 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>404: Uncharted Sky — Sky Blink</title>
 <meta name="description" content="This celestial coordinate or page does not exist in the Sky Blink mission archive.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sky Blink">
+<meta property="og:title" content="Sky Blink">
+<meta property="og:description" content="Real NASA SPHEREx images, lined up months apart, show which stars moved and which changed brightness, with every number checked.">
+<meta property="og:url" content="https://nasa-theta-henna.vercel.app/">
+<meta property="og:image" content="https://nasa-theta-henna.vercel.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Sky Blink: the sky is not as still as it looks.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#04070f">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=11">
-<link rel="stylesheet" href="showcase.css?v=11">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=12">
+<link rel="stylesheet" href="showcase.css?v=12">
 <style>
   .error-page {
     max-width: 720px;
@@ -73,8 +85,10 @@
 
 <header class="bar">
   <a href="/" class="wordmark">Sky Blink</a>
-  <a class="nav-how" href="how.html" style="margin-left:auto">How it works</a>
-  <a class="button-link nav-explorer" href="explore.html">Explorer &rarr;</a>
+  <nav class="site-nav" aria-label="Main">
+    <a class="nav-how" href="how.html">How it works</a>
+    <a class="button-link nav-explorer" href="explore.html">Explorer</a>
+  </nav>
 </header>
 
 <main class="error-page">
@@ -89,8 +103,18 @@
   </div>
 </main>
 
-<footer class="foot">
-  <p>Images: NASA SPHEREx Level 2 spectral images from the NASA/IPAC Infrared Science Archive.</p>
+<footer class="site-foot">
+  <div class="foot-main">
+    <p><strong>Sky Blink</strong> is made by Team Volunteers: Mamatkarimov Mironshoh and Doshniyazov Sardar, for the NASA Space Apps Challenge.</p>
+    <p>Images: NASA SPHEREx, from the NASA/IPAC Infrared Science Archive (IRSA). Orbits: NASA JPL Horizons. Star motions for checking: Gaia DR3, through SIMBAD. Brightness values are quick-look measurements, not calibrated science products, and automated detections can be wrong.</p>
+    <p>Sky Blink is an independent project. It is not affiliated with or endorsed by NASA.</p>
+  </div>
+  <nav class="foot-nav" aria-label="Footer">
+    <a href="/">Home</a>
+    <a href="explore.html">Explorer</a>
+    <a href="how.html">How it works</a>
+    <a href="how.html#about">About</a>
+  </nav>
 </footer>
 
 </body>

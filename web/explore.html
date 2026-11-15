@@ -5,17 +5,37 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sky Blink: explore any spot</title>
 <meta name="description" content="Flip between NASA SPHEREx images of the same patch of sky taken months apart. Anything that moved or changed jumps out.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sky Blink">
+<meta property="og:title" content="Sky Blink Explorer: any spot in the sky">
+<meta property="og:description" content="Real NASA SPHEREx images, lined up months apart, show which stars moved and which changed brightness, with every number checked.">
+<meta property="og:url" content="https://nasa-theta-henna.vercel.app/explore.html">
+<meta property="og:image" content="https://nasa-theta-henna.vercel.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Sky Blink: the sky is not as still as it looks.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#04070f">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=11">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=12">
 </head>
 <body>
 
-<header class="masthead">
+<header class="bar">
+  <a href="/" class="wordmark">Sky Blink</a>
+  <nav class="site-nav" aria-label="Main">
+    <a class="nav-how" href="how.html">How it works</a>
+    <a class="button-link nav-explorer" href="explore.html" aria-current="page">Explorer</a>
+  </nav>
+</header>
+
+<section class="masthead">
   <div class="brand">
-    <h1><a href="/" class="home-link">Sky Blink</a></h1>
-    <p>Flip between SPHEREx images of one patch of sky, taken months apart. Whatever moved or changed jumps out.</p>
+    <h1>Explore any spot in the sky</h1>
+    <p>Pick a star, nebula or galaxy, or type coordinates. Sky Blink lines up SPHEREx images of that spot taken months apart, so you can flip between them.</p>
   </div>
 
   <form id="target-form" class="target" autocomplete="off">
@@ -41,7 +61,7 @@
         <div id="filter-home" class="filter-tabs" role="tablist" aria-label="Homepage Categories"></div>
       </div>
       <div class="filter-row">
-        <span class="filter-label">Show:</span>
+        <span class="filter-label">Show</span>
         <div id="filter-astro" class="filter-tabs" role="tablist" aria-label="Astronomical Categories"></div>
       </div>
     </div>
@@ -59,7 +79,7 @@
       </div>
     </div>
   </form>
-</header>
+</section>
 
 <p id="status" class="status" role="status" aria-live="polite"></p>
 
@@ -130,10 +150,20 @@
 
 </main>
 
-<footer class="foot">
-  <p>Images: NASA SPHEREx Level 2 spectral images, served by the NASA/IPAC Infrared Science Archive. Brightness values are quick-look measurements, not calibrated science products.</p>
+<footer class="site-foot">
+  <div class="foot-main">
+    <p><strong>Sky Blink</strong> is made by Team Volunteers: Mamatkarimov Mironshoh and Doshniyazov Sardar, for the NASA Space Apps Challenge.</p>
+    <p>Images: NASA SPHEREx, from the NASA/IPAC Infrared Science Archive (IRSA). Orbits: NASA JPL Horizons. Star motions for checking: Gaia DR3, through SIMBAD. Brightness values are quick-look measurements, not calibrated science products, and automated detections can be wrong.</p>
+    <p>Sky Blink is an independent project. It is not affiliated with or endorsed by NASA.</p>
+  </div>
+  <nav class="foot-nav" aria-label="Footer">
+    <a href="/">Home</a>
+    <a href="explore.html">Explorer</a>
+    <a href="how.html">How it works</a>
+    <a href="how.html#about">About</a>
+  </nav>
 </footer>
 
-<script src="app.js?v=11"></script>
+<script src="app.js?v=12"></script>
 </body>
 </html>

@@ -74,9 +74,9 @@ def _read_rows_and_flags(exp: sx.Exposure, y0: int, y1: int):
 
 
 def _clean_rows(exp: sx.Exposure, y0: int, y1: int) -> tuple[np.ndarray, int]:
-    """Image rows with pixels the pipeline flags as bad (hot, cold, transient,
-    outlier, missing...) filled from their good neighbours, at the detector's
-    own resolution. Saturated star centres stay empty (NaN): they hold no
+    """Image rows with detector defects the pipeline flags (hot, cold, dead,
+    missing pixels) filled from their good neighbours, at the detector's own
+    resolution. Saturated star centres stay empty (NaN): they hold no
     measurement and are drawn as saturated."""
     rows, flags = _read_rows_and_flags(exp, y0, y1)
     if flags is None or flags.shape != rows.shape:

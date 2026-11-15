@@ -203,7 +203,8 @@ Readers are curious members of the public, not astronomers.
 
 Use only the facts in the JSON below. Never do arithmetic or unit
 conversions: copy numbers exactly as given. Do not exaggerate the target
-note. Distances describe when the images were taken: write "was about ...",
+note. These are separate still images, not a video: never call them a video
+or footage, and do not start with "This video" or "These images". Distances describe when the images were taken: write "was about ...",
 never "is" or "currently". Explain that stacking all the images on the object makes the stars
 smear away while the object adds up. If visible_when_stacked is false, say
 it stays too faint even when stacked and the circle shows where its orbit
