@@ -23,6 +23,7 @@ from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 
 import imaging
+import motion
 import spherex as sx
 
 # ---------------------------------------------------------------- helpers
@@ -325,16 +326,18 @@ def find_changes(stacks: dict, max_items: int = 12) -> dict:
             continue
         dx_as = (last["x"][j] - first["x"][i]) * arcsec_px
         dy_as = (last["y"][j] - first["y"][i]) * arcsec_px
-        changes.append({
+        shift = math.hypot(dx_as, dy_as)
+        c = {
             "kind": "moved", "significance": round(float(sig), 1),
             "track": track,
             "x": float(first["x"][i]), "y": float(first["y"][i]),
-            "shift_arcsec": round(math.hypot(dx_as, dy_as), 1),
-            "rate_arcsec_per_year": round(math.hypot(dx_as, dy_as) / span, 1) if span else None,
-            "direction": _compass(-dx_as, -dy_as),   # image x grows west, y grows south
+            "shift_arcsec": round(shift, 1),
             "snr": round(float(min(first["snr"][i], last["snr"][j])), 1),
             "saturated": bool(first["sat"][i]),
-        })
+        }
+        # one rate +- error and one direction, fitted through every sweep
+        c.update(motion.fit(track, [s["mjd"] for s in sweeps], arcsec_px, shift, float(sig)))
+        changes.append(c)
 
     # --- brightness: measure every source at the same spot in every stack
     # (so a source that appeared or vanished is caught too), keep the ones

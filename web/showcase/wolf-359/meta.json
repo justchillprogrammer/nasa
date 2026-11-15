@@ -156,22 +156,35 @@
    "y": 148.21704070243084,
    "shift_arcsec": 4.2,
    "rate_arcsec_per_year": 4.0,
-   "direction": "south-west",
+   "direction": "west-south-west",
    "snr": 177723.1,
    "saturated": false,
    "rank": 1,
    "offset_arcmin": 0.1,
    "ra": 164.09311,
-   "dec": 6.99567
+   "dec": 6.99567,
+   "rate_err_arcsec_per_year": 0.5,
+   "pa_deg": 239,
+   "pa_err_deg": 7,
+   "years": 1.04,
+   "catalogue": {
+    "rate_arcsec_per_year": 4.72,
+    "pa_deg": 235,
+    "source": "SIMBAD (Gaia DR3), via CDS Sesame",
+    "rate_sigma": 1.4,
+    "pa_sigma": 0.6,
+    "agrees": true,
+    "verdict": "agrees within its uncertainty"
+   }
   }
  ],
  "n_sources": 181,
  "text": {
-  "summary": "Wolf 359 moved by 4.2 arcsec across the sky. This star is one of the closest to the Sun, located about 7.9 light-years away.",
+  "summary": "Wolf 359 moved at a rate of 4.0 \u00b1 0.5 arcseconds a year, which matches the catalogue rate. This star is one of the closest to the Sun, located about 7.9 light-years away.",
   "items": [
    {
     "rank": 1,
-    "text": "Wolf 359 shifted 4.2 arcsec to the south-west, a distance equal to 1/444 of the width of the full moon."
+    "text": "The target moved west-south-west at a rate of 4.0 \u00b1 0.5 arcseconds a year, a shift equal to 1/466 of the width of a full moon."
    }
   ],
   "writer": "AI (gemini-3.1-flash-lite)"

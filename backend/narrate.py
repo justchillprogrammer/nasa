@@ -43,10 +43,15 @@ def facts(target: dict, sweeps: list[dict], result: dict) -> dict:
              "status": ("measured" if c["kind"] == "moved" else
                         "confirmed" if c.get("verified") else "candidate")}
         if c["kind"] == "moved":
-            moon = round(1865 / c["shift_arcsec"]) if c["shift_arcsec"] else None
-            f.update(shift_arcsec=c["shift_arcsec"], rate_arcsec_per_year=c["rate_arcsec_per_year"],
+            # One number for the motion: the rate, with its uncertainty.
+            rate = c["rate_arcsec_per_year"]
+            moon = round(1865 / rate) if rate else None
+            f.update(rate_arcsec_per_year=rate, rate_uncertainty=c.get("rate_err_arcsec_per_year"),
                      direction=c["direction"], saturated_star=c.get("saturated", False),
-                     shift_as_fraction_of_full_moon_width=f"1/{moon}" if moon else None)
+                     yearly_shift_as_fraction_of_full_moon_width=f"1/{moon}" if moon else None)
+            if c.get("catalogue"):
+                f.update(catalogue_rate_arcsec_per_year=c["catalogue"]["rate_arcsec_per_year"],
+                         matches_catalogue=c["catalogue"]["agrees"])
         else:
             f.update(brightness_ratio=c["ratio"], magnitudes=c["magnitudes"],
                      brightest_in=c["brightest_sweep"], faintest_in=c["faintest_sweep"],
@@ -73,8 +78,12 @@ def rule_text(f: dict) -> dict:
         where = ("at the centre" if (c.get("distance_from_centre_arcmin") or 0) < 0.5
                  else f"{c['distance_from_centre_arcmin']:.1f} arcminutes from the centre")
         if c["kind"] == "moved":
-            t = (f"A star {where} moved {c['shift_arcsec']} arcseconds to the {c['direction']} "
-                 f"between {_span(f)}, about {c['rate_arcsec_per_year']} arcseconds a year.")
+            err = f" ± {c['rate_uncertainty']}" if c.get("rate_uncertainty") else ""
+            t = (f"A star {where} is moving {c['rate_arcsec_per_year']}{err} arcseconds a year "
+                 f"toward the {c['direction']}, measured between {_span(f)}.")
+            if c.get("catalogue_rate_arcsec_per_year"):
+                t += (f" Star catalogues give {c['catalogue_rate_arcsec_per_year']} arcseconds a year"
+                      + (", which agrees." if c.get("matches_catalogue") else ", which does not agree."))
         else:
             t = (f"A source {where} {KIND_WORDS[c['kind']]}: it was {c['brightness_ratio']} times brighter "
                  f"in {c['brightest_in']} than in {c['faintest_in']}.")
@@ -103,8 +112,12 @@ curious members of the public, not astronomers.
 
 Use only the facts in the JSON below. Do not name objects, guess what they
 are, or add numbers that are not given, except the target name. Never do
-arithmetic or unit conversions: copy numbers exactly as given. To make a
-tiny angle feel real, use shift_as_fraction_of_full_moon_width if present.
+arithmetic or unit conversions: copy numbers exactly as given. Give a
+star's motion only as rate_arcsec_per_year with its rate_uncertainty
+(for example "9.2 ± 1.2 arcseconds a year"), never as a total shift. To make
+a tiny angle feel real, use yearly_shift_as_fraction_of_full_moon_width if
+present. If catalogue_rate_arcsec_per_year is given, say whether the
+measurement matches it (matches_catalogue).
 Only say the target itself changed when is_the_target_itself is true;
 otherwise call it "another star in the view" or "a source in the view".
 A change with status "candidate" is only possible: never present it as a

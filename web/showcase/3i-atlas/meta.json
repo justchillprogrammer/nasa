@@ -740,7 +740,7 @@
   "visible_when_stacked": true
  },
  "text": {
-  "summary": "You are watching 90 real images of 3I/ATLAS, the interstellar comet, taken between 01 Aug 2025 and 15 Dec 2025. By stacking all the images on the object, the stars smear away while the comet adds up to become visible. This object was about 2.47 au away and is only the third object ever seen visiting our solar system from interstellar space.",
+  "summary": "You are watching 90 real images of the interstellar comet 3I/ATLAS taken between 01 Aug 2025 and 15 Dec 2025. By stacking all the images on the object, the stars smear away while the comet adds up to become visible. This object is only the third one ever seen visiting our solar system from interstellar space and was about 2.47 au away when the images were taken.",
   "items": [],
   "writer": "AI (gemini-3.1-flash-lite)"
  },

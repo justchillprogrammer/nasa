@@ -29,6 +29,7 @@ sys.path.insert(0, str(ROOT / "backend"))
 warnings.filterwarnings("ignore")
 
 import detect  # noqa: E402
+import motion  # noqa: E402
 import narrate  # noqa: E402
 import track  # noqa: E402
 
@@ -67,6 +68,7 @@ def build(t: dict) -> dict:
             "lams": [round(e["lam"], 3) for e in s["exposures"]],
         })
 
+    apply_motion(t, {"size": t.get("size", 0.25), "npix": stacks["npix"], "sweeps": sweeps, "changes": result["changes"]})
     text = narrate.describe(t, sweeps, result)
     meta = {
         "slug": slug, "name": t["name"], "note": t.get("note", ""),
@@ -181,6 +183,19 @@ def write_thumbs(d: Path, meta: dict) -> None:
             .crop((0, 60, 320, 260)).save(d / s["thumb"], optimize=True)
 
 
+def apply_motion(t: dict, meta: dict) -> None:
+    """Fit every moving star's rate and direction through all sweeps and,
+    when the target has a catalogue proper motion, compare with it."""
+    arcsec_px = meta["size"] * 3600 / meta["npix"]
+    mjds = [s["mjd"] for s in meta["sweeps"]]
+    for c in meta["changes"]:
+        if c["kind"] != "moved" or len(c.get("track", [])) != len(mjds):
+            continue
+        c.update(motion.fit(c["track"], mjds, arcsec_px, c["shift_arcsec"], c["significance"]))
+        if "pm_ra_mas" in t and (c.get("offset_arcmin") or 99) < 0.5:
+            c["catalogue"] = motion.compare(c, t["pm_ra_mas"], t["pm_dec_mas"], t["pm_source"])
+
+
 def refresh(t: dict) -> None:
     """Redo the text and pictures of a finished target without re-measuring."""
     d = OUT / t["slug"]
@@ -194,6 +209,7 @@ def refresh(t: dict) -> None:
         mp.write_text(json.dumps(meta, indent=1, default=float))
         print(f"refreshed {t['slug']}: text by {meta['text']['writer']}", flush=True)
         return
+    apply_motion(t, meta)
     sweeps = [{"label": s["label"], "n": s["n"]} for s in meta["sweeps"]]
     meta["text"] = narrate.describe(t, sweeps, {"changes": meta["changes"], "n_sources": meta["n_sources"]})
     meta["name"], meta["note"] = t["name"], t.get("note", "")

@@ -31,7 +31,7 @@ brightness jumps out, the same way Pluto was found with a blink comparator.
 - **Scroll story (home page)**: a full-screen sky made of real SPHEREx pixels
   that the reader's scroll drives, with passages appearing and vanishing over
   it. It turns into a glass-plate negative for the blink comparator that
-  found Pluto, then scrubs through the dates as Barnard's Star moves 9.1″.
+  found Pluto, then scrubs through the dates as Barnard's Star moves.
   A small scroll, swipe or arrow key glides to the next scene (each flip of
   the plate, each SPHEREx pass of the star); the scrollbar is hidden and a
   thin line on the right shows progress. Nothing plays on its own
@@ -44,9 +44,12 @@ brightness jumps out, the same way Pluto was found with a blink comparator.
   `web/showcase/index.json`; comets such as 3I/ATLAS open in the time machine,
   which follows them along their path.
 
-Detected motions match published values for the showcase stars (for example
-Barnard's Star: 9.1 arcseconds north in a year; Teegarden's Star: 5.1
-arcseconds south-east).
+Every moving star is reported once, as a rate with its uncertainty and a
+direction in degrees, fitted through all sweeps (`backend/motion.py`). For
+the six showcase stars these agree with the Gaia proper motions in SIMBAD
+within their uncertainties (for example Barnard's Star: 9.2 ± 1.2″/yr
+measured, 10.4″/yr catalogued). "How it works" shows the full table, read
+from the same files the site uses.
 
 ## Run it
 

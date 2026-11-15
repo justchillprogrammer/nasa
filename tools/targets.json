@@ -15,7 +15,10 @@
   "group": "Stars on the move",
   "ra": 269.4462,
   "dec": 4.7697,
-  "note": "A red dwarf 6 light-years away. It crosses our sky faster than any other star."
+  "note": "A red dwarf 6 light-years away. It crosses our sky faster than any other star.",
+  "pm_ra_mas": -801.551,
+  "pm_dec_mas": 10362.394,
+  "pm_source": "SIMBAD (Gaia DR3), via CDS Sesame"
  },
  {
   "slug": "kapteyn",
@@ -23,7 +26,10 @@
   "group": "Stars on the move",
   "ra": 77.9871,
   "dec": -45.0607,
-  "note": "A very old star about 13 light-years away, with the second-fastest motion across the sky."
+  "note": "A very old star about 13 light-years away, with the second-fastest motion across the sky.",
+  "pm_ra_mas": 6491.223,
+  "pm_dec_mas": -5708.614,
+  "pm_source": "SIMBAD (Gaia DR3), via CDS Sesame"
  },
  {
   "slug": "groombridge-1830",
@@ -31,7 +37,10 @@
   "group": "Stars on the move",
   "ra": 178.2823,
   "dec": 37.6757,
-  "note": "A star about 30 light-years away that races across the sky at 7 arcseconds a year."
+  "note": "A star about 30 light-years away, one of the fastest-moving stars in our sky.",
+  "pm_ra_mas": 4002.655,
+  "pm_dec_mas": -5817.8,
+  "pm_source": "SIMBAD (Gaia DR3), via CDS Sesame"
  },
  {
   "slug": "lacaille-9352",
@@ -39,7 +48,10 @@
   "group": "Stars on the move",
   "ra": 346.5285,
   "dec": -35.8433,
-  "note": "A red dwarf about 10.7 light-years away in the southern sky."
+  "note": "A red dwarf about 10.7 light-years away in the southern sky.",
+  "pm_ra_mas": 6765.995,
+  "pm_dec_mas": 1330.285,
+  "pm_source": "SIMBAD (Gaia DR3), via CDS Sesame"
  },
  {
   "slug": "wolf-359",
@@ -47,7 +59,10 @@
   "group": "Stars on the move",
   "ra": 164.0919,
   "dec": 6.9946,
-  "note": "One of the closest stars to the Sun, about 7.9 light-years away."
+  "note": "One of the closest stars to the Sun, about 7.9 light-years away.",
+  "pm_ra_mas": -3866.338,
+  "pm_dec_mas": -2699.215,
+  "pm_source": "SIMBAD (Gaia DR3), via CDS Sesame"
  },
  {
   "slug": "teegarden",
@@ -55,7 +70,10 @@
   "group": "Stars on the move",
   "ra": 43.2796,
   "dec": 16.854,
-  "note": "A small red dwarf 12.5 light-years away with Earth-sized planets."
+  "note": "A small red dwarf 12.5 light-years away with Earth-sized planets.",
+  "pm_ra_mas": 3429.083,
+  "pm_dec_mas": -3805.541,
+  "pm_source": "SIMBAD (Gaia DR3), via CDS Sesame"
  },
  {
   "slug": "wise-j184125",

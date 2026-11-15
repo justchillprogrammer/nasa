@@ -173,26 +173,39 @@
    "x": 152.5167887943196,
    "y": 150.163846494472,
    "shift_arcsec": 8.0,
-   "rate_arcsec_per_year": 7.9,
+   "rate_arcsec_per_year": 8.0,
    "direction": "east",
    "snr": 999.0,
    "saturated": true,
    "rank": 1,
    "offset_arcmin": 0.15,
    "ra": 346.5254,
-   "dec": -35.84385
+   "dec": -35.84385,
+   "rate_err_arcsec_per_year": 1.2,
+   "pa_deg": 98,
+   "pa_err_deg": 8,
+   "years": 1.01,
+   "catalogue": {
+    "rate_arcsec_per_year": 6.9,
+    "pa_deg": 79,
+    "source": "SIMBAD (Gaia DR3), via CDS Sesame",
+    "rate_sigma": 0.9,
+    "pa_sigma": 2.4,
+    "agrees": true,
+    "verdict": "agrees within 3 times its uncertainty"
+   }
   }
  ],
  "n_sources": 177,
  "text": {
-  "summary": "Lacaille 9352 moved by 8.0 arcsec to the east, a shift equal to 1/233 of the full moon's width. This is a red dwarf about 10.7 light-years away in the southern sky.",
+  "summary": "Lacaille 9352 moved east at a rate of 8.0 \u00b1 1.2 arcseconds a year, which is about 1/233 the width of a full moon. This is a red dwarf about 10.7 light-years away in the southern sky.",
   "items": [
    {
     "rank": 1,
-    "text": "The target moved at a rate of 7.9 arcsec per year, though the star is saturated in the images."
+    "text": "The target moved east at a rate of 8.0 \u00b1 1.2 arcseconds a year, matching the catalogue rate."
    }
   ],
-  "writer": "AI (gemini-3.1-flash-lite)"
+  "writer": "AI (gemini-flash-lite-latest)"
  },
  "built": "2026-11-14T08:43:44+00:00",
  "spectrum": [

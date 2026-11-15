@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=8">
-<link rel="stylesheet" href="showcase.css?v=8">
+<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="showcase.css?v=9">
 <style>
   .how-page { max-width: 980px; }
   .how-page h1 { font-size: clamp(2rem, 4.4vw, 3rem); letter-spacing: -0.03em; margin: 26px 0 10px; }
@@ -31,6 +31,15 @@
   .truth dt { font-weight: 700; }
   .truth dd { margin: 0; color: var(--muted); }
   .back-row { margin-top: 30px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .checks { margin-top: 40px; }
+  .checks h2 { font-size: 1.3rem; margin: 0 0 8px; }
+  .checks > p { color: var(--muted); max-width: 70ch; }
+  .table-wrap { overflow-x: auto; margin: 14px 0 6px; }
+  .checks table { border-collapse: collapse; width: 100%; min-width: 560px; font-variant-numeric: tabular-nums; }
+  .checks th, .checks td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+  .checks th { color: var(--muted); font-weight: 700; font-size: 0.9rem; }
+  .checks td.ok { color: var(--bright); } .checks td.bad { color: var(--faint); }
+  .checks-note { font-size: 0.9rem; }
   @media (max-width: 800px) { .step { grid-template-columns: minmax(0, 1fr); } }
 </style>
 </head>
@@ -62,7 +71,7 @@
       <div>
         <h2><span>2</span>Stack, line up, compare</h2>
         <p>For each sweep, Sky Blink stacks the 30 to 40 exposures taken between 1 and 2 micrometres into one clean, complete image, and puts every sweep on exactly the same grid.</p>
-        <p>Then it finds every star, matches them between sweeps, and keeps only changes far larger than the measurement noise: stars that moved in a straight line, and stars whose brightness changed. Above, Barnard's Star moved 9.1 arcseconds north in a year.</p>
+        <p>Then it finds every star, matches them between sweeps, and keeps only changes far larger than the measurement noise: stars that moved in a straight line, and stars whose brightness changed. Above, <span data-fill="barnard-rate">Barnard's Star moves north</span>.</p>
       </div>
       <div class="pics">
         <figure><img src="showcase/wise-j184125/s0.png" alt="A variable star in September 2025"><figcaption>A variable star, Sep 2025</figcaption></figure>
@@ -77,7 +86,7 @@
         <p>Finally an AI turns the measurements into plain words. It sees only the numbers, and every number it writes is checked against them; if anything does not match, the site uses sentences built straight from the measurements instead.</p>
       </div>
       <div class="quote">
-        “Barnard's Star moved 9.1 arcsec to the north, a shift equal to 1/205 of the width of the full moon.”
+        <span data-fill="barnard-summary">“Barnard's Star moves north.”</span>
         <small>Written by AI from the measurements; numbers checked.</small>
       </div>
     </li>
@@ -118,6 +127,18 @@
     </li>
   </ol>
 
+  <section class="checks" aria-labelledby="checks-title">
+    <h2 id="checks-title">Checks against star catalogues</h2>
+    <p>The best test of a measurement is a star whose answer is already known. For every moving star on the home page, this compares what Sky Blink measured from SPHEREx images with the motion published from the Gaia space telescope (looked up in SIMBAD). The ± values are Sky Blink's measurement uncertainty.</p>
+    <div class="table-wrap">
+      <table id="checks-table">
+        <thead><tr><th scope="col">Star</th><th scope="col">Sky Blink (SPHEREx)</th><th scope="col">Catalogue (Gaia)</th><th scope="col">Result</th></tr></thead>
+        <tbody><tr><td colspan="4">Loading the measurements…</td></tr></tbody>
+      </table>
+    </div>
+    <p class="checks-note">Speeds in arcseconds per year; directions in degrees east of north. Very bright stars overload the detector at their centre, which makes their positions less precise: that is why their uncertainties are larger.</p>
+  </section>
+
   <section class="truth">
     <h2>What is real, and what only helps your eyes</h2>
     <dl>
@@ -140,5 +161,38 @@
 <footer class="foot">
   <p>Images: NASA SPHEREx Level 2 spectral images from the NASA/IPAC Infrared Science Archive. Orbits: NASA JPL Horizons.</p>
 </footer>
+<script>
+/* Fill the numbers on this page from the same files the site uses, so they
+   can never disagree with what the time machine shows. */
+(async () => {
+  try {
+    const idx = await fetch("showcase/index.json").then((r) => r.json());
+    const movers = idx.targets.filter((t) => (t.kinds || {}).moved);
+    const metas = await Promise.all(movers.map((t) => fetch(`showcase/${t.slug}/meta.json`).then((r) => r.json())));
+    const f1 = (v) => Number(v).toFixed(1);
+    const rows = [];
+    for (const m of metas) {
+      const c = m.changes.find((x) => x.kind === "moved" && x.catalogue);
+      if (!c) continue;
+      const k = c.catalogue;
+      rows.push(`<tr><th scope="row">${m.name}</th>
+        <td>${f1(c.rate_arcsec_per_year)} ± ${f1(c.rate_err_arcsec_per_year)}″/yr toward ${c.pa_deg}° ± ${c.pa_err_deg}°</td>
+        <td>${f1(k.rate_arcsec_per_year)}″/yr toward ${k.pa_deg}°</td>
+        <td class="${k.agrees ? "ok" : "bad"}">${k.verdict[0].toUpperCase() + k.verdict.slice(1)} (speed ${k.rate_sigma}σ, direction ${k.pa_sigma}σ apart)</td></tr>`);
+      if (m.slug === "barnard") {
+        const a = document.querySelector('[data-fill="barnard-rate"]');
+        if (a) a.textContent = `Barnard's Star moves ${f1(c.rate_arcsec_per_year)} ± ${f1(c.rate_err_arcsec_per_year)} arcseconds a year toward the ${c.direction}`;
+        const b = document.querySelector('[data-fill="barnard-summary"]');
+        if (b) b.textContent = `“${m.text.summary}”`;
+      }
+    }
+    document.querySelector("#checks-table tbody").innerHTML = rows.join("") ||
+      '<tr><td colspan="4">No catalogue comparisons are available.</td></tr>';
+  } catch (e) {
+    document.querySelector("#checks-table tbody").innerHTML =
+      '<tr><td colspan="4">The measurements could not be loaded. Reload the page to try again.</td></tr>';
+  }
+})();
+</script>
 </body>
 </html>

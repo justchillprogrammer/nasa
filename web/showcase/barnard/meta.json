@@ -173,23 +173,36 @@
    "x": 149.30189959023892,
    "y": 151.859521324174,
    "shift_arcsec": 9.1,
-   "rate_arcsec_per_year": 9.3,
+   "rate_arcsec_per_year": 9.2,
    "direction": "north",
    "snr": 999.0,
    "saturated": true,
    "rank": 1,
    "offset_arcmin": 0.12,
    "ra": 269.44637,
-   "dec": 4.76773
+   "dec": 4.76773,
+   "rate_err_arcsec_per_year": 1.2,
+   "pa_deg": 350,
+   "pa_err_deg": 7,
+   "years": 0.99,
+   "catalogue": {
+    "rate_arcsec_per_year": 10.39,
+    "pa_deg": 356,
+    "source": "SIMBAD (Gaia DR3), via CDS Sesame",
+    "rate_sigma": 1.0,
+    "pa_sigma": 0.8,
+    "agrees": true,
+    "verdict": "agrees within its uncertainty"
+   }
   }
  ],
  "n_sources": 231,
  "text": {
-  "summary": "Barnard's Star moved 9.1 arcsec to the north, a shift equal to 1/205 of the width of the full moon. This red dwarf is 6 light-years away and crosses our sky faster than any other star.",
+  "summary": "Barnard's Star moved north at a rate of 9.2 \u00b1 1.2 arcseconds a year, which matches the catalogue rate. This red dwarf is 6 light-years away and crosses our sky faster than any other star.",
   "items": [
    {
     "rank": 1,
-    "text": "Barnard's Star moved north at a rate of 9.3 arcsec per year, which is a measured change for this saturated star."
+    "text": "Barnard's Star shifted by 1/203 of the width of a full moon over the course of a year."
    }
   ],
   "writer": "AI (gemini-3.1-flash-lite)"

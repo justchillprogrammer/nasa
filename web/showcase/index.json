@@ -10,7 +10,7 @@
     "tracked": 90
    },
    "candidates": 0,
-   "summary": "You are watching 90 real images of 3I/ATLAS, the interstellar comet, taken between 01 Aug 2025 and 15 Dec 2025. By stacking all the images on the object, the stars smear away while the comet adds up to become visible. This object was about 2.47 au away and is only the third object ever seen visiting our solar system from interstellar space.",
+   "summary": "You are watching 90 real images of the interstellar comet 3I/ATLAS taken between 01 Aug 2025 and 15 Dec 2025. By stacking all the images on the object, the stars smear away while the comet adds up to become visible. This object is only the third one ever seen visiting our solar system from interstellar space and was about 2.47 au away when the images were taken.",
    "writer": "AI (gemini-3.1-flash-lite)",
    "thumbs": [
     "3i-atlas/t0.png",
@@ -32,7 +32,7 @@
     "moved": 1
    },
    "candidates": 0,
-   "summary": "Barnard's Star moved 9.1 arcsec to the north, a shift equal to 1/205 of the width of the full moon. This red dwarf is 6 light-years away and crosses our sky faster than any other star.",
+   "summary": "Barnard's Star moved north at a rate of 9.2 \u00b1 1.2 arcseconds a year, which matches the catalogue rate. This red dwarf is 6 light-years away and crosses our sky faster than any other star.",
    "writer": "AI (gemini-3.1-flash-lite)",
    "thumbs": [
     "barnard/s0.png",
@@ -56,7 +56,7 @@
     "moved": 1
    },
    "candidates": 0,
-   "summary": "Kapteyn's Star was measured to have moved 8.3 arcsec per year toward the south-east. This is a very old star about 13 light-years away, with the second-fastest motion across the sky.",
+   "summary": "Kapteyn's Star was measured moving south-east at a rate of 8.3 \u00b1 1.2 arcseconds a year, which matches the catalogue rate. This is a very old star about 13 light-years away, with the second-fastest motion across the sky.",
    "writer": "AI (gemini-3.1-flash-lite)",
    "thumbs": [
     "kapteyn/s0.png",
@@ -72,7 +72,7 @@
   {
    "slug": "groombridge-1830",
    "name": "Groombridge 1830",
-   "note": "A star about 30 light-years away that races across the sky at 7 arcseconds a year.",
+   "note": "A star about 30 light-years away, one of the fastest-moving stars in our sky.",
    "group": "Stars on the move",
    "ra": 178.2823,
    "dec": 37.6757,
@@ -80,7 +80,7 @@
     "moved": 1
    },
    "candidates": 0,
-   "summary": "Groombridge 1830 moved 7.0 arcsec south between the observations. This star is about 30 light-years away and races across the sky at 7 arcseconds a year.",
+   "summary": "Groombridge 1830 moved at a rate of 6.8 \u00b1 1.2 arcseconds a year toward the south-south-east. This star is about 30 light-years away and is one of the fastest-moving stars in our sky.",
    "writer": "AI (gemini-3.1-flash-lite)",
    "thumbs": [
     "groombridge-1830/s0.png",
@@ -104,8 +104,8 @@
     "moved": 1
    },
    "candidates": 0,
-   "summary": "Lacaille 9352 moved by 8.0 arcsec to the east, a shift equal to 1/233 of the full moon's width. This is a red dwarf about 10.7 light-years away in the southern sky.",
-   "writer": "AI (gemini-3.1-flash-lite)",
+   "summary": "Lacaille 9352 moved east at a rate of 8.0 \u00b1 1.2 arcseconds a year, which is about 1/233 the width of a full moon. This is a red dwarf about 10.7 light-years away in the southern sky.",
+   "writer": "AI (gemini-flash-lite-latest)",
    "thumbs": [
     "lacaille-9352/s0.png",
     "lacaille-9352/s1.png",
@@ -128,7 +128,7 @@
     "moved": 1
    },
    "candidates": 0,
-   "summary": "Wolf 359 moved by 4.2 arcsec across the sky. This star is one of the closest to the Sun, located about 7.9 light-years away.",
+   "summary": "Wolf 359 moved at a rate of 4.0 \u00b1 0.5 arcseconds a year, which matches the catalogue rate. This star is one of the closest to the Sun, located about 7.9 light-years away.",
    "writer": "AI (gemini-3.1-flash-lite)",
    "thumbs": [
     "wolf-359/s0.png",
@@ -152,8 +152,8 @@
     "moved": 1
    },
    "candidates": 1,
-   "summary": "Teegarden's Star moved by 5.1 arcsec over the course of the observations. This small red dwarf is located 12.5 light-years away and hosts Earth-sized planets.",
-   "writer": "AI (gemini-3.1-flash-lite)",
+   "summary": "Teegarden's Star was measured moving south-east at a rate of 5.1 \u00b1 0.5 arcseconds a year, which matches previous records and covers about 1/366 of the full Moon's width each year. Teegarden's Star is a small red dwarf 12.5 light-years away with Earth-sized planets.",
+   "writer": "AI (gemini-flash-lite-latest)",
    "thumbs": [
     "teegarden/s0.png",
     "teegarden/s1.png",
@@ -176,7 +176,7 @@
     "faded": 1
    },
    "candidates": 0,
-   "summary": "WISE J184125.47+095436.5 faded by 0.66 magnitudes between September 2025 and September 2026. This star was previously flagged as variable by NASA's WISE telescope, and SPHEREx is now observing it for further changes.",
+   "summary": "WISE J184125.47+095436.5 faded by 0.66 magnitudes between September 2025 and September 2026. This star was previously flagged as variable by NASA's WISE telescope, and SPHEREx has now confirmed this change.",
    "writer": "AI (gemini-3.1-flash-lite)",
    "thumbs": [
     "wise-j184125/s0.png",
@@ -198,7 +198,7 @@
    "dec": 24.12,
    "kinds": {},
    "candidates": 0,
-   "summary": "No measurable changes were found in the sky across the three observation periods. The Pleiades is a young star cluster about 440 light-years away, wrapped in dust that reflects starlight.",
+   "summary": "No measurable changes were detected in the sky between these observations of the Pleiades. This is a young star cluster about 440 light-years away, wrapped in dust that reflects starlight.",
    "writer": "AI (gemini-3.1-flash-lite)",
    "thumbs": [
     "pleiades/s0.png",
@@ -220,7 +220,7 @@
    "dec": 22.0145,
    "kinds": {},
    "candidates": 0,
-   "summary": "No measurable changes were found in the sky view of the Crab Nebula across the available observations. This object is the remains of a star that exploded and was seen from Earth in the year 1054.",
+   "summary": "No measurable changes were detected in the sky between these observations of the Crab Nebula. This object is the remains of a star that exploded and was seen from Earth in the year 1054.",
    "writer": "AI (gemini-3.1-flash-lite)",
    "thumbs": [
     "crab/s0.png",
@@ -242,8 +242,8 @@
    "dec": -5.391,
    "kinds": {},
    "candidates": 0,
-   "summary": "No measurable changes were detected in the Orion Nebula across the observed periods. This cloud is 1,300 light-years away where new stars are forming.",
-   "writer": "AI (gemini-3.1-flash-lite)",
+   "summary": "No measurable changes were found in the view between September 2025 and September 2026. This target is a cloud 1,300 light-years away where new stars are forming.",
+   "writer": "AI (gemini-flash-lite-latest)",
    "thumbs": [
     "orion/s0.png",
     "orion/s1.png",

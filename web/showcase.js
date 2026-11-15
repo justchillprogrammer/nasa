@@ -124,17 +124,46 @@ function icon(kind) {
   return `<svg viewBox="0 0 30 30" aria-hidden="true">${shapes[kind] || ""}</svg>`;
 }
 
+// Plain-language explanations of the jargon, shown on hover or focus.
+const TERMS = {
+  sigma: "σ (sigma) says how far a change stands above the measurement noise. At 5σ or more, noise alone would almost never produce it.",
+  arcsec: "An arcsecond (″) is a tiny angle: 1/3600 of a degree. The full Moon is about 1,865 arcseconds wide.",
+  pa: "Direction on the sky in degrees: 0° is north, 90° east, 180° south, 270° west.",
+  mjy: "mJy (millijansky) is a unit of brightness used in radio and infrared astronomy. Bigger means brighter.",
+  saturated: "Saturated: the star is so bright that the centre of its image overloads the detector, so those pixels hold no measurement.",
+  au: "au (astronomical unit) is the Earth-Sun distance, about 150 million km.",
+  catalogue: "The star's motion as published from the Gaia space telescope, looked up in the SIMBAD database.",
+};
+function term(text, key) {
+  return `<span class="term" tabindex="0" data-tip="${TERMS[key].replace(/"/g, "&quot;")}">${text}</span>`;
+}
+
 function sureness(c) {
-  if (c.kind === "moved") return c.significance >= 8 ? ["Very sure", "high"] : ["Fairly sure", "mid"];
-  if (c.verified === true) return c.significance >= 6 ? ["Very sure, confirmed", "high"] : ["Confirmed", "mid"];
+  // σ above 5 is near-certain by any standard; wording follows that.
+  if (c.kind === "moved") return c.significance >= 5 ? ["Near-certain", "high"] : c.significance >= 3 ? ["Likely", "mid"] : ["Candidate", "low"];
+  if (c.verified === true) return c.significance >= 5 ? ["Near-certain, confirmed", "high"] : ["Confirmed", "mid"];
   if (c.season_pattern) return ["Candidate, may be an instrument reflection", "low"];
   if (c.verified === false) return ["Candidate, not yet confirmed", "low"];
   return ["Candidate", "low"];
 }
 
+// One number per measurement: a moving star's rate with its uncertainty.
+const f1 = (v) => Number(v).toFixed(1);
+
 function changeNumbers(c) {
-  if (c.kind === "moved") return `${c.shift_arcsec}″ in ${c.rate_arcsec_per_year ? (c.shift_arcsec / c.rate_arcsec_per_year).toFixed(1) : "?"} years, toward the ${c.direction}`;
+  if (c.kind === "moved") {
+    if (c.rate_err_arcsec_per_year == null) return `${f1(c.rate_arcsec_per_year)}${term("″", "arcsec")} per year toward the ${c.direction}`;
+    return `${f1(c.rate_arcsec_per_year)} ± ${f1(c.rate_err_arcsec_per_year)}${term("″", "arcsec")} per year toward the ${c.direction} `
+      + `(${term(`${c.pa_deg}° ± ${c.pa_err_deg}°`, "pa")})`;
+  }
   return `${c.ratio}× brighter in ${c.brightest_sweep} than in ${c.faintest_sweep}`;
+}
+
+function catalogueLine(c) {
+  const k = c.catalogue;
+  if (!k) return "";
+  return `<p class="c-check ${k.agrees ? "ok" : "bad"}">${term("Catalogue", "catalogue")}: ${f1(k.rate_arcsec_per_year)}″ per year toward ${k.pa_deg}°. `
+    + `Our measurement ${k.verdict} (speed ${k.rate_sigma}σ, direction ${k.pa_sigma}σ apart).</p>`;
 }
 
 /* ---------------------------------------------------------- feed */
@@ -363,18 +392,24 @@ function buildTicks() {
   el.ticks.replaceChildren();
   const minSpacing = 0.22; // Wider date-label spacing so dates never collide
   if (S.track) {
+    // One tick per visit, plus the very last image, so the axis ends on the
+    // real last date. Labels that would overlap are dropped, never the ends.
     const sw = S.meta.sweeps, n = sw.length;
-    let lastPos = -1;
-    sw.forEach((s, i) => {
-      if (i && s.mjd - sw[i - 1].mjd < 3) return;          // one tick per visit
-      const pos = i / Math.max(1, n - 1);
-      if (lastPos >= 0 && pos - lastPos < minSpacing) return; // keep labels from overlapping
-      lastPos = pos;
+    const ticks = [];
+    sw.forEach((s, i) => { if (!i || s.mjd - sw[i - 1].mjd >= 3) ticks.push(i); });
+    if (ticks[ticks.length - 1] !== n - 1) ticks.push(n - 1);
+    const pos = (i) => i / Math.max(1, n - 1);
+    const keep = [ticks[0]];
+    for (const i of ticks.slice(1, -1)) {
+      if (pos(i) - pos(keep[keep.length - 1]) >= minSpacing && pos(ticks[ticks.length - 1]) - pos(i) >= minSpacing) keep.push(i);
+    }
+    if (ticks.length > 1) keep.push(ticks[ticks.length - 1]);
+    for (const i of keep) {
       const span = document.createElement("span");
-      span.style.left = `${(i / Math.max(1, n - 1)) * 100}%`;
-      span.textContent = fmtDay(s.mjd);
+      span.style.left = `${pos(i) * 100}%`;
+      span.textContent = fmtDay(sw[i].mjd);
       el.ticks.append(span);
-    });
+    }
     return;
   }
   let lastT = -1;
@@ -827,7 +862,7 @@ function buildReport() {
     b.setAttribute("aria-pressed", "false");
     const [sure, cls] = sureness(c);
     b.innerHTML = `${icon(c.kind)}<div><p class="c-text"><strong>${c.rank}. ${KIND[c.kind].noun}.</strong> ${texts[c.rank] || ""}</p>
-      <p class="c-meta">${changeNumbers(c)}. <span class="sure ${cls}">${sure}</span> (${c.significance}σ)</p></div>`;
+      <p class="c-meta">${changeNumbers(c)}. <span class="sure ${cls}">${sure}</span> (${term(`${c.significance}σ`, "sigma")})${c.saturated ? `; ${term("saturated", "saturated")} star, so its position is less precise` : ""}</p>${catalogueLine(c)}</div>`;
     b.addEventListener("click", () => focusChange(c));
     li.append(b);
     el.changes.append(li);
@@ -843,7 +878,7 @@ function buildTrackReport() {
   const rows = [
     ["Real SPHEREx images", `${f.n_images}, over ${f.visits} visit${f.visits > 1 ? "s" : ""}`],
     ["Dates", `${f.first_date} to ${f.last_date}`],
-    ["Distance from Earth", f.distance_au ? `${f.distance_au} au (${f.distance_million_km} million km)` : "unknown"],
+    ["Distance from Earth", f.distance_au ? `${f.distance_au} ${term("au", "au")} (${f.distance_million_km} million km)` : "unknown"],
     ["Speed across the sky", f.sky_speed_arcsec_per_hour ? `${f.sky_speed_arcsec_per_hour}″ per hour` : "unknown"],
     ["Position from", "NASA JPL Horizons orbit"],
   ];
@@ -1167,11 +1202,11 @@ function renderTargetSpectrum() {
   s.push(`</svg>`);
 
   const src = S.meta.spectrum_source;
-  el.spectrumCaption.textContent = src
+  el.spectrumCaption.innerHTML = `Brightness in ${term("mJy", "mjy")}. ` + (src
     ? `Each dot is one real exposure (${src.measured} of ${src.exposures}); colour shows the sweep. ` +
       (src.skipped ? `${src.skipped} were left out because saturated or flagged pixels fell in the measuring circle. ` : "") +
       "Quick-look brightness, not calibrated science values."
-    : "Each dot is one real exposure. Quick-look brightness, not calibrated science values.";
+    : "Each dot is one real exposure. Quick-look brightness, not calibrated science values.");
   el.targetSpectrumView.innerHTML = s.join("");
 }
 

@@ -174,7 +174,20 @@
    "rank": 1,
    "offset_arcmin": 0.03,
    "ra": 43.27908,
-   "dec": 16.8543
+   "dec": 16.8543,
+   "rate_err_arcsec_per_year": 0.5,
+   "pa_deg": 132,
+   "pa_err_deg": 6,
+   "years": 1.01,
+   "catalogue": {
+    "rate_arcsec_per_year": 5.12,
+    "pa_deg": 138,
+    "source": "SIMBAD (Gaia DR3), via CDS Sesame",
+    "rate_sigma": 0.0,
+    "pa_sigma": 1.0,
+    "agrees": true,
+    "verdict": "agrees within its uncertainty"
+   }
   },
   {
    "kind": "appeared",
@@ -216,18 +229,18 @@
  ],
  "n_sources": 205,
  "text": {
-  "summary": "Teegarden's Star moved by 5.1 arcsec over the course of the observations. This small red dwarf is located 12.5 light-years away and hosts Earth-sized planets.",
+  "summary": "Teegarden's Star was measured moving south-east at a rate of 5.1 \u00b1 0.5 arcseconds a year, which matches previous records and covers about 1/366 of the full Moon's width each year. Teegarden's Star is a small red dwarf 12.5 light-years away with Earth-sized planets.",
   "items": [
    {
     "rank": 1,
-    "text": "Teegarden's Star shifted 5.1 arcsec toward the south-east, a distance equal to 1/366 of the width of a full moon."
+    "text": "Teegarden's Star moved south-east at 5.1 \u00b1 0.5 arcseconds a year, matching previous catalogue measurements."
    },
    {
     "rank": 2,
-    "text": "A source in the view appeared as a candidate change with a magnitude of 2.19, but it still needs checking because it was seen only when the telescope faced the other way and could be a reflection inside the instrument."
+    "text": "Another source in the view possibly appeared, but this is only a candidate that still needs checking because it was seen only when the telescope faced the other way and could be a reflection inside the instrument."
    }
   ],
-  "writer": "AI (gemini-3.1-flash-lite)"
+  "writer": "AI (gemini-flash-lite-latest)"
  },
  "built": "2026-11-14T08:44:03+00:00",
  "spectrum": [

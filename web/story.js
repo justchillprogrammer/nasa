@@ -128,9 +128,13 @@
   function writeStarText() {
     const { meta, move } = data;
     const first = meta.sweeps[0].label, last = meta.sweeps[meta.sweeps.length - 1].label;
+    const err = move.rate_err_arcsec_per_year != null ? ` ± ${move.rate_err_arcsec_per_year}` : "";
+    const cat = move.catalogue
+      ? ` Star catalogues give ${move.catalogue.rate_arcsec_per_year}; ${move.catalogue.agrees ? "our measurement agrees" : "our measurement does not agree"}.`
+      : "";
     document.getElementById("story-star-text").innerHTML =
-      `Between ${first} and ${last} it moved <b>${move.shift_arcsec} arcseconds ${move.direction}</b>. ` +
-      `That is the width of a coin seen from half a kilometre away. Your scroll is the calendar.`;
+      `Measured from ${first} to ${last}, it moves <b>${move.rate_arcsec_per_year}${err} arcseconds a year ${move.direction}</b>: ` +
+      `in a year, about the width of a coin seen from half a kilometre away.${cat}`;
   }
 
   function buildTicks() {
@@ -449,4 +453,9 @@
   updateText(shown);
   draw(shown);
   load().catch(() => { /* the passages still tell the story without pictures */ });
+  fetch("showcase/index.json").then((r) => r.json()).then((idx) => {
+    const n = (idx.targets || []).length;
+    const el = document.getElementById("story-count");
+    if (el && n) el.textContent = n === 1 ? "One place is" : `${n} places are`;
+  }).catch(() => {});
 })();

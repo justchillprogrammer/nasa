@@ -1,7 +1,7 @@
 {
  "slug": "groombridge-1830",
  "name": "Groombridge 1830",
- "note": "A star about 30 light-years away that races across the sky at 7 arcseconds a year.",
+ "note": "A star about 30 light-years away, one of the fastest-moving stars in our sky.",
  "ra": 178.2823,
  "dec": 37.6757,
  "size": 0.25,
@@ -174,22 +174,35 @@
    "y": 146.74550443765892,
    "shift_arcsec": 7.0,
    "rate_arcsec_per_year": 6.8,
-   "direction": "south",
+   "direction": "south-south-east",
    "snr": 999.0,
    "saturated": true,
    "rank": 1,
    "offset_arcmin": 0.15,
    "ra": 178.28129,
-   "dec": 37.678
+   "dec": 37.678,
+   "rate_err_arcsec_per_year": 1.2,
+   "pa_deg": 160,
+   "pa_err_deg": 10,
+   "years": 1.02,
+   "catalogue": {
+    "rate_arcsec_per_year": 7.06,
+    "pa_deg": 145,
+    "source": "SIMBAD (Gaia DR3), via CDS Sesame",
+    "rate_sigma": 0.2,
+    "pa_sigma": 1.5,
+    "agrees": true,
+    "verdict": "agrees within its uncertainty"
+   }
   }
  ],
  "n_sources": 187,
  "text": {
-  "summary": "Groombridge 1830 moved 7.0 arcsec south between the observations. This star is about 30 light-years away and races across the sky at 7 arcseconds a year.",
+  "summary": "Groombridge 1830 moved at a rate of 6.8 \u00b1 1.2 arcseconds a year toward the south-south-east. This star is about 30 light-years away and is one of the fastest-moving stars in our sky.",
   "items": [
    {
     "rank": 1,
-    "text": "Groombridge 1830 shifted south by 7.0 arcsec, which is 1/266 of the width of the full moon."
+    "text": "Groombridge 1830 shifted by 1/274 of the width of a full moon each year, a measurement that matches the catalogue rate of 7.06 arcseconds a year."
    }
   ],
   "writer": "AI (gemini-3.1-flash-lite)"

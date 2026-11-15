@@ -186,16 +186,29 @@
    "rank": 1,
    "offset_arcmin": 0.14,
    "ra": 77.9843,
-   "dec": -45.05939
+   "dec": -45.05939,
+   "rate_err_arcsec_per_year": 1.2,
+   "pa_deg": 129,
+   "pa_err_deg": 8,
+   "years": 1.0,
+   "catalogue": {
+    "rate_arcsec_per_year": 8.64,
+    "pa_deg": 131,
+    "source": "SIMBAD (Gaia DR3), via CDS Sesame",
+    "rate_sigma": 0.3,
+    "pa_sigma": 0.3,
+    "agrees": true,
+    "verdict": "agrees within its uncertainty"
+   }
   }
  ],
  "n_sources": 230,
  "text": {
-  "summary": "Kapteyn's Star was measured to have moved 8.3 arcsec per year toward the south-east. This is a very old star about 13 light-years away, with the second-fastest motion across the sky.",
+  "summary": "Kapteyn's Star was measured moving south-east at a rate of 8.3 \u00b1 1.2 arcseconds a year, which matches the catalogue rate. This is a very old star about 13 light-years away, with the second-fastest motion across the sky.",
   "items": [
    {
     "rank": 1,
-    "text": "The target itself moved 8.3 arcsec in a south-east direction, a shift equal to 1/225 of the width of a full moon."
+    "text": "Kapteyn's Star moved at a rate of 8.3 \u00b1 1.2 arcseconds a year, a shift equal to 1/225 of the width of a full moon."
    }
   ],
   "writer": "AI (gemini-3.1-flash-lite)"
