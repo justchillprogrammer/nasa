@@ -571,6 +571,26 @@ function matchGain(frame, refFrame) {
   return g;
 }
 
+/* Places of the changes "Find what changed" reported for this view, as a
+   mask: 1 near a change, dimmer elsewhere. Null when nothing was searched. */
+function changeSpotlight(n) {
+  const f = state.found;
+  if (!f || Math.abs(f.ra - state.ra) > 1e-6 || Math.abs(f.dec - state.dec) > 1e-6) return null;
+  const key = `${n}:${state.size}`;
+  if (f.mask && f.maskKey === key) return f.mask;
+  const m = new Float32Array(n * n).fill(f.changes.length ? 0.3 : 0.55);
+  const cosd = Math.cos(state.dec * Math.PI / 180), r = Math.max(4, Math.round(n * 15 / (state.size * 3600)));
+  for (const c of f.changes) {
+    let dra = c.ra - state.ra; if (dra > 180) dra -= 360; if (dra < -180) dra += 360;
+    const x0 = (0.5 - dra * cosd / state.size) * n, y0 = (0.5 - (c.dec - state.dec) / state.size) * n;
+    for (let y = Math.max(0, Math.floor(y0 - r)); y <= Math.min(n - 1, Math.ceil(y0 + r)); y++)
+      for (let x = Math.max(0, Math.floor(x0 - r)); x <= Math.min(n - 1, Math.ceil(x0 + r)); x++)
+        if ((x - x0) ** 2 + (y - y0) ** 2 <= r * r) m[y * n + x] = 1;
+  }
+  f.mask = m; f.maskKey = key;
+  return m;
+}
+
 function updateWhite() {
   const b = state.frames.filter((f) => f.status === "ready").map((f) => f.bright).sort((a, c) => a - c);
   if (b.length) state.white = b[Math.floor(b.length / 2)];
@@ -586,14 +606,21 @@ function paint(canvasCtx, n, frame, refFrame, opts) {
   if (refFrame) {
     const r = smoothed(refFrame);
     const gain = matchGain(frame, refFrame);
-    const scale = 4 * Math.hypot(frame.sigma, refFrame.sigma) / k;
+    // Coloured by how far each difference stands above the leftover every
+    // star leaves (noise plus a fifth of its brightness): teal brighter,
+    // pink fainter. After "Find what changed", other places are dimmed.
+    const noise = 2 * Math.hypot(frame.sigma, refFrame.sigma) / k;
+    const spot = changeSpotlight(n);
     for (let i = 0, j = 0; i < d.length; i++, j += 4) {
-      const v = (d[i] - frame.bg) / gain - (r[i] - refFrame.bg);
+      const now = (d[i] - frame.bg) / gain, was = r[i] - refFrame.bg;
+      const v = now - was;
       if (!Number.isFinite(v)) { px[j] = NODATA[0]; px[j + 1] = NODATA[1]; px[j + 2] = NODATA[2]; px[j + 3] = 255; continue; }
-      let s = 0.5 + 0.5 * Math.asinh(v / scale) / 2.5;
-      s = s < 0 ? 0 : s > 1 ? 1 : s;
-      const g = 255 * s;
-      px[j] = g; px[j + 1] = g; px[j + 2] = g; px[j + 3] = 255;
+      const z = v / Math.sqrt(noise * noise + (0.2 * Math.max(Math.abs(now), Math.abs(was))) ** 2);
+      let a = Math.min(1, Math.abs(z) / 6);
+      if (Math.abs(z) < 3) a *= 0.25;
+      if (spot) a *= spot[i];
+      const c = v > 0 ? [98, 210, 195] : [242, 132, 158];
+      px[j] = 5 + (c[0] - 5) * a; px[j + 1] = 7 + (c[1] - 7) * a; px[j + 2] = 13 + (c[2] - 13) * a; px[j + 3] = 255;
     }
   } else {
     const soft = 8 * k, norm = Math.asinh(soft);
@@ -663,7 +690,7 @@ async function findChanges() {
        <br><small>${c.kind === "moved" ? "Measured motion" : c.season_pattern ? "Candidate: may be a reflection inside the instrument" : "Candidate: not double-checked in single images"}, ${c.significance}σ</small></div>`).join("")
       + `<p><small>${res.checked ? `Measured from ${res.checked.images_used} real images in ${res.sweeps.length} sweeps (${res.sweeps.map((w) => w.label).join(", ")})${res.checked.images_failed ? `; ${res.checked.images_failed} could not be read and were left out` : ""}. ` : ""}`
       + `${res.text.writer.startsWith("AI") ? "Text written by AI from the measurements; numbers checked." : "Text written automatically from the measurements."}</small></p>`;
-    drawOverlay();
+    render();
   } catch (e) {
     box.innerHTML = `<p class="help">Change detection did not finish (${e.message}). Select the button to try again.</p>`;
   } finally {

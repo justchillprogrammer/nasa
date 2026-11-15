@@ -495,20 +495,51 @@ function draw() {
   if (S.mode !== "blink") el.time.value = Math.round(S.t * 1000);
 }
 
+/* "Show only what changed". The passes line up to within about 0.1 pixel,
+   but SPHEREx's coarse pixels and the telescope's different orientation each
+   pass make every star's image a little different, so a plain subtraction
+   leaves a small leftover at every star. Differences are therefore coloured
+   by how far they stand above that expected leftover (noise plus a fifth of
+   the star's brightness): teal = brighter now, pink = fainter now. Places
+   away from the changes that passed the checks are dimmed. */
+const LEFTOVER = 0.2;
+function diffPixel(px, j, v, mx, noise, dim) {
+  const z = v / Math.sqrt(noise * noise + (LEFTOVER * mx) * (LEFTOVER * mx));
+  let a = Math.min(1, Math.abs(z) / 6);
+  if (Math.abs(z) < 3) a *= 0.25;           // within the expected leftover
+  a *= dim;
+  const c = v > 0 ? [98, 210, 195] : [242, 132, 158];
+  px[j] = 5 + (c[0] - 5) * a; px[j + 1] = 7 + (c[1] - 7) * a; px[j + 2] = 13 + (c[2] - 13) * a; px[j + 3] = 255;
+}
+
+function spotlight(n, changes, radius) {
+  const m = new Float32Array(n * n).fill(changes.length ? 0.3 : 0.55);
+  for (const c of changes) {
+    for (const p of (c.track && c.track.length ? c.track : [{ x: c.x, y: c.y }])) {
+      const x0 = Math.round(p.x), y0 = Math.round(p.y), r = radius;
+      for (let y = Math.max(0, y0 - r); y <= Math.min(n - 1, y0 + r); y++)
+        for (let x = Math.max(0, x0 - r); x <= Math.min(n - 1, x0 + r); x++)
+          if ((x - p.x) ** 2 + (y - p.y) ** 2 <= r * r) m[y * n + x] = 1;
+    }
+  }
+  return m;
+}
+
 function drawDiff(k, w, r) {
   const n = S.meta.npix, A = S.frames[k], B = S.frames[k + 1] || A, R = S.frames[0];
   if (!S.diffCanvas) { S.diffCanvas = document.createElement("canvas"); }
+  if (!S.spot || S.spot.meta !== S.meta) S.spot = { meta: S.meta, mask: spotlight(n, S.meta.changes, 7) };
   const c = S.diffCanvas;
   c.width = c.height = n;
   const cx = c.getContext("2d"), img = cx.createImageData(n, n), px = img.data;
   const gain = Math.pow(10, (+el.stretch.value - 50) / 25);
-  const scale = 5 * S.sigma / gain;
+  const noise = 2 * S.sigma / gain;
+  const mask = S.spot.mask;
   for (let i = 0, j = 0; i < A.length; i++, j += 4) {
-    const v = (1 - w) * A[i] + w * B[i] - R[i];
-    if (v !== v) { px[j] = px[j + 1] = px[j + 2] = 128; px[j + 3] = 255; continue; }   // no data: neutral grey
-    let s = 0.5 + 0.5 * Math.asinh(v / scale) / 2.5;
-    s = s < 0 ? 0 : s > 1 ? 1 : s;
-    px[j] = px[j + 1] = px[j + 2] = 255 * s; px[j + 3] = 255;
+    const now = (1 - w) * A[i] + w * B[i];
+    const v = now - R[i];
+    if (v !== v) { px[j] = px[j + 1] = px[j + 2] = 40; px[j + 3] = 255; continue; }   // no data
+    diffPixel(px, j, v, Math.max(Math.abs(now), Math.abs(R[i])), noise, mask[i]);
   }
   cx.putImageData(img, 0, 0);
   vctx.drawImage(c, r.sx, r.sy, r.sw, r.sh, 0, 0, el.view.width, el.view.width);
@@ -942,7 +973,7 @@ function setMode(m) {
       : "Slide through time. Between two real sweeps the picture is a blend, so motion looks smooth; the caption says when you are looking at a blend.",
     blink: "Flips between the first and the last sweep, like the blink comparator that found Pluto. Anything that jumps has changed.",
     stack: "Every image is centred on the object, then they are combined. Each star lands somewhere different in every image and smears away; the object lands in the same place every time and adds up. This is how astronomers find faint comets and asteroids.",
-    diff: "Each sweep minus the first one. Stars that did not change vanish. White is brighter than before, black is fainter; a star that moved leaves a black spot next to a white one.",
+    diff: "Each sweep minus the first. Teal: brighter than before. Pink: fainter than before. A star that moved shows pink where it was and teal where it is now. Every star leaves a faint leftover, because SPHEREx's star images differ slightly between passes; only differences well beyond that are coloured strongly, and places away from the checked changes are dimmed.",
     swipe: "The first image is on the left of the divider, the last on the right. Drag the divider (or use the arrow keys) and watch what jumps as it passes.",
   };
   el.modeHelp.textContent = help[m];
