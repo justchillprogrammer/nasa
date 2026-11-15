@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=7">
-<link rel="stylesheet" href="showcase.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="showcase.css?v=8">
 <style>
   .how-page { max-width: 980px; }
   .how-page h1 { font-size: clamp(2rem, 4.4vw, 3rem); letter-spacing: -0.03em; margin: 26px 0 10px; }
@@ -95,13 +95,13 @@
 
     <li class="step">
       <div>
-        <h2><span>5</span>Explore across 6 infrared detectors (0.75 to 5.0 &micro;m)</h2>
-        <p>SPHEREx uses six separate detector arrays, spanning from near-infrared blue (0.75 &micro;m) to deep thermal red (5.0 &micro;m). Selecting different bands reveals distinct astrophysical regimes:</p>
-        <p>A cold methane brown dwarf (like WISE J184125) almost vanishes in Band 1 (< 1.1 &micro;m) because its surface temperature is too cool to emit short-wavelength light, but glows intensely in Band 6 (4.5 &micro;m). Pre-computed offline spectrum charts display calibrated multi-epoch flux across all 6 bands, including 3I/ATLAS's comet colours.</p>
+        <h2><span>5</span>Brightness at every wavelength</h2>
+        <p>SPHEREx has six detectors covering 0.75 to 5 micrometres. Each exposure sees a spot through a slightly different colour, so measuring the spot in every exposure gives its brightness at many wavelengths: a rough spectrum.</p>
+        <p>The charts show one dot per real exposure, with its measurement error. Exposures where a saturated or flagged pixel falls inside the measuring circle are left out, never filled in. These are quick-look values, not calibrated science measurements.</p>
       </div>
       <div class="quote">
-        “Band 1 (0.75–1.1 &micro;m): Star invisible. Band 6 (4.4–5.0 &micro;m): Deep infrared glow dominates.”
-        <small>Interactive Band Selector in the time machine.</small>
+        Barnard's Star: 117 of 358 exposures measured. The other 241 were left out because the star overloads the detector at its centre.
+        <small>From the showcase build log (tools/build_spectra.py).</small>
       </div>
     </li>
 
@@ -123,7 +123,7 @@
     <dl>
       <dt>Real</dt><dd>Every picture is made from SPHEREx exposures in the NASA/IPAC Infrared Science Archive. Every number (motion, brightness change, significance) is measured from them.</dd>
       <dt>Real steps vs Blend</dt><dd>Toggle between jumping strictly across actual astronomical exposures (Real steps) or fading between sweeps (Blend). When blending, frames are explicitly labelled “not observed”.</dd>
-      <dt>Spectra</dt><dd>Pre-computed per-exposure multi-band photometry for all showcase targets, available offline without waiting for remote queries.</dd>
+      <dt>Spectra</dt><dd>One dot per real exposure, measured with quick-look photometry. Not calibrated science values. Exposures with bad pixels in the measuring circle are left out.</dd>
       <dt>Magnified</dt><dd>Zooming in enlarges real pixels; nothing is added.</dd>
       <dt>Candidate</dt><dd>A change the checks could not confirm. It is placed into the community review queue, never assumed as a discovery.</dd>
       <dt>Citizen findings</dt><dd>Saved locally and exportable as a structured report ready to share, not as automated submission to the Minor Planet Center.</dd>

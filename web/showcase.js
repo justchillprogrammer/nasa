@@ -29,7 +29,6 @@ const el = {
   tourPause: $("tour-pause"), tourNext: $("tour-next"), tourEnd: $("tour-end"), tourStart: $("tour-start"),
   shareLink: $("share-link"), savePicture: $("save-picture"), saveVideo: $("save-video"), shareMsg: $("share-msg"),
   // New UI controls
-  bandBar: $("band-bar"), bandPills: $("band-pills"),
   blendToggle: $("blend-toggle"),
   flagBtn: $("flag-btn"), flagModal: $("flag-modal"),
   flagTarget: $("flag-target"), flagRaDec: $("flag-ra-dec"), flagObsDate: $("flag-obs-date"),
@@ -48,14 +47,14 @@ const el = {
 };
 const vctx = el.view.getContext("2d");
 
-const BANDS = [
-  { id: 0, label: "All", lam0: 1.0, lam1: 2.0, color: "#ffb347", rgb: [255, 230, 200] },
-  { id: 1, label: "Band 1 (0.75–1.11 µm)", det: 1, lam0: 0.75, lam1: 1.11, color: "#7088ff", rgb: [100, 135, 255] },
-  { id: 2, label: "Band 2 (1.11–1.64 µm)", det: 2, lam0: 1.11, lam1: 1.64, color: "#4ee2ec", rgb: [78, 226, 236] },
-  { id: 3, label: "Band 3 (1.64–2.42 µm)", det: 3, lam0: 1.64, lam1: 2.42, color: "#6fe870", rgb: [111, 232, 112] },
-  { id: 4, label: "Band 4 (2.42–3.82 µm)", det: 4, lam0: 2.42, lam1: 3.82, color: "#ffbe40", rgb: [255, 190, 64] },
-  { id: 5, label: "Band 5 (3.82–4.42 µm)", det: 5, lam0: 3.82, lam1: 4.42, color: "#ff6250", rgb: [255, 98, 80] },
-  { id: 6, label: "Band 6 (4.42–5.00 µm)", det: 6, lam0: 4.42, lam1: 5.00, color: "#ff255b", rgb: [255, 37, 91] },
+// SPHEREx detector wavelength ranges (µm), used to label the spectrum chart.
+const DETECTORS = [
+  { id: 1, lam0: 0.75, lam1: 1.11, color: "#7088ff" },
+  { id: 2, lam0: 1.11, lam1: 1.64, color: "#4ee2ec" },
+  { id: 3, lam0: 1.64, lam1: 2.42, color: "#6fe870" },
+  { id: 4, lam0: 2.42, lam1: 3.82, color: "#ffbe40" },
+  { id: 5, lam0: 3.82, lam1: 4.42, color: "#ff6250" },
+  { id: 6, lam0: 4.42, lam1: 5.00, color: "#ff255b" },
 ];
 
 const S = {
@@ -68,7 +67,6 @@ const S = {
   zoom: null,                    // {cx, cy, scale}
   selected: null,
   loadToken: 0,
-  band: 0,
   blendMode: "blend",
   flagPending: null,
   findings: [],
@@ -278,10 +276,6 @@ async function openTarget(slug, opts = {}) {
   const whites = S.frames.map((f) => quantile(f, 0.997) - med).sort((a, b) => a - b);
   S.white = Math.max(whites[Math.floor(whites.length / 2)], 10 * S.sigma);
   S.floor = med - 1.5 * S.sigma;
-  S.band = 0;
-  if (el.bandPills) {
-    el.bandPills.querySelectorAll(".band-pill").forEach((btn) => btn.classList.toggle("on", +btn.dataset.band === 0));
-  }
   renderSweepCanvases();
   renderTargetSpectrum();
   updateCandidateReviewButton();
@@ -301,10 +295,6 @@ function renderSweepCanvases() {
   const k = Math.pow(10, (+el.stretch.value - 50) / 25);
   const soft = 8 * k, norm = Math.asinh(soft);
   const all = S.stackFrame ? S.frames.concat([S.stackFrame]) : S.frames;
-  const curBand = BANDS[S.band] || BANDS[0];
-  const [br, bg, bb] = curBand.rgb;
-  const isBrownDwarf = S.meta.slug === "wise-j184125";
-  const cx_src = (n - 1) / 2, cy_src = (n - 1) / 2;
 
   const canv = all.map((d, idx) => {
     const isStack = S.stackFrame && idx === all.length - 1;
@@ -315,37 +305,15 @@ function renderSweepCanvases() {
     const cx = c.getContext("2d");
     const img = cx.createImageData(n, n), px = img.data;
     for (let i = 0, j = 0; i < d.length; i++, j += 4) {
-      let v = d[i];
+      const v = d[i];
       // no data = a saturated star core: draw it white, as a camera would
       if (v !== v) { px[j] = px[j + 1] = px[j + 2] = 255; px[j + 3] = 255; continue; }
 
-      // Physical spectral response per SPHEREx band
-      if (isBrownDwarf && S.band > 0) {
-        const pixX = i % n, pixY = Math.floor(i / n);
-        const dist = Math.hypot(pixX - cx_src, pixY - cy_src);
-        if (dist < 14) {
-          // Band 1 (0.75-1.1 µm): brown dwarf vanishes!
-          // Band 5 & 6 (3.8-5 µm): brown dwarf glows bright!
-          const scaleFactors = [1.0, 0.04, 0.25, 0.75, 1.6, 2.7, 3.8];
-          const factor = scaleFactors[S.band] || 1.0;
-          const wSrc = Math.max(0, 1 - dist / 14);
-          v = v * (1 - wSrc + wSrc * factor);
-        }
-      }
-
       let s = Math.asinh(soft * (v - floor) / white) / norm;
       s = s < 0 ? 0 : s > 1 ? 1 : s;
-
-      if (S.band === 0) {
-        px[j] = 255 * s;
-        px[j + 1] = 255 * Math.pow(s, 1.08);
-        px[j + 2] = 255 * Math.pow(s, 1.22);
-      } else {
-        // Tinted to the detector's wavelength group
-        px[j] = Math.min(255, (br / 255) * 255 * s * 1.25);
-        px[j + 1] = Math.min(255, (bg / 255) * 255 * Math.pow(s, 1.06) * 1.25);
-        px[j + 2] = Math.min(255, (bb / 255) * 255 * Math.pow(s, 1.12) * 1.25);
-      }
+      px[j] = 255 * s;
+      px[j + 1] = 255 * Math.pow(s, 1.08);
+      px[j + 2] = 255 * Math.pow(s, 1.22);
       px[j + 3] = 255;
     }
     cx.putImageData(img, 0, 0);
@@ -1138,20 +1106,6 @@ async function route() {
   }
 }
 
-/* ---------------------------------------------------------- spectral bands */
-
-function setBand(bandId) {
-  S.band = +bandId;
-  if (el.bandPills) {
-    el.bandPills.querySelectorAll(".band-pill").forEach((btn) => {
-      btn.classList.toggle("on", +btn.dataset.band === S.band);
-    });
-  }
-  renderSweepCanvases();
-  draw();
-  renderTargetSpectrum();
-}
-
 /* ---------------------------------------------------------- offline spectrum chart */
 
 function renderTargetSpectrum() {
@@ -1174,15 +1128,13 @@ function renderTargetSpectrum() {
   const Y = (f) => T + (1 - (Math.min(Math.max(f, lo), hi) - lo) / (hi - lo)) * (H - T - B);
 
   const s = [];
-  s.push(`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Infrared Spectrum (0.75 - 5.0 µm)">`);
+  s.push(`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Brightness of ${S.meta.name} at each wavelength from 0.75 to 5 micrometres, one dot per exposure">`);
 
-  // Detector band columns
-  for (let b = 1; b <= 6; b++) {
-    const bInfo = BANDS[b];
-    const bx0 = X(bInfo.lam0), bx1 = X(bInfo.lam1), bw = bx1 - bx0;
-    const isCur = S.band === b;
-    s.push(`<rect x="${bx0.toFixed(1)}" y="${T}" width="${bw.toFixed(1)}" height="${H - T - B}" fill="${bInfo.color}" fill-opacity="${isCur ? 0.32 : 0.08}" stroke="${isCur ? bInfo.color : 'none'}" stroke-width="${isCur ? 1.5 : 0}" style="cursor:pointer" data-band="${b}"><title>${bInfo.label}: Click to view this band</title></rect>`);
-    s.push(`<text x="${(bx0 + bw / 2).toFixed(1)}" y="${T + 10}" class="spec-text" text-anchor="middle" fill="${bInfo.color}" font-weight="700">D${b}</text>`);
+  // Which of SPHEREx's six detectors covers each wavelength range
+  for (const d of DETECTORS) {
+    const bx0 = X(d.lam0), bw = X(d.lam1) - bx0;
+    s.push(`<rect x="${bx0.toFixed(1)}" y="${T}" width="${bw.toFixed(1)}" height="${H - T - B}" fill="${d.color}" fill-opacity="0.07"><title>Detector ${d.id}: ${d.lam0}–${d.lam1} µm</title></rect>`);
+    s.push(`<text x="${(bx0 + bw / 2).toFixed(1)}" y="${T + 10}" class="spec-text" text-anchor="middle" fill="${d.color}">${d.id}</text>`);
   }
 
   // Axes
@@ -1208,23 +1160,19 @@ function renderTargetSpectrum() {
   for (const p of pts) {
     const px = X(p.lam), py = Y(p.flux);
     const col = epColors[(p.epoch || 0) % epColors.length];
-    const bMatch = BANDS.find((b) => b.id > 0 && p.lam >= b.lam0 && p.lam <= b.lam1);
-    const isSelectedBand = S.band > 0 && bMatch && bMatch.id === S.band;
-    s.push(`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${isSelectedBand ? 4.2 : 2.4}" fill="${col}" fill-opacity="0.9" stroke="#ffffff" stroke-width="0.5"><title>${p.lam.toFixed(3)} µm: ${p.flux.toFixed(2)} mJy</title></circle>`);
+    // error bar, then the point
+    if (p.err > 0) s.push(`<line x1="${px.toFixed(1)}" x2="${px.toFixed(1)}" y1="${Y(p.flux - p.err).toFixed(1)}" y2="${Y(p.flux + p.err).toFixed(1)}" stroke="${col}" stroke-opacity="0.5"/>`);
+    s.push(`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="2.4" fill="${col}" fill-opacity="0.9"><title>${p.lam.toFixed(3)} µm: ${p.flux.toFixed(1)} ± ${p.err.toFixed(1)} mJy</title></circle>`);
   }
   s.push(`</svg>`);
 
-  if (S.meta.slug === "3i-atlas") {
-    el.spectrumCaption.textContent = "3I/ATLAS comet colors: 90 real per-exposure measurements across detectors.";
-  } else if (S.meta.slug === "wise-j184125") {
-    el.spectrumCaption.textContent = "Brown dwarf SED: faint at 1 µm, rising into a 4.5 µm infrared glow.";
-  } else {
-    el.spectrumCaption.textContent = "Pre-computed from per-exposure measurements. Tap any band to inspect.";
-  }
+  const src = S.meta.spectrum_source;
+  el.spectrumCaption.textContent = src
+    ? `Each dot is one real exposure (${src.measured} of ${src.exposures}); colour shows the sweep. ` +
+      (src.skipped ? `${src.skipped} were left out because saturated or flagged pixels fell in the measuring circle. ` : "") +
+      "Quick-look brightness, not calibrated science values."
+    : "Each dot is one real exposure. Quick-look brightness, not calibrated science values.";
   el.targetSpectrumView.innerHTML = s.join("");
-  el.targetSpectrumView.querySelectorAll("rect[data-band]").forEach((rect) => {
-    rect.addEventListener("click", () => setBand(+rect.dataset.band));
-  });
 }
 
 /* ---------------------------------------------------------- citizen science (flag & review) */
@@ -1468,16 +1416,6 @@ el.view.addEventListener("click", (ev) => {
 if (el.flagBtn) el.flagBtn.addEventListener("click", () => openFlagModal(el.view.width / 2, el.view.height / 2));
 if (el.flagSave) el.flagSave.addEventListener("click", saveFlagFinding);
 if (el.flagCancel) el.flagCancel.addEventListener("click", closeFlagModal);
-
-// Band pills listeners
-if (el.bandPills) {
-  el.bandPills.addEventListener("click", (ev) => {
-    const btn = ev.target.closest(".band-pill");
-    if (btn && btn.dataset.band !== undefined) {
-      setBand(btn.dataset.band);
-    }
-  });
-}
 
 // Blend / Real steps toggle listener
 if (el.blendToggle) {

@@ -314,7 +314,7 @@ async function lookAt(ra, dec, size, lam, label) {
   ctx.clearRect(0, 0, els.view.width, els.view.height);
   drawOverlay();
   syncUrl();
-  setStatus("Asking the NASA archive which images cover this spot. Pre-searched spots open instantly; new spots take up to 25 seconds.");
+  setStatus("Finding SPHEREx images of this spot. This usually takes a few seconds.");
 
   const SEARCH_TIMEOUT_MS = 25000;
   let res = null;
@@ -323,7 +323,7 @@ async function lookAt(ra, dec, size, lam, label) {
     const timer = setTimeout(() => ac.abort(), SEARCH_TIMEOUT_MS);
     try {
       if (attempt > 1) {
-        setStatus("The NASA archive is busy, retrying search (attempt 2 of 2)…");
+        setStatus("The first search did not finish; retrying (attempt 2 of 2)…");
       }
       const r = await fetch(`/api/search?ra=${ra}&dec=${dec}`, { signal: ac.signal });
       clearTimeout(timer);
@@ -337,13 +337,17 @@ async function lookAt(ra, dec, size, lam, label) {
       clearTimeout(timer);
       if (run !== state.run) return;
       if (attempt === 1) {
-        setStatus("The NASA archive is busy. Retrying in a moment…");
+        setStatus("The search did not finish; retrying in a moment…");
         await new Promise((ok) => setTimeout(ok, 1000));
         if (run !== state.run) return;
         continue;
       }
-      els.empty.textContent = "Search timed out.";
-      setStatus("The NASA archive is busy. Please try again in a moment, or select one of the pre-loaded spots below.", "error");
+      // Say what actually happened: our timeout, or the server's own reason.
+      const why = e.name === "AbortError"
+        ? "The search took longer than 25 seconds, so Sky Blink stopped waiting."
+        : `The search failed: ${e.message}.`;
+      els.empty.textContent = "No images loaded.";
+      setStatus(`${why} Try again, or pick one of the ready-made spots below.`, "error");
       return;
     }
   }
@@ -657,7 +661,8 @@ async function findChanges() {
     box.innerHTML = `<p>${res.text.summary}</p>` + res.changes.map((c) =>
       `<div class="found-item"><b style="color:${CHANGE_COLORS[c.kind]}">${c.rank}. ${CHANGE_NOUN[c.kind]}.</b>${texts[c.rank] || ""}
        <br><small>${c.kind === "moved" ? "Measured motion" : c.season_pattern ? "Candidate: may be a reflection inside the instrument" : "Candidate: not double-checked in single images"}, ${c.significance}σ</small></div>`).join("")
-      + `<p><small>${res.text.writer.startsWith("AI") ? "Text written by AI from the measurements; numbers checked." : "Text written automatically from the measurements."}</small></p>`;
+      + `<p><small>${res.checked ? `Measured from ${res.checked.images_used} real images in ${res.sweeps.length} sweeps (${res.sweeps.map((w) => w.label).join(", ")})${res.checked.images_failed ? `; ${res.checked.images_failed} could not be read and were left out` : ""}. ` : ""}`
+      + `${res.text.writer.startsWith("AI") ? "Text written by AI from the measurements; numbers checked." : "Text written automatically from the measurements."}</small></p>`;
     drawOverlay();
   } catch (e) {
     box.innerHTML = `<p class="help">Change detection did not finish (${e.message}). Select the button to try again.</p>`;

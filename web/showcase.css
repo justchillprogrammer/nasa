@@ -318,35 +318,6 @@
   padding: 1px 7px; border-radius: 10px; font-weight: 700;
 }
 
-/* ---------- SPHEREx 6 Detector Bands Selector ---------- */
-.band-bar {
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  margin: 10px 0 12px; padding: 8px 12px; border-radius: 8px;
-  background: var(--panel-2); border: 1px solid var(--line);
-}
-.band-bar-label { font-weight: 700; color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
-.band-pills { display: flex; gap: 6px; flex-wrap: wrap; }
-.band-pill {
-  display: inline-flex; align-items: baseline; gap: 5px;
-  background: var(--panel); color: var(--text); border: 1px solid var(--line);
-  padding: 4px 10px; border-radius: 16px; font-size: 0.85rem; font-weight: 700; cursor: pointer;
-  transition: all 0.15s ease;
-}
-.band-pill small { color: var(--muted); font-size: 0.72rem; font-weight: 400; }
-.band-pill:hover { border-color: var(--amber); }
-.band-pill.on {
-  background: var(--amber); color: var(--amber-ink); border-color: var(--amber);
-}
-.band-pill.on small { color: var(--amber-ink); opacity: 0.85; }
-
-/* Band False-Color Tints */
-.band-pill[data-band="1"] { border-left: 3px solid #7088ff; }
-.band-pill[data-band="2"] { border-left: 3px solid #4ee2ec; }
-.band-pill[data-band="3"] { border-left: 3px solid #6fe870; }
-.band-pill[data-band="4"] { border-left: 3px solid #ffbe40; }
-.band-pill[data-band="5"] { border-left: 3px solid #ff6250; }
-.band-pill[data-band="6"] { border-left: 3px solid #ff255b; }
-
 /* ---------- Real steps / Blend Toggle ---------- */
 .blend-toggle {
   display: inline-flex; align-items: center; gap: 12px;

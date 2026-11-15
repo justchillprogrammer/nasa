@@ -2,7 +2,7 @@
 Comprehensive verification test suite for Sky Blink.
 Validates:
 - Reliability (timeouts, retries, 404 page, 150/150 bundled presets)
-- 6 SPHEREx detector bands (0.75 - 5.0 um)
+- Real per-exposure spectra (no invented values, no fake band images)
 - Pre-computed offline target spectra for all 11 showcase targets
 - Real steps vs. Blend mode with "(not observed)" labelling
 - Citizen Science flag and candidate review queue with "a report ready to share" export
@@ -49,7 +49,8 @@ class TestSkyBlinkFeatures(unittest.TestCase):
         app_js = ROOT / "web" / "app.js"
         content = app_js.read_text(encoding="utf-8")
         self.assertIn("25000", content, "Search should use 25-second timeout")
-        self.assertIn("The NASA archive is busy", content, "Search should have friendly busy message")
+        self.assertNotIn("The NASA archive is busy", content, "Do not blame NASA for our own timeouts")
+        self.assertIn("took longer than 25 seconds", content)
         self.assertIn("retrying", content, "Search should support automatic retry")
 
     def test_all_150_presets_shipped(self):
@@ -73,48 +74,34 @@ class TestSkyBlinkFeatures(unittest.TestCase):
             self.assertGreater(len(data["exposures"]), 0, f"Preset {p.name} has no exposures")
             self.assertGreater(len(data["epochs"]), 0, f"Preset {p.name} has no epochs")
 
-    def test_showcase_precomputed_spectra(self):
+    def test_showcase_spectra_are_real_measurements(self):
+        """Spectra come from tools/build_spectra.py: one point per measured
+        exposure, never more points than exposures, errors not a fixed
+        fraction of the flux (the sign of invented values)."""
         showcase_dir = ROOT / "web" / "showcase"
         targets = [d for d in showcase_dir.iterdir() if d.is_dir()]
-        self.assertGreaterEqual(len(targets), 11, "Expected at least 11 showcase targets")
-
+        self.assertGreaterEqual(len(targets), 11)
         for t in targets:
-            meta_path = t / "meta.json"
-            self.assertTrue(meta_path.exists(), f"Missing meta.json in {t.name}")
-            with open(meta_path, "r", encoding="utf-8") as f:
-                meta = json.load(f)
-            
-            self.assertIn("spectrum", meta, f"Target {t.name} is missing precomputed 'spectrum'")
-            spec = meta["spectrum"]
-            self.assertGreater(len(spec), 0, f"Target {t.name} spectrum must not be empty")
-            
-            detectors_seen = set()
-            for entry in spec:
-                self.assertIn("det", entry)
-                self.assertIn("lam", entry)
-                self.assertIn("flux", entry)
-                self.assertIn("err", entry)
-                detectors_seen.add(entry["det"])
-            
-            self.assertEqual(
-                detectors_seen,
-                {1, 2, 3, 4, 5, 6},
-                f"Target {t.name} must cover all 6 detectors (1-6)"
-            )
-
-        # Specific check for 3I/ATLAS comet spectrum
-        atlas_meta = json.loads((showcase_dir / "3i-atlas" / "meta.json").read_text(encoding="utf-8"))
-        self.assertEqual(atlas_meta["spectrum"][0]["det"], 3)
-        self.assertGreater(atlas_meta["spectrum"][0]["flux"], 0)
+            meta = json.loads((t / "meta.json").read_text(encoding="utf-8"))
+            spec, src = meta.get("spectrum"), meta.get("spectrum_source")
+            self.assertTrue(spec, f"{t.name}: no spectrum")
+            self.assertIsNotNone(src, f"{t.name}: spectrum has no recorded source")
+            self.assertEqual(src["measured"], len(spec))
+            self.assertLessEqual(src["measured"], src["exposures"])
+            self.assertIn("Not calibrated", src["method"])
+            ratios = [p["err"] / p["flux"] for p in spec if p["flux"] > 0]
+            mean = sum(ratios) / len(ratios)
+            spread = (sum((r - mean) ** 2 for r in ratios) / len(ratios)) ** 0.5 / mean
+            self.assertGreater(spread, 0.05, f"{t.name}: errors look like a fixed fraction of flux")
+        barnard = json.loads((showcase_dir / "barnard" / "meta.json").read_text(encoding="utf-8"))
+        long = [p["flux"] for p in barnard["spectrum"] if p["lam"] > 4]
+        self.assertGreater(min(long), 1000, "Barnard's Star is bright at 4-5 um in real data")
 
     def test_web_ui_elements(self):
         index_html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
         
-        # Band selector with detector pills
-        self.assertIn('id="band-bar"', index_html)
-        self.assertIn('data-band="0"', index_html)
-        self.assertIn('data-band="1"', index_html)
-        self.assertIn('data-band="6"', index_html)
+        # The fake band selector is gone: SPHEREx band images were never built
+        self.assertNotIn('id="band-bar"', index_html)
         
         # Blend toggle with Real steps and Blend
         self.assertIn('id="blend-toggle"', index_html)
@@ -133,9 +120,9 @@ class TestSkyBlinkFeatures(unittest.TestCase):
     def test_showcase_js_logic(self):
         showcase_js = (ROOT / "web" / "showcase.js").read_text(encoding="utf-8")
         
-        # Band physics
-        self.assertIn("const BANDS =", showcase_js)
-        self.assertIn("wise-j184125", showcase_js, "SED physics response for brown dwarf")
+        # No invented brightness: no per-target scaling of pixel values
+        self.assertNotIn("scaleFactors", showcase_js)
+        self.assertNotIn("isBrownDwarf", showcase_js)
         
         # Real steps vs blend
         self.assertIn('blendMode === "steps"', showcase_js)
@@ -152,7 +139,9 @@ class TestSkyBlinkFeatures(unittest.TestCase):
 
     def test_how_page_documentation(self):
         how_html = (ROOT / "web" / "how.html").read_text(encoding="utf-8")
-        self.assertIn("6 infrared detectors", how_html)
+        self.assertNotIn("methane", how_html)
+        self.assertNotIn("calibrated multi-epoch", how_html)
+        self.assertIn("not calibrated", how_html)
         self.assertIn("Citizen science: Flag findings", how_html)
         self.assertIn("Real steps vs Blend", how_html)
         self.assertIn("not observed", how_html)

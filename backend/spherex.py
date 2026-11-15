@@ -2,7 +2,7 @@
 
 Three things live here:
 
-* ``search``      - which exposures cover a sky position (IRSA TAP service)
+* ``search``      - which exposures cover a sky position (IRSA image search, SIA v2)
 * ``load_header`` - the image header (sky and detector geometry) of one exposure
 * ``read_rows``   - a strip of pixel rows of one exposure
 
@@ -28,9 +28,12 @@ import numpy as np
 import requests
 from astropy.io import fits
 from astropy.time import Time
-from astropy.wcs import WCS
+from astropy.wcs import WCS, NoConvergence
 
-TAP_URL = "https://irsa.ipac.caltech.edu/TAP/sync"
+# The archive's image search (IVOA SIA v2) answers a position query in about
+# a second; the TAP join used before took up to a minute and sometimes
+# returned exposures from elsewhere in the sky.
+SIA_URL = "https://irsa.ipac.caltech.edu/SIA"
 # Public mirrors of the same files. The cloud bucket answers range requests
 # fastest; the archive itself is the fallback.
 DATA_BASES = [
@@ -160,6 +163,13 @@ def _pixel_from_corners(corners, ra, dec) -> tuple[float, float]:
     pix = np.array([[0, 0], [n, 0], [n, n], [0, n]], float)
     cra = np.array([c[0] for c in corners])
     cdec = np.array([c[1] for c in corners])
+    # A detector spans about 3.5 degrees (5 corner to corner). A footprint whose corners are far
+    # from the position cannot contain it (and the projection below would
+    # give a mirrored, meaningless answer), so refuse it.
+    r1, d1, r2, d2 = map(np.radians, (cra, cdec, ra, dec))
+    sep = np.degrees(np.arccos(np.clip(np.sin(d1) * np.sin(d2) + np.cos(d1) * np.cos(d2) * np.cos(r1 - r2), -1, 1)))
+    if len(corners) < 4 or np.max(sep) > 6.0:
+        raise ValueError("footprint does not contain the position")
     xi, eta = _tangent(cra, cdec, ra, dec)
     A = np.column_stack([xi, eta, np.ones(4)])
     coef, *_ = np.linalg.lstsq(A, pix, rcond=None)
@@ -180,63 +190,113 @@ def bundled_path(kind: str, key: str) -> Path:
     return BUNDLED / kind / (hashlib.sha1(key.encode()).hexdigest()[:20] + ".json.gz")
 
 
-def search(ra: float, dec: float) -> dict:
-    """All exposures whose footprint contains (ra, dec), grouped into sky passes."""
+def _parse_sregion(text: str) -> list[tuple[float, float]]:
+    """Corner (ra, dec) pairs of an 'POLYGON ICRS ra dec ra dec ...' footprint."""
+    parts = text.split()
+    i = 2 if parts[1].upper() in ("ICRS", "FK5", "J2000") else 1
+    v = [float(t) for t in parts[i:]]
+    pts = [(v[k] % 360.0, v[k + 1]) for k in range(0, len(v) - 1, 2)]
+    return pts[:4]
+
+
+def _query_sia(ra: float, dec: float, mjd_range: tuple[float, float] | None = None) -> list[dict]:
+    """SPHEREx science exposures whose footprint contains (ra, dec),
+    optionally only those taken between two MJDs."""
+    params = {"POS": f"CIRCLE {ra:.6f} {dec:.6f} 0.001", "FACILITY": "SPHEREx",
+              "RESPONSEFORMAT": "CSV", "MAXREC": "20000"}
+    if mjd_range:
+        params["TIME"] = f"{mjd_range[0]:.5f} {mjd_range[1]:.5f}"
+    # The archive's front end sometimes answers 502 for a moment; retry.
+    last: Exception | None = None
+    for attempt in range(6):
+        try:
+            r = _session().get(SIA_URL, params=params, timeout=(6, 40))
+            if r.status_code in (502, 503, 504):
+                raise requests.HTTPError(f"archive answered {r.status_code}", response=r)
+            r.raise_for_status()
+            break
+        except (requests.ConnectionError, requests.Timeout, requests.HTTPError) as e:
+            last = e
+            time.sleep(0.5 + 0.5 * attempt)
+    else:
+        raise RuntimeError(f"the NASA archive's image search did not answer ({last})")
+    if r.text.lstrip().startswith("<"):
+        raise RuntimeError("the archive rejected the image search")
+    rows = []
+    for row in csv.DictReader(io.StringIO(r.text)):
+        url = row.get("access_url", "")
+        if row.get("dataproduct_subtype") != "science" or "cube" in row.get("obs_collection", ""):
+            continue
+        if URI_PREFIX not in url or not url.endswith(".fits"):
+            continue
+        try:
+            rows.append({
+                "did": row["obs_publisher_did"],
+                "key": url.split(URI_PREFIX, 1)[1],
+                "band": row["energy_bandpassname"],
+                "mjd": float(row["t_min"]),
+                "exptime": float(row["t_exptime"] or 0),
+                "corners": _parse_sregion(row["s_region"]),
+            })
+        except (KeyError, ValueError, IndexError):
+            continue
+    return rows
+
+
+def search(ra: float, dec: float, use_saved: bool = True) -> dict:
+    """All exposures whose footprint contains (ra, dec), grouped into sky passes.
+
+    use_saved=False asks the archive even when a bundled or cached answer
+    exists (tools/build_spots.py uses it to rebuild the bundle).
+    """
     key = search_key(ra, dec)
     shipped = bundled_path("search", key)
-    if shipped.exists():
+    if use_saved and shipped.exists():
         import gzip
         with gzip.open(shipped, "rt") as f:
             return json.load(f)
     path = _cache_path("search", key, ".json")
     with _lock(str(path)):
-        if path.exists():
+        if use_saved and path.exists():
             return json.loads(path.read_text())
 
-        adql = (
-            "SELECT p.obs_publisher_did,p.time_bounds_lower,p.time_exposure,"
-            "p.energy_bandpassname,p.poly,a.uri "
-            "FROM spherex.plane p JOIN spherex.artifact a ON a.planeid=p.planeid "
-            "WHERE a.producttype='science' AND "
-            f"CONTAINS(POINT('ICRS',{ra:.6f},{dec:.6f}),p.poly)=1 "
-            "ORDER BY p.time_bounds_lower"
-        )
-        r = _session().get(TAP_URL, params={"QUERY": adql, "FORMAT": "csv"}, timeout=180)
-        r.raise_for_status()
-        if r.text.lstrip().startswith("<"):
-            raise RuntimeError("the archive rejected the search query")
+        # (The archive's TAP service was tried as a fallback, but it is slow
+        # and returned exposures from elsewhere in the sky, so it is not used.)
+        rows = _query_sia(ra, dec)
 
-        # Deduplicate reprocessed releases first before geometry/wavelength math.
-        raw_best: dict[str, tuple[str, dict]] = {}
-        for row in csv.DictReader(io.StringIO(r.text)):
-            uri = row["uri"]
-            if not uri.startswith(URI_PREFIX):
-                continue
-            did = row["obs_publisher_did"]
+        # One row per exposure: prefer a data release (dr*) over a quick
+        # release (qr*), and the newest of each kind.
+        def rank(release: str) -> tuple:
+            return (release.startswith("dr"), release)
+
+        best: dict[str, tuple[str, dict]] = {}
+        for row in rows:
+            did = row["did"]
             if "?" not in did:
                 continue
             prefix, exp_id = did.split("?", 1)
             release = prefix.rsplit("_", 1)[-1]
-            if exp_id not in raw_best or release > raw_best[exp_id][0]:
-                raw_best[exp_id] = (release, row)
+            if exp_id not in best or rank(release) > rank(best[exp_id][0]):
+                best[exp_id] = (release, row)
 
         exposures = []
-        for exp_id, (release, row) in raw_best.items():
-            uri = row["uri"]
-            det = int(row["energy_bandpassname"].rsplit("D", 1)[1])
+        for exp_id, (release, row) in best.items():
+            det = int(row["band"].rsplit("D", 1)[1])
             try:
-                x, y = _pixel_from_corners(_parse_ewkb_polygon(row["poly"]), ra, dec)
+                x, y = _pixel_from_corners(row["corners"], ra, dec)
             except Exception:
                 continue
+            if not (0 <= x < DETECTOR_SIZE and 0 <= y < DETECTOR_SIZE):
+                continue
             lam, dlam = wavelength_at(det, x, y)
-            mjd = float(row["time_bounds_lower"])
+            mjd = row["mjd"]
             exposures.append({
                 "id": exp_id,
-                "key": uri[len(URI_PREFIX):],
+                "key": row["key"],
                 "det": det,
                 "mjd": round(mjd, 6),
                 "date": _mjd_to_isot(mjd),
-                "exptime": float(row["time_exposure"] or 0),
+                "exptime": row["exptime"],
                 "release": release,
                 "x": round(x, 1),
                 "y": round(y, 1),
@@ -369,7 +429,28 @@ class Exposure:
         self.mjd = float(header.get("MJD-AVG", header.get("MJD-OBS", 0)))
 
     def world_to_pixel(self, ra, dec):
-        return self.wcs.all_world2pix(ra, dec, 0)
+        """Detector pixel of sky positions, distortion included.
+
+        Far off the detector the distortion polynomial can fail to invert
+        (bright-star fields such as Vega's hit this). Those points are
+        off-detector anyway, so they get the plain linear answer instead of
+        failing the whole image.
+        """
+        ra_a, dec_a = np.asarray(ra, float), np.asarray(dec, float)
+        pts = np.column_stack([ra_a.ravel(), dec_a.ravel()])
+        try:
+            out = self.wcs.all_world2pix(pts, 0)
+        except NoConvergence as err:
+            out = np.array(err.best_solution, float)
+            bad = np.zeros(len(out), bool)
+            for idx in (err.divergent, err.slow_conv):
+                if idx is not None:
+                    bad[np.asarray(idx, int)] = True
+            bad |= ~np.isfinite(out).all(axis=1)
+            if bad.any():
+                out[bad] = self.wcs.wcs_world2pix(pts[bad], 0)
+        x, y = out[:, 0].reshape(ra_a.shape), out[:, 1].reshape(ra_a.shape)
+        return (float(x), float(y)) if ra_a.ndim == 0 else (x, y)
 
     def read_rows(self, y0: int, y1: int) -> np.ndarray:
         """Rows y0..y1 inclusive as a float32 array of shape (rows, nx)."""

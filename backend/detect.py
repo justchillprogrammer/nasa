@@ -99,12 +99,16 @@ def stack_sweeps(ra: float, dec: float, size: float, npix: int,
     res = sx.search(ra, dec)
     epochs = res["epochs"]
     out = []
+    # What was tried and what failed, so callers never report a result
+    # from images that did not load.
+    report = {"sweeps_found": len(epochs), "images_tried": 0, "images_failed": 0, "skipped": []}
     for ep in epochs:
         exps = [e for e in res["exposures"]
                 if e["epoch"] == ep["index"] and lam_lo <= e["lam"] <= lam_hi]
         exps = exps[:max_per_sweep]
         if len(exps) < 3:
             log(f"  sweep {ep['label']}: only {len(exps)} exposures in the window, skipped")
+            report["skipped"].append({"label": ep["label"], "reason": f"only {len(exps)} images in the 1-2 µm range"})
             continue
 
         def grab(e):
@@ -116,8 +120,15 @@ def stack_sweeps(ra: float, dec: float, size: float, npix: int,
                 return e, None, None
 
         with ThreadPoolExecutor(workers) as pool:
-            got = [g for g in pool.map(grab, exps) if g[1] is not None and g[2]["coverage"] > 0.15]
+            results = list(pool.map(grab, exps))
+        failed = sum(1 for g in results if g[1] is None)
+        report["images_tried"] += len(results)
+        report["images_failed"] += failed
+        got = [g for g in results if g[1] is not None and g[2]["coverage"] > 0.15]
         if len(got) < 3:
+            report["skipped"].append({"label": ep["label"],
+                                      "reason": f"{failed} of {len(results)} images could not be read"
+                                      if failed else "the images barely cover this spot"})
             continue
 
         frames, used = [], []
@@ -162,7 +173,7 @@ def stack_sweeps(ra: float, dec: float, size: float, npix: int,
                 if 0.2 < g < 5:
                     s["image"] = s["image"] / g
     return {"ra": ra, "dec": dec, "size": size, "npix": npix,
-            "lam_lo": lam_lo, "lam_hi": lam_hi, "sweeps": out}
+            "lam_lo": lam_lo, "lam_hi": lam_hi, "sweeps": out, "report": report}
 
 
 # ---------------------------------------------------------------- sources

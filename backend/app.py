@@ -50,7 +50,7 @@ def api_search(ra: float, dec: float, response: Response):
     try:
         res = sx.search(ra, dec)
     except Exception as e:
-        raise HTTPException(502, f"archive search failed: {e}")
+        raise HTTPException(502, f"NASA's image archive (IRSA) did not answer after several tries ({e})")
     response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=86400"
     return {"ra": ra, "dec": dec, "epochs": res["epochs"], "exposures": res["exposures"]}
 
@@ -182,19 +182,40 @@ def api_changes(ra: float, dec: float, size: float = Query(0.25, ge=0.05, le=0.5
     showcase, so every brightness change here is a candidate.
     """
     _check(ra, dec)
-    cache = sx._cache_path("changes", f"v1:{ra:.4f}:{dec:.4f}:{size:.3f}", ".json")
+    cache = sx._cache_path("changes", f"v2:{ra:.4f}:{dec:.4f}:{size:.3f}", ".json")
     if cache.exists():
         return json.loads(cache.read_text())
     if not _changes_slots.acquire(blocking=False):
         raise HTTPException(503, "Sky Blink is busy finding changes for other visitors. Try again in a minute.",
                             headers={"Retry-After": "30"})
     try:
-        stacks = detect.stack_sweeps(ra, dec, size, 300, log=lambda *a: None)
-        result = detect.find_changes(stacks)
-    except Exception as e:
-        raise HTTPException(502, f"change detection failed: {e}")
+        out = _find_changes(ra, dec, size)
     finally:
         _changes_slots.release()
+    sx.write_cache(cache, json.dumps(out, default=float))
+    return out
+
+
+def _find_changes(ra: float, dec: float, size: float) -> dict:
+    try:
+        stacks = detect.stack_sweeps(ra, dec, size, 300, log=lambda *a: None)
+    except Exception as e:
+        raise HTTPException(502, f"The images for this spot could not be read ({e}). Try again in a minute.")
+    usable, rep = stacks["sweeps"], stacks["report"]
+    # Never report "no change" from images that did not load.
+    if len(usable) < 2:
+        why = "; ".join(f"{s['label']}: {s['reason']}" for s in rep["skipped"]) or "no repeat visits found"
+        raise HTTPException(422, f"Sky Blink could not compare this spot: it needs two complete sweeps "
+                                 f"and could build {len(usable)} ({why}). Nothing was measured, so no result is shown.")
+    if rep["images_tried"] and rep["images_failed"] / rep["images_tried"] > 0.3:
+        raise HTTPException(502, f"{rep['images_failed']} of {rep['images_tried']} images could not be read, "
+                                 "too many for a trustworthy comparison. Try again in a minute.")
+    try:
+        result = detect.find_changes(stacks)
+    except Exception as e:
+        raise HTTPException(502, f"Change detection failed ({e}).")
+    if not result.get("n_sources"):
+        raise HTTPException(422, "No stars could be measured in these images, so Sky Blink cannot say whether anything changed.")
     for c in result["changes"]:
         if c["kind"] != "moved" and c.get("verified") is None:
             c["verified"] = False
@@ -210,8 +231,9 @@ def api_changes(ra: float, dec: float, size: float = Query(0.25, ge=0.05, le=0.5
         "ra": ra, "dec": dec, "size": size, "npix": stacks["npix"],
         "sweeps": [{"label": s["label"], "n": s["n"], "mjd": s["mjd"]} for s in sweeps],
         "changes": result["changes"], "n_sources": result.get("n_sources"), "text": text,
+        "checked": {"images_used": sum(s["n"] for s in sweeps), "images_failed": rep["images_failed"],
+                    "sweeps_skipped": rep["skipped"]},
     }
-    sx.write_cache(cache, json.dumps(out, default=float))
     return out
 
 

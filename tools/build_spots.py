@@ -1,6 +1,6 @@
 """Pre-search the explorer's presets and named objects.
 
-The first archive search for a new position takes up to a minute. This runs
+A new archive search takes a few seconds; bundled answers take none. This runs
 that search once for every preset and named object, and ships the results in
 backend/data/search/ (gzipped), where spherex.search() looks first.
 
@@ -59,7 +59,7 @@ def main(force: bool) -> None:
             return s["name"], "already done", 0
         t = time.time()
         try:
-            res = sx.search(s["ra"], s["dec"])
+            res = sx.search(s["ra"], s["dec"], use_saved=False)
         except Exception as e:
             return s["name"], f"FAILED {e}", round(time.time() - t)
         with gzip.open(dst, "wt") as f:

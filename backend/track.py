@@ -102,42 +102,28 @@ def _interp(rows: list[dict], mjd: float) -> tuple[float, float]:
 
 
 def _query_day(mjd: float, ra: float, dec: float, half: float = 1.0) -> list[dict]:
-    adql = (
-        "SELECT p.obs_publisher_did,p.time_bounds_lower,p.time_exposure,p.energy_bandpassname,a.uri "
-        "FROM spherex.plane p JOIN spherex.artifact a ON a.planeid=p.planeid "
-        "WHERE a.producttype='science' AND "
-        f"p.time_bounds_lower BETWEEN {mjd - half:.4f} AND {mjd + half:.4f} AND "
-        f"CONTAINS(POINT('ICRS',{ra:.5f},{dec:.5f}),p.poly)=1"
-    )
-    key = f"trkq:v1:{adql}"
+    """Exposures covering (ra, dec) within half a day either side of mjd."""
+    key = f"trkq:v2:{mjd:.4f}:{ra:.5f}:{dec:.5f}:{half}"
     cache = sx._cache_path("track", key, ".json")
     if cache.exists():
         return json.loads(cache.read_text())
-    # The archive sometimes answers 502 when busy: retry, then skip the day
-    # rather than abandon the whole search (finished days stay cached).
-    text = None
-    for attempt in range(4):
-        try:
-            r = sx._session().get(sx.TAP_URL, params={"QUERY": adql, "FORMAT": "csv"}, timeout=180)
-            if r.status_code == 200 and not r.text.lstrip().startswith("<"):
-                text = r.text
-                break
-        except Exception:
-            pass
-        time.sleep(5 * (attempt + 1))
-    if text is None:
+    try:
+        rows = sx._query_sia(ra, dec, (mjd - half, mjd + half))
+    except RuntimeError:
         return []          # not cached, so a later run tries this day again
-    r_text = text
-    out = []
-    for row in csv.DictReader(io.StringIO(r_text)):
-        if not row["uri"].startswith(sx.URI_PREFIX):
+    best: dict[str, dict] = {}
+    for row in rows:
+        try:
+            sx._pixel_from_corners(row["corners"], ra, dec)   # really covers it
+        except ValueError:
             continue
-        did = row["obs_publisher_did"]
-        out.append({
-            "id": did.split("?", 1)[1], "key": row["uri"][len(sx.URI_PREFIX):],
-            "mjd0": float(row["time_bounds_lower"]), "exptime": float(row["time_exposure"] or 0),
-            "release": did.split("?", 1)[0].rsplit("_", 1)[-1],
-        })
+        prefix, exp_id = row["did"].split("?", 1)
+        release = prefix.rsplit("_", 1)[-1]
+        old = best.get(exp_id)
+        if old is None or (release.startswith("dr"), release) > (old["release"].startswith("dr"), old["release"]):
+            best[exp_id] = {"id": exp_id, "key": row["key"], "mjd0": row["mjd"],
+                            "exptime": row["exptime"], "release": release}
+    out = list(best.values())
     sx.write_cache(cache, json.dumps(out))
     return out
 
@@ -155,7 +141,8 @@ def find_exposures(command: str, start: str = MISSION_START, stop: str | None = 
     best: dict[str, dict] = {}
     for lst in found:
         for e in lst:
-            if e["id"] not in best or e["release"] > best[e["id"]]["release"]:
+            old = best.get(e["id"])
+            if old is None or (e["release"].startswith("dr"), e["release"]) > (old["release"].startswith("dr"), old["release"]):
                 best[e["id"]] = e
     exps = sorted(best.values(), key=lambda e: e["mjd0"])
     log(f"  {len(exps)} exposures may contain it")

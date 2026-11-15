@@ -75,6 +75,28 @@ class TestApi(unittest.TestCase):
                 r = self.client.get("/api/changes?ra=11.1&dec=21.2&size=0.25")
                 self.assertEqual(r.status_code, 502)
 
+    def test_changes_refuses_to_report_from_failed_images(self):
+        """A spot whose images failed must give an error, never 'no change'."""
+        one_sweep = {"ra": 1, "dec": 1, "size": 0.25, "npix": 300, "sweeps": [{"label": "Sep 2025", "n": 5}],
+                     "report": {"sweeps_found": 3, "images_tried": 90, "images_failed": 60,
+                                "skipped": [{"label": "Apr 2026", "reason": "30 of 30 images could not be read"}]}}
+        with mock.patch.object(server.detect, "stack_sweeps", return_value=one_sweep), \
+             mock.patch.object(server.detect, "find_changes") as fc:
+            r = self.client.get("/api/changes?ra=12.5&dec=12.5&size=0.25")
+        self.assertEqual(r.status_code, 422)
+        self.assertIn("Nothing was measured", r.json()["detail"])
+        self.assertIn("could not be read", r.json()["detail"])
+        fc.assert_not_called()
+
+    def test_changes_refuses_when_many_images_failed(self):
+        two = {"ra": 1, "dec": 1, "size": 0.25, "npix": 300,
+               "sweeps": [{"label": "a", "n": 5}, {"label": "b", "n": 5}],
+               "report": {"sweeps_found": 2, "images_tried": 60, "images_failed": 40, "skipped": []}}
+        with mock.patch.object(server.detect, "stack_sweeps", return_value=two):
+            r = self.client.get("/api/changes?ra=13.5&dec=13.5&size=0.25")
+        self.assertEqual(r.status_code, 502)
+        self.assertIn("40 of 60", r.json()["detail"])
+
     def test_spectrum_stream_ends_cleanly_when_archive_stalls(self):
         exposures = [{"key": "a", "id": "1", "epoch": 0}, {"key": "b", "id": "2", "epoch": 0}]
         with mock.patch.object(server, "SPECTRUM_POINT_TIMEOUT", 0.2), \

@@ -70,6 +70,8 @@ def cutout(key: str, ra: float, dec: float, size_deg: float, npix: int) -> tuple
     exp = sx.load_exposure(key)
     x, y = _detector_grid(exp, ra, dec, size_deg, npix)
 
+    if not (np.isfinite(x).any() and np.isfinite(y).any()):
+        raise ValueError("this exposure does not cover the requested position")
     y_lo = max(int(np.floor(np.nanmin(y))) - 1, 0)
     y_hi = min(int(np.ceil(np.nanmax(y))) + 1, exp.ny - 1)
     if y_hi <= y_lo or np.nanmax(x) < 0 or np.nanmin(x) > exp.nx - 1:
@@ -99,6 +101,8 @@ def photometry(key: str, ra: float, dec: float) -> dict | None:
     R_AP, R_IN, R_OUT, HALF, OVER = 2.5, 6.0, 9.0, 11, 4
     exp = sx.load_exposure(key)
     tx, ty = (float(v) for v in exp.world_to_pixel(ra, dec))
+    if not (math.isfinite(tx) and math.isfinite(ty)):
+        return None
     if not (HALF <= tx < exp.nx - HALF and HALF <= ty < exp.ny - HALF):
         return None
     y0 = int(round(ty)) - HALF
